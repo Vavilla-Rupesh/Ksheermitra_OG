@@ -45,7 +45,17 @@ class AuthProvider with ChangeNotifier {
     try {
       final response = await _authService.verifyOTP(phone, otp);
       if (response['success'] == true) {
-        _user = User.fromJson(response['user']);
+        // Check if user needs to complete registration
+        if (response['requiresRegistration'] == true) {
+          _isLoading = false;
+          notifyListeners();
+          return true; // OTP is valid but needs registration
+        }
+
+        // User exists with complete profile
+        if (response['user'] != null) {
+          _user = User.fromJson(response['user']);
+        }
       }
       _isLoading = false;
       notifyListeners();

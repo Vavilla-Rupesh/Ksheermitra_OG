@@ -52,10 +52,37 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              Icons.local_drink,
-              size: 100,
-              color: Colors.white,
+            // App Logo
+            Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withAlpha(25),
+                    blurRadius: 20,
+                    offset: const Offset(0, 10),
+                  ),
+                ],
+              ),
+              child: ClipOval(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Image.asset(
+                    'assets/images/logo.png',
+                    fit: BoxFit.contain,
+                    errorBuilder: (context, error, stackTrace) {
+                      return const Icon(
+                        Icons.local_drink,
+                        size: 60,
+                        color: AppTheme.primaryColor,
+                      );
+                    },
+                  ),
+                ),
+              ),
             ),
             const SizedBox(height: 20),
             const Text(

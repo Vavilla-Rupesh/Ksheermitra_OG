@@ -28,7 +28,9 @@ db.User = require('../models/User')(sequelize, Sequelize);
 db.Product = require('../models/Product')(sequelize, Sequelize);
 db.Area = require('../models/Area')(sequelize, Sequelize);
 db.Subscription = require('../models/Subscription')(sequelize, Sequelize);
+db.SubscriptionProduct = require('../models/SubscriptionProduct')(sequelize, Sequelize);
 db.Delivery = require('../models/Delivery')(sequelize, Sequelize);
+db.DeliveryItem = require('../models/DeliveryItem')(sequelize, Sequelize);
 db.Invoice = require('../models/Invoice')(sequelize, Sequelize);
 db.OTPLog = require('../models/OTPLog')(sequelize, Sequelize);
 

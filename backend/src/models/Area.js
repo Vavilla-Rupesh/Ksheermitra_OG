@@ -27,6 +27,26 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
+    // Google Maps boundary coordinates (polygon)
+    boundaries: {
+      type: DataTypes.JSONB,
+      allowNull: true,
+      comment: 'Array of {lat, lng} coordinates defining the area polygon'
+    },
+    // Center point of the area
+    centerLatitude: {
+      type: DataTypes.DECIMAL(10, 8),
+      allowNull: true
+    },
+    centerLongitude: {
+      type: DataTypes.DECIMAL(11, 8),
+      allowNull: true
+    },
+    // Map link for easy sharing
+    mapLink: {
+      type: DataTypes.TEXT,
+      allowNull: true
+    },
     isActive: {
       type: DataTypes.BOOLEAN,
       defaultValue: true

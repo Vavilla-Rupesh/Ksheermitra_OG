@@ -2,6 +2,7 @@ class Product {
   final String id;
   final String name;
   final String? description;
+  final String? imageUrl;
   final String unit;
   final double pricePerUnit;
   final bool isActive;
@@ -11,6 +12,7 @@ class Product {
     required this.id,
     required this.name,
     this.description,
+    this.imageUrl,
     required this.unit,
     required this.pricePerUnit,
     required this.isActive,
@@ -22,6 +24,7 @@ class Product {
       id: json['id'],
       name: json['name'],
       description: json['description'],
+      imageUrl: json['imageUrl'],
       unit: json['unit'],
       pricePerUnit: double.parse(json['pricePerUnit'].toString()),
       isActive: json['isActive'] ?? true,
@@ -34,6 +37,7 @@ class Product {
       'id': id,
       'name': name,
       'description': description,
+      'imageUrl': imageUrl,
       'unit': unit,
       'pricePerUnit': pricePerUnit,
       'isActive': isActive,

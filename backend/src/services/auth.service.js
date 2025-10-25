@@ -43,15 +43,33 @@ class AuthService {
         ipAddress
       });
 
-      await whatsappService.sendOTP(phone, otp);
+      // Send OTP via WhatsApp - but don't let it block the response
+      let whatsappSent = false;
+      try {
+        const whatsappResult = await Promise.race([
+          whatsappService.sendOTP(phone, otp),
+          new Promise((_, reject) =>
+            setTimeout(() => reject(new Error('WhatsApp timeout')), 10000)
+          )
+        ]);
+        whatsappSent = whatsappResult && whatsappResult.success;
+        logger.info(`WhatsApp OTP ${whatsappSent ? 'sent' : 'failed'} for ${phone}`);
+      } catch (whatsappError) {
+        logger.warn(`WhatsApp OTP failed for ${phone}: ${whatsappError.message}`);
+        // Continue without WhatsApp - OTP is still valid in database
+      }
 
-      logger.info(`OTP sent to ${phone}`);
+      logger.info(`OTP created for ${phone} (WhatsApp: ${whatsappSent ? 'sent' : 'fallback'})`);
 
       return {
         success: true,
-        message: 'OTP sent successfully',
+        message: whatsappSent
+          ? 'OTP sent successfully via WhatsApp'
+          : 'OTP generated. Please check your phone or contact support.',
         expiresAt,
-        userExists: !!user
+        userExists: !!user,
+        whatsappSent,
+        otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only in dev mode
       };
     } catch (error) {
       logger.error('Error sending OTP:', error);
@@ -91,15 +109,22 @@ class AuthService {
 
       let user = await db.User.findOne({ where: { phone } });
 
+      // Check if user is new (doesn't exist or doesn't have name)
+      const isNewUser = !user || !user.name;
+
       if (!user) {
-        user = await db.User.create({
-          phone,
-          role: 'customer',
-          isActive: true
-        });
-        logger.info(`New user created: ${phone}`);
+        // Don't create user yet - let them complete registration
+        logger.info(`OTP verified for new user: ${phone}`);
+        return {
+          success: true,
+          isNewUser: true,
+          requiresRegistration: true,
+          message: 'OTP verified. Please complete your registration.',
+          phone: phone
+        };
       }
 
+      // Existing user with complete profile
       user.lastLogin = new Date();
       await user.save();
 
@@ -110,6 +135,8 @@ class AuthService {
 
       return {
         success: true,
+        isNewUser: false,
+        requiresRegistration: false,
         user: {
           id: user.id,
           name: user.name,

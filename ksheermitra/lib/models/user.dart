@@ -1,3 +1,5 @@
+import 'subscription.dart';
+
 class User {
   final String id;
   final String? name;
@@ -9,6 +11,7 @@ class User {
   final double? longitude;
   final String? areaId;
   final bool isActive;
+  final List<Subscription>? subscriptions;
 
   User({
     required this.id,
@@ -21,6 +24,7 @@ class User {
     this.longitude,
     this.areaId,
     required this.isActive,
+    this.subscriptions,
   });
 
   factory User.fromJson(Map<String, dynamic> json) {
@@ -35,6 +39,11 @@ class User {
       longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
       areaId: json['areaId'],
       isActive: json['isActive'] ?? true,
+      subscriptions: json['subscriptions'] != null
+          ? (json['subscriptions'] as List)
+              .map((s) => Subscription.fromJson(s))
+              .toList()
+          : null,
     );
   }
 
@@ -50,6 +59,7 @@ class User {
       'longitude': longitude,
       'areaId': areaId,
       'isActive': isActive,
+      if (subscriptions != null) 'subscriptions': subscriptions!.map((s) => s.toJson()).toList(),
     };
   }
 

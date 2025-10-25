@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import 'package:pinput/pinput.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/theme.dart';
+import '../../widgets/premium_widgets.dart';
+import 'signup_screen.dart';
 
 class LoginScreen extends StatefulWidget {
   const LoginScreen({super.key});
@@ -70,7 +72,7 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && authProvider.user != null) {
       final user = authProvider.user!;
-      
+
       if (user.isCustomer) {
         Navigator.of(context).pushReplacementNamed('/customer-home');
       } else if (user.isDeliveryBoy) {
@@ -80,163 +82,215 @@ class _LoginScreenState extends State<LoginScreen> {
       }
     } else {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(authProvider.error ?? 'Invalid OTP')),
+        SnackBar(
+          content: Text(authProvider.error ?? 'Account not found. Please sign up first.'),
+          backgroundColor: Colors.orange,
+        ),
       );
     }
+  }
+
+  void _navigateToSignup() {
+    Navigator.of(context).push(
+      MaterialPageRoute(
+        builder: (context) => SignupScreen(
+          phone: _phoneController.text.trim(),
+          otp: '',
+        ),
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
-      body: SafeArea(
-        child: Center(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.local_drink,
-                  size: 80,
-                  color: Colors.white,
-                ),
-                const SizedBox(height: 20),
-                const Text(
-                  'Welcome to Ksheermitra',
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-                const SizedBox(height: 10),
-                const Text(
-                  'Login or Sign Up',
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.white70,
-                  ),
-                ),
-                const SizedBox(height: 5),
-                const Text(
-                  'Enter your phone number to get started',
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.white60,
-                  ),
-                ),
-                const SizedBox(height: 40),
-                
-                Container(
-                  padding: const EdgeInsets.all(24),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
-                        maxLength: 13,
-                        decoration: const InputDecoration(
-                          labelText: 'Phone Number',
-                          prefixIcon: Icon(Icons.phone),
-                          hintText: '+91XXXXXXXXXX',
-                          helperText: 'New users will be automatically registered',
-                          counterText: '',
-                        ),
-                        enabled: !_otpSent,
-                      ),
-                      
-                      if (_otpSent) ...[
-                        const SizedBox(height: 20),
-                        const Text(
-                          'Enter OTP',
-                          style: TextStyle(
-                            fontSize: 16,
-                            fontWeight: FontWeight.bold,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 20),
-                        Pinput(
-                          controller: _otpController,
-                          length: 6,
-                          onCompleted: (pin) => _verifyOTP(),
-                        ),
-                        const SizedBox(height: 10),
-                        TextButton(
-                          onPressed: () {
-                            setState(() {
-                              _otpSent = false;
-                              _otpController.clear();
-                            });
+      body: Container(
+        decoration: const BoxDecoration(
+          gradient: AppTheme.dashboardHeaderGradient,
+        ),
+        child: SafeArea(
+          child: Center(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(AppTheme.space24),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  // App Logo with gradient background
+                  Container(
+                    width: 120,
+                    height: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      shape: BoxShape.circle,
+                      boxShadow: AppTheme.premiumCardShadow,
+                    ),
+                    child: ClipOval(
+                      child: Padding(
+                        padding: const EdgeInsets.all(20),
+                        child: Image.asset(
+                          'assets/images/logo.png',
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) {
+                            return const Icon(
+                              Icons.local_drink,
+                              size: 60,
+                              color: AppTheme.primaryColor,
+                            );
                           },
-                          child: const Text('Change Phone Number'),
                         ),
-                      ],
-                      
-                      const SizedBox(height: 24),
-                      
-                      Consumer<AuthProvider>(
-                        builder: (context, authProvider, child) {
-                          return ElevatedButton(
-                            onPressed: authProvider.isLoading
-                                ? null
-                                : _otpSent
-                                    ? _verifyOTP
-                                    : _sendOTP,
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppTheme.primaryColor,
-                              padding: const EdgeInsets.symmetric(vertical: 16),
-                            ),
-                            child: authProvider.isLoading
-                                ? const CircularProgressIndicator(color: Colors.white)
-                                : Text(
-                                    _otpSent ? 'Verify OTP & Continue' : 'Send OTP',
-                                    style: const TextStyle(fontSize: 16),
-                                  ),
-                          );
-                        },
                       ),
-                      const SizedBox(height: 16),
-                      const Text(
-                        'By continuing, you agree to our Terms of Service',
-                        style: TextStyle(
-                          fontSize: 12,
-                          color: Colors.grey,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space24),
+                  const Text(
+                    'Welcome to Ksheermitra',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 32,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                      letterSpacing: -0.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space12),
+                  const Text(
+                    'Fresh Milk, Delivered Daily',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 16,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.w500,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space8),
+                  const Text(
+                    'Enter your phone number to get started',
+                    textAlign: TextAlign.center,
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Colors.white60,
+                    ),
+                  ),
+                  const SizedBox(height: AppTheme.space48),
+
+                  // Login Card with Premium styling
+                  PremiumCard(
+                    padding: const EdgeInsets.all(AppTheme.space24),
+                    shadows: AppTheme.premiumCardShadow,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        PremiumPhoneInput(
+                          controller: _phoneController,
+                          validator: (value) {
+                            if (value == null || value.isEmpty) {
+                              return 'Please enter phone number';
+                            }
+                            if (value.length != 10) {
+                              return 'Phone number must be 10 digits';
+                            }
+                            return null;
+                          },
                         ),
-                        textAlign: TextAlign.center,
-                      ),
-                      const SizedBox(height: 20),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
+
+                        if (_otpSent) ...[
+                          const SizedBox(height: AppTheme.space24),
                           const Text(
-                            "Don't have an account?",
-                            style: TextStyle(fontSize: 14),
+                            'Enter OTP',
+                            style: AppTheme.h4,
+                            textAlign: TextAlign.center,
                           ),
-                          TextButton(
-                            onPressed: () {
-                              Navigator.of(context).pushNamed('/signup');
-                            },
-                            child: const Text(
-                              'Sign Up',
-                              style: TextStyle(
-                                fontSize: 14,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: AppTheme.space16),
+                          Pinput(
+                            controller: _otpController,
+                            length: 6,
+                            onCompleted: (pin) => _verifyOTP(),
+                            defaultPinTheme: PinTheme(
+                              width: 50,
+                              height: 56,
+                              textStyle: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.backgroundColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                border: Border.all(color: Colors.transparent),
+                              ),
+                            ),
+                            focusedPinTheme: PinTheme(
+                              width: 50,
+                              height: 56,
+                              textStyle: const TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.w600,
+                                color: AppTheme.textPrimary,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppTheme.backgroundColor,
+                                borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                border: Border.all(color: AppTheme.primaryColor, width: 2),
                               ),
                             ),
                           ),
+                          const SizedBox(height: AppTheme.space12),
+                          PremiumTextButton(
+                            text: 'Change Phone Number',
+                            onPressed: () {
+                              setState(() {
+                                _otpSent = false;
+                                _otpController.clear();
+                              });
+                            },
+                          ),
                         ],
-                      ),
-                    ],
+
+                        const SizedBox(height: AppTheme.space24),
+
+                        Consumer<AuthProvider>(
+                          builder: (context, authProvider, child) {
+                            return PremiumButton(
+                              text: _otpSent ? 'Verify & Login' : 'Send OTP',
+                              onPressed: authProvider.isLoading
+                                  ? null
+                                  : _otpSent
+                                      ? _verifyOTP
+                                      : _sendOTP,
+                              isLoading: authProvider.isLoading,
+                              icon: _otpSent ? Icons.login : Icons.send,
+                            );
+                          },
+                        ),
+
+                        const SizedBox(height: AppTheme.space16),
+                        Text(
+                          'By continuing, you agree to our Terms of Service',
+                          style: AppTheme.caption,
+                          textAlign: TextAlign.center,
+                        ),
+
+                        const SizedBox(height: AppTheme.space20),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Text(
+                              "Don't have an account? ",
+                              style: AppTheme.bodyMedium.copyWith(
+                                color: AppTheme.textSecondary,
+                              ),
+                            ),
+                            PremiumTextButton(
+                              text: 'Sign Up',
+                              onPressed: _navigateToSignup,
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
                   ),
-                ),
-              ],
+                ],
+              ),
             ),
           ),
         ),

@@ -26,12 +26,14 @@ router.put(
 router.post(
   '/subscriptions',
   [
-    body('productId').notEmpty().isUUID().withMessage('Valid product ID is required'),
-    body('quantity').notEmpty().isFloat({ min: 0.1 }).withMessage('Quantity must be greater than 0'),
-    body('frequency').notEmpty().isIn(['daily', 'weekly', 'monthly', 'custom']).withMessage('Invalid frequency'),
+    body('products').notEmpty().isArray({ min: 1 }).withMessage('At least one product is required'),
+    body('products.*.productId').notEmpty().isUUID().withMessage('Valid product ID is required'),
+    body('products.*.quantity').notEmpty().isFloat({ min: 0.1 }).withMessage('Quantity must be greater than 0'),
+    body('frequency').notEmpty().isIn(['daily', 'weekly', 'monthly', 'custom', 'daterange']).withMessage('Invalid frequency'),
     body('selectedDays').optional().isArray().withMessage('Selected days must be an array'),
     body('startDate').notEmpty().isDate().withMessage('Valid start date is required'),
     body('endDate').optional().isDate().withMessage('Invalid end date'),
+    body('autoRenewal').optional().isBoolean().withMessage('Invalid auto renewal value'),
     validate
   ],
   customerController.createSubscription
@@ -39,15 +41,47 @@ router.post(
 
 router.get('/subscriptions', customerController.getSubscriptions);
 
+router.get('/subscriptions/:id',
+  [param('id').isUUID().withMessage('Invalid subscription ID'), validate],
+  customerController.getSubscriptionDetails
+);
+
 router.put(
   '/subscriptions/:id',
   [
     param('id').isUUID().withMessage('Invalid subscription ID'),
-    body('quantity').optional().isFloat({ min: 0.1 }).withMessage('Quantity must be greater than 0'),
-    body('status').optional().isIn(['active', 'paused', 'cancelled']).withMessage('Invalid status'),
+    body('products').optional().isArray().withMessage('Products must be an array'),
+    body('products.*.productId').optional().isUUID().withMessage('Valid product ID is required'),
+    body('products.*.quantity').optional().isFloat({ min: 0.1 }).withMessage('Quantity must be greater than 0'),
+    body('frequency').optional().isIn(['daily', 'weekly', 'monthly', 'custom', 'daterange']).withMessage('Invalid frequency'),
+    body('selectedDays').optional().isArray().withMessage('Selected days must be an array'),
+    body('endDate').optional().isDate().withMessage('Invalid end date'),
+    body('autoRenewal').optional().isBoolean().withMessage('Invalid auto renewal value'),
     validate
   ],
   customerController.updateSubscription
+);
+
+router.post(
+  '/subscriptions/:id/products',
+  [
+    param('id').isUUID().withMessage('Invalid subscription ID'),
+    body('products').notEmpty().isArray({ min: 1 }).withMessage('At least one product is required'),
+    body('products.*.productId').notEmpty().isUUID().withMessage('Valid product ID is required'),
+    body('products.*.quantity').notEmpty().isFloat({ min: 0.1 }).withMessage('Quantity must be greater than 0'),
+    validate
+  ],
+  customerController.addProductsToSubscription
+);
+
+router.delete(
+  '/subscriptions/:id/products/:productId',
+  [
+    param('id').isUUID().withMessage('Invalid subscription ID'),
+    param('productId').isUUID().withMessage('Invalid product ID'),
+    validate
+  ],
+  customerController.removeProductFromSubscription
 );
 
 router.post(
@@ -63,15 +97,84 @@ router.post(
 
 router.post(
   '/subscriptions/:id/resume',
+  [param('id').isUUID().withMessage('Invalid subscription ID'), validate],
+  customerController.resumeSubscription
+);
+
+router.post(
+  '/subscriptions/:id/cancel',
+  [param('id').isUUID().withMessage('Invalid subscription ID'), validate],
+  customerController.cancelSubscription
+);
+
+router.post(
+  '/subscriptions/:id/today',
+  [
+    param('id').isUUID().withMessage('Invalid subscription ID'),
+    body('items').notEmpty().isArray({ min: 1 }).withMessage('At least one item is required'),
+    body('items.*.productId').notEmpty().isUUID().withMessage('Valid product ID is required'),
+    body('items.*.quantity').notEmpty().isFloat({ min: 0 }).withMessage('Quantity must be 0 or greater'),
+    body('items.*.isOneTime').optional().isBoolean().withMessage('Invalid one-time flag'),
+    validate
+  ],
+  customerController.updateTodayDelivery
+);
+
+router.get('/deliveries', customerController.getDeliveryHistory);
+router.get('/invoices', customerController.getInvoices);
+router.get('/products', customerController.getProducts);
+
+// Monthly breakout routes
+router.get(
+  '/subscriptions/:id/monthly-breakout',
   [
     param('id').isUUID().withMessage('Invalid subscription ID'),
     validate
   ],
-  customerController.resumeSubscription
+  customerController.getSubscriptionMonthlyBreakout
 );
 
-router.get('/deliveries', customerController.getDeliveryHistory);
+router.get(
+  '/monthly-breakout/:year/:month',
+  [
+    param('year').isInt({ min: 2020, max: 2100 }).withMessage('Invalid year'),
+    param('month').isInt({ min: 1, max: 12 }).withMessage('Invalid month'),
+    validate
+  ],
+  customerController.getCustomerMonthlyBreakout
+);
 
-router.get('/invoices', customerController.getInvoices);
+router.put(
+  '/deliveries/:id/products',
+  [
+    param('id').isUUID().withMessage('Invalid delivery ID'),
+    body('products').notEmpty().isArray({ min: 1 }).withMessage('At least one product is required'),
+    body('products.*.productId').notEmpty().isUUID().withMessage('Valid product ID is required'),
+    body('products.*.quantity').notEmpty().isFloat({ min: 0 }).withMessage('Quantity must be 0 or greater'),
+    body('products.*.isOneTime').optional().isBoolean().withMessage('Invalid one-time flag'),
+    validate
+  ],
+  customerController.modifyDeliveryProducts
+);
+
+router.post(
+  '/monthly-invoice/:year/:month',
+  [
+    param('year').isInt({ min: 2020, max: 2100 }).withMessage('Invalid year'),
+    param('month').isInt({ min: 1, max: 12 }).withMessage('Invalid month'),
+    validate
+  ],
+  customerController.generateMonthlyInvoice
+);
+
+router.get(
+  '/monthly-invoice/:year/:month',
+  [
+    param('year').isInt({ min: 2020, max: 2100 }).withMessage('Invalid year'),
+    param('month').isInt({ min: 1, max: 12 }).withMessage('Invalid month'),
+    validate
+  ],
+  customerController.getMonthlyInvoice
+);
 
 module.exports = router;

@@ -31,7 +31,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     productId: {
       type: DataTypes.UUID,
-      allowNull: false,
+      allowNull: true, // Changed to true for multi-product support
       references: {
         model: 'Products',
         key: 'id'
@@ -43,7 +43,7 @@ module.exports = (sequelize, DataTypes) => {
     },
     quantity: {
       type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
+      allowNull: true, // Changed to true for multi-product support
       validate: {
         min: 0,
         isDecimal: true
@@ -125,6 +125,11 @@ module.exports = (sequelize, DataTypes) => {
     Delivery.belongsTo(models.Product, {
       foreignKey: 'productId',
       as: 'product'
+    });
+
+    Delivery.hasMany(models.DeliveryItem, {
+      foreignKey: 'deliveryId',
+      as: 'items'
     });
   };
 

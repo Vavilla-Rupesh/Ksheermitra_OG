@@ -13,24 +13,8 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    productId: {
-      type: DataTypes.UUID,
-      allowNull: false,
-      references: {
-        model: 'Products',
-        key: 'id'
-      }
-    },
-    quantity: {
-      type: DataTypes.DECIMAL(10, 2),
-      allowNull: false,
-      validate: {
-        min: 0.1,
-        isDecimal: true
-      }
-    },
     frequency: {
-      type: DataTypes.ENUM('daily', 'weekly', 'monthly', 'custom'),
+      type: DataTypes.ENUM('daily', 'weekly', 'custom', 'monthly', 'daterange'),
       allowNull: false,
       defaultValue: 'daily'
     },
@@ -59,6 +43,11 @@ module.exports = (sequelize, DataTypes) => {
     pauseEndDate: {
       type: DataTypes.DATEONLY,
       allowNull: true
+    },
+    autoRenewal: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      comment: 'Auto-renew monthly subscriptions'
     }
   }, {
     tableName: 'Subscriptions',
@@ -67,9 +56,6 @@ module.exports = (sequelize, DataTypes) => {
     indexes: [
       {
         fields: ['customerId']
-      },
-      {
-        fields: ['productId']
       },
       {
         fields: ['status']
@@ -86,9 +72,9 @@ module.exports = (sequelize, DataTypes) => {
       as: 'customer'
     });
 
-    Subscription.belongsTo(models.Product, {
-      foreignKey: 'productId',
-      as: 'product'
+    Subscription.hasMany(models.SubscriptionProduct, {
+      foreignKey: 'subscriptionId',
+      as: 'products'
     });
 
     Subscription.hasMany(models.Delivery, {

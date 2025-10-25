@@ -283,10 +283,16 @@ class InvoiceService {
     try {
       const invoices = await db.Invoice.findAll({
         where: {
-          customerId,
-          type: 'monthly'
+          customerId
         },
-        order: [['invoiceDate', 'DESC']]
+        order: [['invoiceDate', 'DESC']],
+        include: [
+          {
+            model: db.User,
+            as: 'customer',
+            attributes: ['id', 'name', 'phone']
+          }
+        ]
       });
 
       return invoices;

@@ -7,16 +7,19 @@ class AuthService {
   final ApiService _apiService = ApiService();
 
   Future<Map<String, dynamic>> sendOTP(String phone) async {
-    return await _apiService.post('/auth/send-otp', {'phone': phone});
+    return await _apiService.post('/auth/send-otp', {'phone': phone}, requiresAuth: false);
   }
 
   Future<Map<String, dynamic>> verifyOTP(String phone, String otp) async {
     final response = await _apiService.post('/auth/verify-otp', {
       'phone': phone,
       'otp': otp,
-    });
+    }, requiresAuth: false);
 
-    if (response['success'] == true && response['token'] != null) {
+    // Only save token and user if registration is complete
+    if (response['success'] == true &&
+        response['requiresRegistration'] != true &&
+        response['token'] != null) {
       await _apiService.setToken(response['token']);
       await saveUser(User.fromJson(response['user']));
     }
@@ -44,7 +47,7 @@ class AuthService {
     if (latitude != null) data['latitude'] = latitude.toString();
     if (longitude != null) data['longitude'] = longitude.toString();
 
-    final response = await _apiService.post('/auth/register', data);
+    final response = await _apiService.post('/auth/register', data, requiresAuth: false);
 
     if (response['success'] == true && response['token'] != null) {
       await _apiService.setToken(response['token']);
@@ -63,6 +66,9 @@ class AuthService {
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user_data');
     
+    // Load the token back into ApiService
+    await _apiService.loadToken();
+
     if (userData != null) {
       return User.fromJson(json.decode(userData));
     }

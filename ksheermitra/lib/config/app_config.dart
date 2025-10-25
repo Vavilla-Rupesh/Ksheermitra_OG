@@ -1,16 +1,17 @@
 class AppConfig {
   static const String appName = 'Ksheermitra';
-  static const String baseUrl = 'https://4e3e4f924aea.ngrok-free.app/api';
+  static const String baseUrl = 'https://e1e6b8065a6f.ngrok-free.app/api';
   
-  static const String googleMapsApiKey = 'API_KEY_HERE';
+  static const String googleMapsApiKey = 'AIzaSyCnN2T4O5Q11DGMQ0GGPT7G61A7kkOK6Jg';
   
-  static const Duration requestTimeout = Duration(seconds: 30);
-  static const Duration connectionTimeout = Duration(seconds: 30);
-  
+  // Increased timeout for OTP and WhatsApp operations
+  static const Duration requestTimeout = Duration(seconds: 60);
+  static const Duration connectionTimeout = Duration(seconds: 60);
+
   static const int otpLength = 6;
   static const int otpResendTimeout = 60;
-  
-  static const double defaultLatitude = 12.9716;
-  static const double defaultLongitude = 77.5946;
+
+  static const double defaultLatitude = 14.4426;
+  static const double defaultLongitude = 79.9864;
   static const double mapZoom = 14.0;
 }
