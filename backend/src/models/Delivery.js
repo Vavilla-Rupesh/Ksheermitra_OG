@@ -50,7 +50,7 @@ module.exports = (sequelize, DataTypes) => {
       }
     },
     status: {
-      type: DataTypes.ENUM('pending', 'delivered', 'missed', 'cancelled'),
+      type: DataTypes.ENUM('pending', 'in-progress', 'delivered', 'missed', 'cancelled', 'failed'),
       allowNull: false,
       defaultValue: 'pending'
     },
@@ -135,3 +135,4 @@ module.exports = (sequelize, DataTypes) => {
 
   return Delivery;
 };
+

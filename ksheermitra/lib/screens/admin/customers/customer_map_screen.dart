@@ -31,36 +31,57 @@ class _CustomerMapScreenState extends State<CustomerMapScreen> {
     });
 
     try {
-      final customers =
+      final allCustomers =
           await context.read<CustomerProvider>().loadCustomersWithLocations();
       
-      final markers = customers.map((customer) {
+      // Filter out customers without valid locations
+      final customersWithLocations = allCustomers.where((customer) {
+        return customer.latitude != null &&
+               customer.longitude != null &&
+               customer.latitude != 0 &&
+               customer.longitude != 0;
+      }).toList();
+
+      if (customersWithLocations.isEmpty) {
+        setState(() {
+          _customers = [];
+          _markers = {};
+          _isLoading = false;
+          _error = 'No customers with valid locations found';
+        });
+        return;
+      }
+
+      final markers = customersWithLocations.map((customer) {
         return Marker(
           markerId: MarkerId(customer.id),
           position: LatLng(
-            customer.latitude ?? 0,
-            customer.longitude ?? 0,
+            customer.latitude!,
+            customer.longitude!,
           ),
           infoWindow: InfoWindow(
             title: customer.name ?? 'No Name',
-            snippet: customer.phone,
+            snippet: '${customer.phone}${customer.address != null ? '\n${customer.address}' : ''}',
           ),
           icon: BitmapDescriptor.defaultMarkerWithHue(
             customer.isActive
                 ? BitmapDescriptor.hueBlue
                 : BitmapDescriptor.hueRed,
           ),
+          onTap: () {
+            _showCustomerDetails(customer);
+          },
         );
       }).toSet();
 
       setState(() {
-        _customers = customers;
+        _customers = customersWithLocations;
         _markers = markers;
         _isLoading = false;
       });
 
       // Move camera to show all markers
-      if (_mapController != null && customers.isNotEmpty) {
+      if (_mapController != null && customersWithLocations.isNotEmpty) {
         _fitMarkersInView();
       }
     } catch (e) {
@@ -68,6 +89,15 @@ class _CustomerMapScreenState extends State<CustomerMapScreen> {
         _error = e.toString();
         _isLoading = false;
       });
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading customer locations: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
     }
   }
 
@@ -95,6 +125,75 @@ class _CustomerMapScreenState extends State<CustomerMapScreen> {
           northeast: LatLng(maxLat, maxLng),
         ),
         50, // padding
+      ),
+    );
+  }
+
+  void _showCustomerDetails(User customer) {
+    showModalBottomSheet(
+      context: context,
+      builder: (context) => Container(
+        padding: const EdgeInsets.all(16),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              customer.name ?? 'Unknown Customer',
+              style: const TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                const Icon(Icons.phone, size: 16, color: Colors.grey),
+                const SizedBox(width: 8),
+                Text(customer.phone),
+              ],
+            ),
+            if (customer.email != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                children: [
+                  const Icon(Icons.email, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Text(customer.email!),
+                ],
+              ),
+            ],
+            if (customer.address != null) ...[
+              const SizedBox(height: 4),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Icon(Icons.location_on, size: 16, color: Colors.grey),
+                  const SizedBox(width: 8),
+                  Expanded(child: Text(customer.address!)),
+                ],
+              ),
+            ],
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(
+                  customer.isActive ? Icons.check_circle : Icons.cancel,
+                  size: 16,
+                  color: customer.isActive ? Colors.green : Colors.red,
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  customer.isActive ? 'Active' : 'Inactive',
+                  style: TextStyle(
+                    color: customer.isActive ? Colors.green : Colors.red,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
       ),
     );
   }

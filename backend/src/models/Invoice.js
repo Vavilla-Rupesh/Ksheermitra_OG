@@ -29,9 +29,10 @@ module.exports = (sequelize, DataTypes) => {
         key: 'id'
       }
     },
-    type: {
-      type: DataTypes.ENUM('daily', 'monthly'),
-      allowNull: false
+    invoiceType: {
+      type: DataTypes.ENUM('daily', 'monthly', 'delivery_boy_daily', 'admin_daily'),
+      allowNull: false,
+      defaultValue: 'daily'
     },
     invoiceDate: {
       type: DataTypes.DATEONLY,
@@ -39,11 +40,11 @@ module.exports = (sequelize, DataTypes) => {
     },
     periodStart: {
       type: DataTypes.DATEONLY,
-      allowNull: false
+      allowNull: true
     },
     periodEnd: {
       type: DataTypes.DATEONLY,
-      allowNull: false
+      allowNull: true
     },
     totalAmount: {
       type: DataTypes.DECIMAL(10, 2),
@@ -61,8 +62,8 @@ module.exports = (sequelize, DataTypes) => {
         isDecimal: true
       }
     },
-    paymentStatus: {
-      type: DataTypes.ENUM('pending', 'partial', 'paid'),
+    status: {
+      type: DataTypes.ENUM('pending', 'generated', 'sent', 'paid', 'partial'),
       defaultValue: 'pending'
     },
     pdfPath: {
@@ -77,10 +78,10 @@ module.exports = (sequelize, DataTypes) => {
       type: DataTypes.DATE,
       allowNull: true
     },
-    deliveryDetails: {
+    metadata: {
       type: DataTypes.JSONB,
       allowNull: true,
-      comment: 'Stores detailed delivery information'
+      comment: 'Stores detailed invoice information including delivery details'
     }
   }, {
     tableName: 'Invoices',
@@ -98,13 +99,13 @@ module.exports = (sequelize, DataTypes) => {
         fields: ['deliveryBoyId']
       },
       {
-        fields: ['type']
+        fields: ['invoiceType']
       },
       {
         fields: ['invoiceDate']
       },
       {
-        fields: ['paymentStatus']
+        fields: ['status']
       },
       {
         fields: ['periodStart', 'periodEnd']
@@ -122,7 +123,13 @@ module.exports = (sequelize, DataTypes) => {
       foreignKey: 'deliveryBoyId',
       as: 'deliveryBoy'
     });
+
+    Invoice.hasMany(models.OfflineSale, {
+      foreignKey: 'invoiceId',
+      as: 'offlineSales'
+    });
   };
 
   return Invoice;
 };
+

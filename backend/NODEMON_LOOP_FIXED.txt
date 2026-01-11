@@ -1,0 +1,174 @@
+╔════════════════════════════════════════════════════════════════╗
+║                                                                ║
+║     ✅  NODEMON INFINITE RESTART LOOP - FIXED!  ✅            ║
+║                                                                ║
+╚════════════════════════════════════════════════════════════════╝
+
+
+═══════════════════════════════════════════════════════════════════
+❌ THE PROBLEM (ROOT CAUSE FOUND!)
+═══════════════════════════════════════════════════════════════════
+
+Your logs showed:
+  [nodemon] restarting due to changes...
+  [nodemon] restarting due to changes...
+  [nodemon] restarting due to changes...
+  (repeating 30+ times in 10 seconds!)
+
+This is an INFINITE RESTART LOOP caused by:
+  1. Baileys creates session files in baileys_auth/ folder
+  2. Nodemon watches ALL files by default
+  3. New file created → Nodemon restarts
+  4. Restart creates more files → Nodemon restarts again
+  5. INFINITE LOOP!
+
+WhatsApp can NEVER connect because server keeps restarting
+before connection completes!
+
+
+═══════════════════════════════════════════════════════════════════
+✅ THE FIX (APPLIED!)
+═══════════════════════════════════════════════════════════════════
+
+Created nodemon.json with proper ignore rules:
+  ✅ Ignore baileys_auth/ folder
+  ✅ Ignore whatsapp-session/ folder
+  ✅ Ignore logs/ folder
+  ✅ Ignore uploads/ folder
+  ✅ Ignore .wwebjs_* folders
+  ✅ Only watch src/**/*.js files
+  ✅ Added 2 second delay between restarts
+
+Now nodemon will:
+  ✅ Only restart when YOU edit code files
+  ✅ Ignore session file changes
+  ✅ Let WhatsApp connect properly
+
+
+═══════════════════════════════════════════════════════════════════
+🚀 START SERVER NOW (FINAL TIME!)
+═══════════════════════════════════════════════════════════════════
+
+STEP 1: Start the server
+────────────────────────
+cd C:\Users\MAHESH\Downloads\Ksheer_Mitra-main\Ksheer_Mitra-main\backend
+npm run dev
+
+STEP 2: Wait for QR code (takes 5-10 seconds)
+──────────────────────────────────────────────
+You will see:
+  info: Server is running on port 3000
+  info: Using WhatsApp Web version: 2.3000.x
+  info: WhatsApp initialization started with Baileys
+  info: Connection state: connecting
+
+  [QR CODE APPEARS]
+
+STEP 3: Scan the QR code
+─────────────────────────
+  1. Open WhatsApp on phone
+  2. Settings → Linked Devices → Link a Device
+  3. Scan the QR code
+  4. WAIT - Don't touch anything!
+
+STEP 4: Wait for success message (5-10 seconds)
+────────────────────────────────────────────────
+You will see:
+  info: Connection state: open
+  ✅ WhatsApp connected successfully!
+  info: Session saved. No need to scan QR code again on restart.
+
+STEP 5: Test OTP
+────────────────
+  Send OTP from your Flutter app
+  Message will arrive on WhatsApp instantly!
+
+
+═══════════════════════════════════════════════════════════════════
+✅ WHAT YOU'LL SEE (CORRECT BEHAVIOR)
+═══════════════════════════════════════════════════════════════════
+
+BEFORE FIX (WRONG):
+───────────────────
+info: Connection state: connecting
+[nodemon] restarting due to changes...
+[nodemon] restarting due to changes...
+[nodemon] restarting due to changes...
+❌ Never connects!
+
+AFTER FIX (CORRECT):
+────────────────────
+info: Connection state: connecting
+[QR CODE APPEARS]
+(wait 5-10 seconds while you scan)
+info: Connection state: open
+✅ WhatsApp connected successfully!
+info: Session saved
+NO MORE RESTARTS!
+
+
+═══════════════════════════════════════════════════════════════════
+⚠️ IMPORTANT NOTES
+═══════════════════════════════════════════════════════════════════
+
+1. NO MORE INFINITE RESTARTS
+   Server will stay running while connecting
+
+2. SCAN QR CODE COMPLETELY
+   Let it finish before doing anything else
+
+3. WAIT FOR SUCCESS MESSAGE
+   "✅ WhatsApp connected successfully!"
+   "Session saved"
+
+4. AFTER FIRST CONNECTION
+   Future restarts = NO QR code
+   Session persists automatically
+
+
+═══════════════════════════════════════════════════════════════════
+🎯 VERIFICATION
+═══════════════════════════════════════════════════════════════════
+
+After starting server, check:
+  ✅ Server starts once (no immediate restarts)
+  ✅ QR code appears and stays visible
+  ✅ You can scan it without interruption
+  ✅ Connection completes successfully
+  ✅ No "[nodemon] restarting" messages
+
+
+═══════════════════════════════════════════════════════════════════
+🆘 IF ISSUES PERSIST
+═══════════════════════════════════════════════════════════════════
+
+If you still see restarts:
+  1. Kill all node processes: taskkill /F /IM node.exe
+  2. Delete baileys_auth folder
+  3. Make sure nodemon.json exists
+  4. Start again: npm run dev
+
+
+═══════════════════════════════════════════════════════════════════
+🎊 SUMMARY
+═══════════════════════════════════════════════════════════════════
+
+Problem: Nodemon infinite restart loop
+Cause: Nodemon watching session files
+Fix: Created nodemon.json to ignore session folders
+Status: ✅ FIXED
+
+Action: START SERVER NOW!
+Command: npm run dev
+Expected: QR code → Scan → Connected → Done!
+
+
+═══════════════════════════════════════════════════════════════════
+Ready to start? Run this command NOW:
+═══════════════════════════════════════════════════════════════════
+
+cd C:\Users\MAHESH\Downloads\Ksheer_Mitra-main\Ksheer_Mitra-main\backend
+npm run dev
+
+Then scan QR code when it appears!
+

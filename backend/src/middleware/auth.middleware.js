@@ -19,14 +19,29 @@ const authenticate = async (req, res, next) => {
     next();
   } catch (error) {
     logger.error('Authentication error:', error);
+
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Invalid token'
+      });
+    }
+
+    if (error.name === 'TokenExpiredError') {
+      return res.status(401).json({
+        success: false,
+        message: 'Token expired'
+      });
+    }
+
     return res.status(401).json({
       success: false,
-      message: 'Invalid or expired token'
+      message: 'Not authenticated'
     });
   }
 };
 
-const authorize = (...roles) => {
+const authorize = (...allowedRoles) => {
   return (req, res, next) => {
     if (!req.user) {
       return res.status(401).json({
@@ -35,10 +50,10 @@ const authorize = (...roles) => {
       });
     }
 
-    if (!roles.includes(req.user.role)) {
+    if (!allowedRoles.includes(req.user.role)) {
       return res.status(403).json({
         success: false,
-        message: 'Access denied. Insufficient permissions'
+        message: 'Forbidden: You do not have permission to access this resource'
       });
     }
 
@@ -50,3 +65,4 @@ module.exports = {
   authenticate,
   authorize
 };
+

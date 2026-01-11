@@ -1,0 +1,19 @@
+{
+  "watch": ["src/**/*.js", "*.js"],
+  "ignore": [
+    "node_modules/**",
+    "baileys_auth/**",
+    "whatsapp-session/**",
+    ".wwebjs_auth/**",
+    ".wwebjs_cache/**",
+    "logs/**",
+    "uploads/**",
+    "invoices/**",
+    "*.log",
+    "*.json"
+  ],
+  "ext": "js",
+  "delay": 2000,
+  "verbose": false
+}
+

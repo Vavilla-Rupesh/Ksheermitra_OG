@@ -1,151 +1,85 @@
-const deliveryService = require('../services/delivery.service');
-const invoiceService = require('../services/invoice.service');
-const mapsService = require('../services/maps.service');
-const whatsappService = require('../services/whatsapp.service');
-const WhatsAppTemplates = require('../templates/whatsapp-templates');
 const db = require('../config/db');
 const logger = require('../utils/logger');
-const moment = require('moment');
+const mapsService = require('../services/maps.service');
+const { Op } = require('sequelize');
 
 class DeliveryBoyController {
-  async getAssignedCustomers(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { date } = req.query;
-
-      const customerDeliveries = await deliveryService.getDeliveriesWithSubscriptionDetails(deliveryBoyId, date);
-
-      res.status(200).json({
-        success: true,
-        data: customerDeliveries
-      });
-    } catch (error) {
-      logger.error('Error getting assigned customers:', error);
-      next(error);
-    }
-  }
-
-  async getCustomerDetails(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { customerId } = req.params;
-      const { date } = req.query;
-
-      const details = await deliveryService.getCustomerDeliveryDetails(customerId, deliveryBoyId, date);
-
-      res.status(200).json({
-        success: true,
-        data: details
-      });
-    } catch (error) {
-      logger.error('Error getting customer details:', error);
-      next(error);
-    }
-  }
-
+  /**
+   * GET /api/delivery-boy/delivery-map
+   * Fetch assigned delivery routes for navigation
+   */
   async getDeliveryMap(req, res, next) {
     try {
       const deliveryBoyId = req.user.id;
       const { date } = req.query;
 
-      // Get delivery boy's assigned area
-      const area = await db.Area.findOne({
-        where: { deliveryBoyId },
-        include: [{
-          model: db.User,
-          as: 'customers',
-          attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude'],
-          where: {
-            isActive: true,
-            latitude: { [db.Sequelize.Op.ne]: null },
-            longitude: { [db.Sequelize.Op.ne]: null }
-          },
-          required: false,
-          include: [{
-            model: db.Subscription,
-            as: 'subscriptions',
-            where: { status: 'active' },
-            required: false,
-            include: [{
-              model: db.SubscriptionProduct,
-              as: 'products',
-              include: [{
-                model: db.Product,
-                as: 'product'
-              }]
-            }]
-          }]
-        }]
-      });
+      // Default to today if no date provided
+      const deliveryDate = date ? new Date(date) : new Date();
+      deliveryDate.setHours(0, 0, 0, 0);
 
-      if (!area) {
-        return res.status(404).json({
-          success: false,
-          message: 'No area assigned to you'
-        });
-      }
-
-      // Get today's delivery statuses
-      const deliveryDate = date || moment().format('YYYY-MM-DD');
+      // Fetch all pending and in-progress deliveries for the delivery boy
       const deliveries = await db.Delivery.findAll({
         where: {
           deliveryBoyId,
-          deliveryDate
-        },
-        attributes: ['customerId', 'status', 'amount']
-      });
-
-      // Map delivery statuses to customers
-      const customerMap = {};
-      deliveries.forEach(d => {
-        if (!customerMap[d.customerId]) {
-          customerMap[d.customerId] = {
-            status: d.status,
-            amount: parseFloat(d.amount || 0)
-          };
-        } else {
-          customerMap[d.customerId].amount += parseFloat(d.amount || 0);
-          // Priority: delivered > missed > pending
-          if (d.status === 'delivered' ||
-              (d.status === 'missed' && customerMap[d.customerId].status === 'pending')) {
-            customerMap[d.customerId].status = d.status;
+          deliveryDate,
+          status: {
+            [Op.in]: ['pending', 'in-progress']
           }
-        }
+        },
+        include: [
+          {
+            model: db.User,
+            as: 'customer',
+            attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude']
+          },
+          {
+            model: db.DeliveryItem,
+            as: 'items',
+            include: [{
+              model: db.Product,
+              as: 'product',
+              attributes: ['id', 'name', 'unit', 'imageUrl']
+            }]
+          }
+        ],
+        order: [['createdAt', 'ASC']]
       });
 
-      // Enrich customers with delivery status and subscription details
-      const customersWithStatus = area.customers.map(customer => {
-        const customerData = customer.toJSON();
-        const deliveryInfo = customerMap[customer.id] || { status: 'pending', amount: 0 };
+      // Format routes for map display
+      const routes = deliveries.map(delivery => ({
+        deliveryId: delivery.id,
+        customerName: delivery.customer.name,
+        customerPhone: delivery.customer.phone,
+        address: delivery.customer.address,
+        latitude: parseFloat(delivery.customer.latitude),
+        longitude: parseFloat(delivery.customer.longitude),
+        status: delivery.status,
+        items: delivery.items.map(item => ({
+          productName: item.product.name,
+          quantity: parseFloat(item.quantity),
+          unit: item.product.unit,
+          price: parseFloat(item.price)
+        })),
+        totalAmount: delivery.amount ? parseFloat(delivery.amount) : 0,
+        notes: delivery.notes
+      }));
 
-        // Calculate total amount from subscriptions if not in deliveries
-        let totalAmount = deliveryInfo.amount;
-        if (totalAmount === 0 && customerData.subscriptions) {
-          customerData.subscriptions.forEach(sub => {
-            sub.products.forEach(sp => {
-              totalAmount += parseFloat(sp.quantity) * parseFloat(sp.product.pricePerUnit);
-            });
-          });
-        }
-
-        return {
-          ...customerData,
-          deliveryStatus: deliveryInfo.status,
-          todayAmount: totalAmount
-        };
+      // Get delivery boy's current location if available
+      const deliveryBoy = await db.User.findByPk(deliveryBoyId, {
+        attributes: ['latitude', 'longitude']
       });
 
       res.status(200).json({
         success: true,
         data: {
-          area: {
-            id: area.id,
-            name: area.name,
-            boundaries: area.boundaries,
-            centerLatitude: area.centerLatitude,
-            centerLongitude: area.centerLongitude
-          },
-          customers: customersWithStatus
+          deliveryBoyId,
+          date: deliveryDate,
+          currentLocation: deliveryBoy.latitude && deliveryBoy.longitude ? {
+            latitude: parseFloat(deliveryBoy.latitude),
+            longitude: parseFloat(deliveryBoy.longitude)
+          } : null,
+          routes,
+          totalDeliveries: routes.length
         }
       });
     } catch (error) {
@@ -154,215 +88,453 @@ class DeliveryBoyController {
     }
   }
 
-  async getOptimizedRoute(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { date } = req.query;
-
-      const deliveryBoy = await db.User.findByPk(deliveryBoyId);
-      
-      if (!deliveryBoy.latitude || !deliveryBoy.longitude) {
-        return res.status(400).json({
-          success: false,
-          message: 'Delivery boy location not set'
-        });
-      }
-
-      const customerDeliveries = await deliveryService.getDeliveriesWithSubscriptionDetails(deliveryBoyId, date);
-
-      const customersWithLocation = customerDeliveries
-        .filter(cd => cd.customer.latitude && cd.customer.longitude && cd.status !== 'delivered')
-        .map(cd => ({
-          id: cd.customer.id,
-          name: cd.customer.name,
-          latitude: cd.customer.latitude,
-          longitude: cd.customer.longitude,
-          address: cd.customer.address
-        }));
-
-      if (customersWithLocation.length === 0) {
-        return res.status(200).json({
-          success: true,
-          message: 'No pending deliveries with valid locations',
-          data: {
-            optimizedOrder: [],
-            routes: []
-          }
-        });
-      }
-
-      const origin = {
-        latitude: deliveryBoy.latitude,
-        longitude: deliveryBoy.longitude
-      };
-
-      const routeData = await mapsService.optimizeRoute(origin, customersWithLocation);
-
-      res.status(200).json({
-        success: true,
-        data: routeData
-      });
-    } catch (error) {
-      logger.error('Error getting optimized route:', error);
-      next(error);
-    }
-  }
-
-  async updateDeliveryStatus(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { customerId, status, notes } = req.body;
-      const { date } = req.query;
-
-      // Update all deliveries for this customer on this date
-      const deliveries = await deliveryService.updateMultipleDeliveryStatuses(
-        customerId,
-        deliveryBoyId,
-        date,
-        status,
-        notes
-      );
-
-      res.status(200).json({
-        success: true,
-        message: `Delivery status updated to ${status}`,
-        data: deliveries
-      });
-    } catch (error) {
-      logger.error('Error updating delivery status:', error);
-      next(error);
-    }
-  }
-
-  async updateSingleDeliveryStatus(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { deliveryId, status, notes } = req.body;
-
-      const delivery = await deliveryService.updateDeliveryStatus(deliveryId, status, deliveryBoyId, notes);
-
-      res.status(200).json({
-        success: true,
-        message: 'Delivery status updated successfully',
-        data: delivery
-      });
-    } catch (error) {
-      logger.error('Error updating delivery status:', error);
-      next(error);
-    }
-  }
-
-  async getDeliveryStats(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const { date } = req.query;
-
-      const stats = await deliveryService.getDeliveryStats(deliveryBoyId, date);
-
-      res.status(200).json({
-        success: true,
-        data: stats
-      });
-    } catch (error) {
-      logger.error('Error getting delivery stats:', error);
-      next(error);
-    }
-  }
-
-  async generateDailyInvoice(req, res, next) {
+  /**
+   * POST /api/delivery-boy/generate-invoice
+   * Generate daily invoice for completed deliveries
+   */
+  async generateInvoice(req, res, next) {
     try {
       const deliveryBoyId = req.user.id;
       const { date } = req.body;
 
-      const invoice = await invoiceService.generateDailyInvoice(deliveryBoyId, date);
-
-      // Send WhatsApp notification to admin with PDF
-      try {
-        const adminUsers = await db.User.findAll({
-          where: { role: 'admin', isActive: true },
-          attributes: ['phone']
+      if (!date) {
+        return res.status(400).json({
+          success: false,
+          message: 'Date is required'
         });
-
-        const deliveryBoy = await db.User.findByPk(deliveryBoyId, {
-          attributes: ['name', 'phone']
-        });
-
-        const invoiceUrl = `${process.env.BASE_URL || 'http://localhost:3000'}/invoices/${invoice.pdfPath}`;
-
-        for (const admin of adminUsers) {
-          const message = WhatsAppTemplates.generateDailyInvoiceToAdmin({
-            deliveryBoyName: deliveryBoy.name,
-            deliveryBoyPhone: deliveryBoy.phone,
-            date: moment(invoice.invoiceDate).format('DD MMM YYYY'),
-            totalDelivered: invoice.totalDelivered || 0,
-            totalMissed: invoice.totalMissed || 0,
-            totalCollected: invoice.totalAmount || 0,
-            deliveries: invoice.deliveries || [],
-            pdfUrl: invoiceUrl
-          });
-
-          await whatsappService.sendMessage(admin.phone, message);
-
-          // Send PDF file if available
-          if (invoice.pdfPath) {
-            const fs = require('fs');
-            const path = require('path');
-            const pdfFullPath = path.join(__dirname, '../../', invoice.pdfPath);
-
-            if (fs.existsSync(pdfFullPath)) {
-              await whatsappService.sendFile(admin.phone, pdfFullPath, `Daily Invoice - ${deliveryBoy.name} - ${moment(invoice.invoiceDate).format('DD-MM-YYYY')}`);
-            }
-          }
-        }
-
-        logger.info(`Daily invoice generated and sent to admin for delivery boy ${deliveryBoyId}`);
-      } catch (whatsappError) {
-        logger.error('Error sending invoice to admin via WhatsApp:', whatsappError);
-        // Don't fail the request if WhatsApp fails
       }
+
+      const invoiceDate = new Date(date);
+      invoiceDate.setHours(0, 0, 0, 0);
+
+      // Check if invoice already exists for this date
+      const existingInvoice = await db.Invoice.findOne({
+        where: {
+          deliveryBoyId,
+          invoiceDate,
+          invoiceType: 'delivery_boy_daily'
+        }
+      });
+
+      if (existingInvoice) {
+        return res.status(200).json({
+          success: true,
+          message: 'Invoice already exists',
+          data: {
+            invoiceId: existingInvoice.id,
+            invoiceNumber: existingInvoice.invoiceNumber,
+            totalDeliveries: existingInvoice.metadata?.totalDeliveries || 0,
+            totalAmount: parseFloat(existingInvoice.totalAmount),
+            generatedAt: existingInvoice.createdAt
+          }
+        });
+      }
+
+      // Fetch all completed deliveries for the date
+      const completedDeliveries = await db.Delivery.findAll({
+        where: {
+          deliveryBoyId,
+          deliveryDate: invoiceDate,
+          status: 'delivered'
+        },
+        include: [
+          {
+            model: db.User,
+            as: 'customer',
+            attributes: ['name', 'phone', 'address']
+          },
+          {
+            model: db.DeliveryItem,
+            as: 'items',
+            include: [{
+              model: db.Product,
+              as: 'product',
+              attributes: ['name', 'unit']
+            }]
+          }
+        ]
+      });
+
+      if (completedDeliveries.length === 0) {
+        return res.status(404).json({
+          success: false,
+          message: 'No completed deliveries found for this date'
+        });
+      }
+
+      // Calculate total amount
+      const totalAmount = completedDeliveries.reduce((sum, delivery) => {
+        return sum + parseFloat(delivery.amount || 0);
+      }, 0);
+
+      // Generate invoice number
+      const invoiceNumber = `INV-DB-${invoiceDate.getFullYear()}${String(invoiceDate.getMonth() + 1).padStart(2, '0')}${String(invoiceDate.getDate()).padStart(2, '0')}-${deliveryBoyId.substring(0, 8).toUpperCase()}`;
+
+      // Create invoice
+      const invoice = await db.Invoice.create({
+        invoiceNumber,
+        invoiceType: 'delivery_boy_daily',
+        deliveryBoyId,
+        customerId: null, // Delivery boy invoice
+        invoiceDate,
+        totalAmount,
+        status: 'generated',
+        metadata: {
+          totalDeliveries: completedDeliveries.length,
+          deliveries: completedDeliveries.map(d => ({
+            deliveryId: d.id,
+            customerName: d.customer.name,
+            customerPhone: d.customer.phone,
+            amount: parseFloat(d.amount),
+            items: d.items.map(item => ({
+              productName: item.product.name,
+              quantity: parseFloat(item.quantity),
+              unit: item.product.unit,
+              price: parseFloat(item.price)
+            }))
+          }))
+        }
+      });
+
+      logger.info(`Invoice generated for delivery boy ${deliveryBoyId} for date ${date}`);
 
       res.status(201).json({
         success: true,
-        message: 'Daily invoice generated successfully and sent to admin',
-        data: invoice
+        message: 'Invoice generated successfully',
+        data: {
+          invoiceId: invoice.id,
+          invoiceNumber: invoice.invoiceNumber,
+          totalDeliveries: completedDeliveries.length,
+          totalAmount,
+          generatedAt: invoice.createdAt
+        }
       });
     } catch (error) {
-      logger.error('Error generating daily invoice:', error);
+      logger.error('Error generating invoice:', error);
       next(error);
     }
   }
 
-  async getMyArea(req, res, next) {
+  /**
+   * GET /api/delivery-boy/history
+   * View delivery history
+   */
+  async getDeliveryHistory(req, res, next) {
     try {
       const deliveryBoyId = req.user.id;
+      const { page = 1, limit = 30, startDate, endDate } = req.query;
+      const offset = (page - 1) * limit;
 
-      const area = await db.Area.findOne({
-        where: { deliveryBoyId },
-        include: [{
-          model: db.User,
-          as: 'customers',
-          attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude']
-        }]
+      const whereClause = {
+        deliveryBoyId
+      };
+
+      // Add date filters if provided
+      if (startDate || endDate) {
+        whereClause.deliveryDate = {};
+        if (startDate) {
+          whereClause.deliveryDate[Op.gte] = new Date(startDate);
+        }
+        if (endDate) {
+          const end = new Date(endDate);
+          end.setHours(23, 59, 59, 999);
+          whereClause.deliveryDate[Op.lte] = end;
+        }
+      }
+
+      // Fetch deliveries
+      const { count, rows: deliveries } = await db.Delivery.findAndCountAll({
+        where: whereClause,
+        include: [
+          {
+            model: db.User,
+            as: 'customer',
+            attributes: ['name', 'phone', 'address']
+          },
+          {
+            model: db.DeliveryItem,
+            as: 'items',
+            include: [{
+              model: db.Product,
+              as: 'product',
+              attributes: ['name', 'unit', 'imageUrl']
+            }]
+          }
+        ],
+        order: [['deliveryDate', 'DESC'], ['createdAt', 'DESC']],
+        limit: parseInt(limit),
+        offset: parseInt(offset)
       });
 
-      if (!area) {
-        return res.status(404).json({
-          success: false,
-          message: 'No area assigned to you'
+      // Group by date for better presentation
+      const groupedHistory = {};
+      deliveries.forEach(delivery => {
+        const dateKey = delivery.deliveryDate.toISOString().split('T')[0];
+        if (!groupedHistory[dateKey]) {
+          groupedHistory[dateKey] = {
+            date: dateKey,
+            deliveries: [],
+            totalAmount: 0,
+            completedCount: 0,
+            pendingCount: 0
+          };
+        }
+
+        groupedHistory[dateKey].deliveries.push({
+          deliveryId: delivery.id,
+          customerName: delivery.customer.name,
+          customerPhone: delivery.customer.phone,
+          address: delivery.customer.address,
+          status: delivery.status,
+          amount: parseFloat(delivery.amount || 0),
+          deliveredAt: delivery.deliveredAt,
+          items: delivery.items.map(item => ({
+            productName: item.product.name,
+            quantity: parseFloat(item.quantity),
+            unit: item.product.unit,
+            price: parseFloat(item.price)
+          }))
         });
-      }
+
+        groupedHistory[dateKey].totalAmount += parseFloat(delivery.amount || 0);
+        if (delivery.status === 'delivered') {
+          groupedHistory[dateKey].completedCount++;
+        } else {
+          groupedHistory[dateKey].pendingCount++;
+        }
+      });
+
+      const history = Object.values(groupedHistory);
 
       res.status(200).json({
         success: true,
-        data: area
+        data: {
+          deliveryBoyId,
+          history,
+          pagination: {
+            total: count,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            totalPages: Math.ceil(count / limit)
+          }
+        }
       });
     } catch (error) {
-      logger.error('Error getting delivery boy area:', error);
+      logger.error('Error getting delivery history:', error);
       next(error);
     }
   }
 
-  async getMyProfile(req, res, next) {
+  /**
+   * GET /api/delivery-boy/stats
+   * Get performance statistics
+   */
+  async getStats(req, res, next) {
+    try {
+      const deliveryBoyId = req.user.id;
+      const { period = 'all' } = req.query; // all, today, week, month
+
+      let dateFilter = {};
+      const now = new Date();
+
+      switch (period) {
+        case 'today':
+          const today = new Date();
+          today.setHours(0, 0, 0, 0);
+          dateFilter = { deliveryDate: { [Op.gte]: today } };
+          break;
+        case 'week':
+          const weekAgo = new Date();
+          weekAgo.setDate(weekAgo.getDate() - 7);
+          dateFilter = { deliveryDate: { [Op.gte]: weekAgo } };
+          break;
+        case 'month':
+          const monthAgo = new Date();
+          monthAgo.setMonth(monthAgo.getMonth() - 1);
+          dateFilter = { deliveryDate: { [Op.gte]: monthAgo } };
+          break;
+      }
+
+      // Get total deliveries and earnings
+      const deliveries = await db.Delivery.findAll({
+        where: {
+          deliveryBoyId,
+          ...dateFilter
+        },
+        attributes: [
+          [db.sequelize.fn('COUNT', db.sequelize.col('id')), 'totalCount'],
+          [db.sequelize.fn('SUM', db.sequelize.col('amount')), 'totalEarnings'],
+          'status'
+        ],
+        group: ['status'],
+        raw: true
+      });
+
+      // Calculate statistics
+      let totalDeliveries = 0;
+      let totalEarnings = 0;
+      let completedDeliveries = 0;
+      let pendingDeliveries = 0;
+
+      deliveries.forEach(stat => {
+        const count = parseInt(stat.totalCount);
+        const earnings = parseFloat(stat.totalEarnings || 0);
+        totalDeliveries += count;
+        totalEarnings += earnings;
+
+        if (stat.status === 'delivered') {
+          completedDeliveries = count;
+        } else if (stat.status === 'pending' || stat.status === 'in-progress') {
+          pendingDeliveries += count;
+        }
+      });
+
+      // Calculate average delivery time for completed deliveries
+      const completedWithTime = await db.Delivery.findAll({
+        where: {
+          deliveryBoyId,
+          status: 'delivered',
+          deliveredAt: { [Op.ne]: null },
+          ...dateFilter
+        },
+        attributes: ['createdAt', 'deliveredAt']
+      });
+
+      let averageDeliveryTime = 0;
+      if (completedWithTime.length > 0) {
+        const totalTime = completedWithTime.reduce((sum, delivery) => {
+          const created = new Date(delivery.createdAt).getTime();
+          const delivered = new Date(delivery.deliveredAt).getTime();
+          return sum + (delivered - created);
+        }, 0);
+        averageDeliveryTime = Math.round(totalTime / completedWithTime.length / 1000 / 60); // in minutes
+      }
+
+      // Get today's deliveries
+      const todayStart = new Date();
+      todayStart.setHours(0, 0, 0, 0);
+
+      const todayDeliveries = await db.Delivery.count({
+        where: {
+          deliveryBoyId,
+          deliveryDate: { [Op.gte]: todayStart }
+        }
+      });
+
+      const todayCompleted = await db.Delivery.count({
+        where: {
+          deliveryBoyId,
+          deliveryDate: { [Op.gte]: todayStart },
+          status: 'delivered'
+        }
+      });
+
+      res.status(200).json({
+        success: true,
+        data: {
+          deliveryBoyId,
+          period,
+          totalDeliveries,
+          completedDeliveries,
+          pendingDeliveries,
+          totalEarnings: parseFloat(totalEarnings.toFixed(2)),
+          averageDeliveryTime: `${averageDeliveryTime} mins`,
+          today: {
+            total: todayDeliveries,
+            completed: todayCompleted,
+            pending: todayDeliveries - todayCompleted
+          },
+          completionRate: totalDeliveries > 0
+            ? parseFloat(((completedDeliveries / totalDeliveries) * 100).toFixed(2))
+            : 0
+        }
+      });
+    } catch (error) {
+      logger.error('Error getting delivery boy stats:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * PATCH /api/delivery-boy/delivery/:id/status
+   * Update delivery status
+   */
+  async updateDeliveryStatus(req, res, next) {
+    try {
+      const deliveryBoyId = req.user.id;
+      const { id } = req.params;
+      const { status, notes, latitude, longitude } = req.body;
+
+      if (!status) {
+        return res.status(400).json({
+          success: false,
+          message: 'Status is required'
+        });
+      }
+
+      // Validate status
+      const validStatuses = ['pending', 'in-progress', 'delivered', 'failed'];
+      if (!validStatuses.includes(status)) {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid status. Must be one of: ' + validStatuses.join(', ')
+        });
+      }
+
+      // Find delivery
+      const delivery = await db.Delivery.findOne({
+        where: {
+          id,
+          deliveryBoyId
+        }
+      });
+
+      if (!delivery) {
+        return res.status(404).json({
+          success: false,
+          message: 'Delivery not found or not assigned to you'
+        });
+      }
+
+      // Update delivery
+      const updateData = { status };
+      if (notes) updateData.notes = notes;
+      if (status === 'delivered') {
+        updateData.deliveredAt = new Date();
+      }
+
+      await delivery.update(updateData);
+
+      // Update delivery boy location if provided
+      if (latitude && longitude) {
+        await db.User.update(
+          { latitude, longitude },
+          { where: { id: deliveryBoyId } }
+        );
+      }
+
+      logger.info(`Delivery ${id} status updated to ${status} by delivery boy ${deliveryBoyId}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Delivery status updated successfully',
+        data: {
+          deliveryId: delivery.id,
+          status: delivery.status,
+          deliveredAt: delivery.deliveredAt
+        }
+      });
+    } catch (error) {
+      logger.error('Error updating delivery status:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/delivery-boy/profile
+   * Get delivery boy profile
+   */
+  async getProfile(req, res, next) {
     try {
       const deliveryBoyId = req.user.id;
 
@@ -370,8 +542,8 @@ class DeliveryBoyController {
         attributes: { exclude: ['passwordHash'] },
         include: [{
           model: db.Area,
-          as: 'area',
-          foreignKey: 'deliveryBoyId'
+          as: 'assignedAreas',
+          through: { attributes: [] }
         }]
       });
 
@@ -392,68 +564,44 @@ class DeliveryBoyController {
     }
   }
 
-  async updateMyLocation(req, res, next) {
+  /**
+   * PUT /api/delivery-boy/location
+   * Update current location
+   */
+  async updateLocation(req, res, next) {
     try {
       const deliveryBoyId = req.user.id;
       const { latitude, longitude } = req.body;
 
-      const deliveryBoy = await db.User.findByPk(deliveryBoyId);
-
-      if (!deliveryBoy) {
-        return res.status(404).json({
+      if (!latitude || !longitude) {
+        return res.status(400).json({
           success: false,
-          message: 'Delivery boy not found'
+          message: 'Latitude and longitude are required'
         });
       }
 
-      await deliveryBoy.update({ latitude, longitude });
+      await db.User.update(
+        {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        },
+        { where: { id: deliveryBoyId } }
+      );
 
       res.status(200).json({
         success: true,
         message: 'Location updated successfully',
-        data: { latitude, longitude }
+        data: {
+          latitude: parseFloat(latitude),
+          longitude: parseFloat(longitude)
+        }
       });
     } catch (error) {
       logger.error('Error updating location:', error);
       next(error);
     }
   }
-
-  async getTodaysSummary(req, res, next) {
-    try {
-      const deliveryBoyId = req.user.id;
-      const today = moment().format('YYYY-MM-DD');
-
-      const [stats, deliveries] = await Promise.all([
-        deliveryService.getDeliveryStats(deliveryBoyId, today),
-        db.Delivery.findAll({
-          where: {
-            deliveryBoyId,
-            deliveryDate: today
-          },
-          include: [
-            {
-              model: db.User,
-              as: 'customer',
-              attributes: ['id', 'name', 'phone', 'address']
-            }
-          ],
-          order: [['deliveredAt', 'DESC']]
-        })
-      ]);
-
-      res.status(200).json({
-        success: true,
-        data: {
-          stats,
-          recentDeliveries: deliveries.slice(0, 10)
-        }
-      });
-    } catch (error) {
-      logger.error('Error getting today summary:', error);
-      next(error);
-    }
-  }
 }
 
 module.exports = new DeliveryBoyController();
+

@@ -4,6 +4,11 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../models/dashboard_stats.dart';
+import '../../../config/theme.dart';
+import '../offline_sales/offline_sales_list_screen.dart';
+import '../customers/customer_map_screen.dart';
+import '../products/product_list_screen.dart';
+import '../customers/customer_list_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -61,13 +66,14 @@ class _DashboardScreenState extends State<DashboardScreen> {
                 children: [
                   _buildHeader(provider),
                   const SizedBox(height: 24),
+                  _buildQuickActions(),
+                  const SizedBox(height: 24),
                   _buildStatsGrid(provider.stats!),
                   const SizedBox(height: 24),
                   _buildDeliveryStatusChart(provider.stats!),
                   const SizedBox(height: 24),
                   _buildRevenueCard(provider.stats!),
                   const SizedBox(height: 24),
-                  _buildQuickActions(),
                 ],
               ),
             ),
@@ -191,49 +197,47 @@ class _DashboardScreenState extends State<DashboardScreen> {
     return Card(
       elevation: 2,
       child: Padding(
-        padding: const EdgeInsets.all(12),
+        padding: const EdgeInsets.all(10),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(icon, size: 28, color: color),
-            const SizedBox(height: 6),
+            Icon(icon, size: 24, color: color),
+            const SizedBox(height: 4),
             FittedBox(
               fit: BoxFit.scaleDown,
               child: Text(
                 value,
                 style: const TextStyle(
-                  fontSize: 22,
+                  fontSize: 20,
                   fontWeight: FontWeight.bold,
                 ),
                 textAlign: TextAlign.center,
+                maxLines: 1,
               ),
             ),
             const SizedBox(height: 2),
-            Flexible(
-              child: Text(
-                title,
-                textAlign: TextAlign.center,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: 11,
-                  height: 1.2,
-                ),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
+              style: const TextStyle(
+                fontSize: 11,
+                height: 1.1,
               ),
             ),
             if (subtitle != null) ...[
               const SizedBox(height: 2),
-              Flexible(
-                child: Text(
-                  subtitle,
-                  textAlign: TextAlign.center,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 9,
-                    color: Colors.grey[600],
-                  ),
+              Text(
+                subtitle,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                  fontSize: 9,
+                  color: Colors.grey[600],
+                  height: 1,
                 ),
               ),
             ],
@@ -386,51 +390,187 @@ class _DashboardScreenState extends State<DashboardScreen> {
       children: [
         const Text(
           'Quick Actions',
-          style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
-        Card(
-          child: Column(
-            children: [
-              ListTile(
-                leading: const Icon(Icons.person_add, color: Colors.blue),
-                title: const Text('Add Customer'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // Navigate to add customer
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                'In-Store Sales',
+                Icons.shopping_cart,
+                AppTheme.primaryColor,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const OfflineSalesListScreen(),
+                    ),
+                  );
                 },
               ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.add_business, color: Colors.green),
-                title: const Text('Add Delivery Boy'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // Navigate to add delivery boy
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                'Add Customer',
+                Icons.person_add,
+                Colors.green,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CustomerListScreen(),
+                    ),
+                  );
                 },
               ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.add_box, color: Colors.orange),
-                title: const Text('Add Product'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // Navigate to add product
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Row(
+          children: [
+            Expanded(
+              child: _buildActionCard(
+                'Add Product',
+                Icons.add_box,
+                Colors.orange,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ProductFormScreen(product: null),
+                    ),
+                  );
                 },
               ),
-              const Divider(height: 1),
-              ListTile(
-                leading: const Icon(Icons.map, color: Colors.purple),
-                title: const Text('View Customer Map'),
-                trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-                onTap: () {
-                  // Navigate to customer map
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _buildActionCard(
+                'View Map',
+                Icons.map,
+                Colors.purple,
+                () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const CustomerMapScreen(),
+                    ),
+                  );
                 },
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ],
     );
   }
+
+  Widget _buildActionCard(
+    String title,
+    IconData icon,
+    Color color,
+    VoidCallback onTap,
+  ) {
+    return Card(
+      elevation: 2,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: [
+                color,
+                color.withValues(alpha: 0.7),
+              ],
+            ),
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Icon(icon, size: 32, color: Colors.white),
+              ),
+              const SizedBox(height: 8),
+              Text(
+                title,
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 14,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Widget _buildQuickActions() {
+  //   return Column(
+  //     crossAxisAlignment: CrossAxisAlignment.start,
+  //     children: [
+  //       const Text(
+  //         'Quick Actions',
+  //         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+  //       ),
+  //       const SizedBox(height: 12),
+  //       Card(
+  //         child: Column(
+  //           children: [
+  //             ListTile(
+  //               leading: const Icon(Icons.person_add, color: Colors.blue),
+  //               title: const Text('Add Customer'),
+  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+  //               onTap: () {
+  //                 // Navigate to add customer
+  //               },
+  //             ),
+  //             const Divider(height: 1),
+  //             ListTile(
+  //               leading: const Icon(Icons.add_business, color: Colors.green),
+  //               title: const Text('Add Delivery Boy'),
+  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+  //               onTap: () {
+  //                 // Navigate to add delivery boy
+  //               },
+  //             ),
+  //             const Divider(height: 1),
+  //             ListTile(
+  //               leading: const Icon(Icons.add_box, color: Colors.orange),
+  //               title: const Text('Add Product'),
+  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+  //               onTap: () {
+  //                 // Navigate to add product
+  //               },
+  //             ),
+  //             const Divider(height: 1),
+  //             ListTile(
+  //               leading: const Icon(Icons.map, color: Colors.purple),
+  //               title: const Text('View Customer Map'),
+  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+  //               onTap: () {
+  //                 // Navigate to customer map
+  //               },
+  //             ),
+  //           ],
+  //         ),
+  //       ),
+  //     ],
+  //   );
+  // }
 }

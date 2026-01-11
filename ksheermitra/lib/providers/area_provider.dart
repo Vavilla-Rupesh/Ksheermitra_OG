@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/area.dart';
 import '../services/admin_api_service.dart';
 
@@ -36,12 +37,18 @@ class AreaProvider with ChangeNotifier {
     required String name,
     String? description,
     String? deliveryBoyId,
+    List<LatLng>? boundaries,
+    double? centerLatitude,
+    double? centerLongitude,
   }) async {
     try {
       final area = await _adminApi.createArea(
         name: name,
         description: description,
         deliveryBoyId: deliveryBoyId,
+        boundaries: boundaries,
+        centerLatitude: centerLatitude,
+        centerLongitude: centerLongitude,
       );
       _areas.add(area);
       notifyListeners();
@@ -77,6 +84,32 @@ class AreaProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       debugPrint('Error updating area: $e');
+      return false;
+    }
+  }
+
+  Future<bool> updateAreaBoundaries({
+    required String id,
+    required List<LatLng> boundaries,
+    required double centerLatitude,
+    required double centerLongitude,
+  }) async {
+    try {
+      final updatedArea = await _adminApi.updateAreaBoundaries(
+        id: id,
+        boundaries: boundaries,
+        centerLatitude: centerLatitude,
+        centerLongitude: centerLongitude,
+      );
+      final index = _areas.indexWhere((a) => a.id == id);
+      if (index != -1) {
+        _areas[index] = updatedArea;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error updating area boundaries: $e');
       return false;
     }
   }

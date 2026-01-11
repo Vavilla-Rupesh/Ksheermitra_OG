@@ -1,186 +1,265 @@
-# Quick Testing Guide
+Customer Map Test:
+[ ] Map loads
+[ ] Markers display
+[ ] Colors correct (blue/red)
+[ ] Info windows work
+[ ] Refresh works
 
-## How to Test All Fixed Issues
+Monthly Breakout Test:
+[ ] Total amount > Rs. 0.00
+[ ] Delivered amount correct
+[ ] Pending amount correct
+[ ] Subscriptions list properly
+[ ] Daily breakout shows amounts
+[ ] Month navigation works
 
-### Prerequisites
-1. Backend server running on configured port
-2. Flutter app installed on device/emulator
-3. Admin and customer accounts set up
+Invoice Test:
+[ ] Invoice generates
+[ ] Amounts match breakout
+[ ] All deliveries listed
+[ ] Details correct
+
+Issues Found:
+[List any issues]
+
+Notes:
+[Additional observations]
+```
 
 ---
 
-## Test 1: Monthly Breakout Amount Fix
+## 🆘 Need Help?
 
-### Steps:
-1. **Run the database fix script first:**
+If issues persist after following this guide:
+1. Check backend logs: `backend/logs/error.log`
+2. Check Flutter console for errors
+3. Review `FIXES_APPLIED.md` for technical details
+4. Verify database has proper data
+# Testing Guide - After Fixes
+
+## 🚀 Quick Start
+
+### 1. Start Backend Server
+
+#### Option A: Using the batch file (Recommended)
+Double-click: `START_BACKEND.bat`
+
+#### Option B: Manual
+```bash
+cd backend
+npm start
+```
+
+The server should start on: `http://localhost:5000`
+
+---
+
+## 🧪 Testing Steps
+
+### Test 1: Customer Map Feature
+
+#### Objective
+Verify that the admin can view customers on Google Maps with proper location markers.
+
+#### Steps
+1. **Start the Flutter app**
    ```bash
-   cd backend
-   node fix-delivery-amounts.js
+   cd ksheermitra
+   flutter run
    ```
-   - Script should show number of deliveries fixed
-   - Check output for any errors
 
-2. **Create a new subscription:**
-   - Login as customer
-   - Go to "Create Subscription"
-   - Add one or more products with quantities
-   - Set frequency (daily/weekly/custom)
-   - Submit subscription
+2. **Login as Admin**
+   - Use admin credentials
 
-3. **Verify Monthly Breakout:**
-   - Navigate to subscription details
-   - Tap "Monthly Breakout" button
-   - **Expected**: Should show correct amounts (NOT ₹0)
-   - Check that:
-     - Total Amount shows correct sum
-     - Each daily entry shows proper amount
-     - Delivered/Pending amounts are accurate
+3. **Navigate to Customer Map**
+   - Go to: `Customers` → `View on Map`
+   - Or navigate to the customer map screen
 
-### Success Criteria:
-✅ All amounts display correctly (no ₹0 values)
-✅ Amounts match product prices × quantities
-✅ Summary totals are accurate
+4. **Verify Results:**
+   - ✅ Map loads successfully
+   - ✅ Customer markers appear on the map
+   - ✅ Blue markers = Active customers
+   - ✅ Red markers = Inactive customers
+   - ✅ Tap on a marker shows customer info window
+   - ✅ Customer name, phone, and address display correctly
+   - ✅ No "No customers with valid locations found" error
 
----
+5. **Test Refresh**
+   - Pull down to refresh or use refresh button
+   - Verify markers update correctly
 
-## Test 2: Admin Dashboard Card Overflow
-
-### Steps:
-1. Login as admin
-2. Navigate to Dashboard (first tab)
-3. Check all stat cards
-
-### Test Scenarios:
-- **Small numbers**: Should display normally
-- **Large numbers**: Should scale/wrap properly (e.g., ₹999999)
-- **Long text**: Should truncate with ellipsis
-- **Different screen sizes**: Test on phone, tablet, desktop
-
-### Success Criteria:
-✅ No text extends beyond card boundaries
-✅ Numbers are readable and properly formatted
-✅ Subtitle text truncates with "..." if too long
-✅ Cards maintain consistent height
+#### Expected Behavior
+- All customers with latitude/longitude coordinates should be visible
+- Map centers on all markers with appropriate zoom
+- Customer details accessible via marker tap
 
 ---
 
-## Test 3: Subscription Detail Popup Overflow
+### Test 2: Monthly Breakout Feature
 
-### Steps:
-1. Login as admin or customer
-2. Navigate to Customer Details (admin) or My Subscriptions (customer)
-3. Tap "View Details" on any subscription
+#### Objective
+Verify that customers can view their monthly subscription breakout with correct amounts.
 
-### Test Scenarios:
-- **Single product**: Check layout is clean
-- **Multiple products**: Verify all products display
-- **Large amounts**: Test with ₹10,000+ subscriptions
-- **Long product names**: Verify truncation works
-- **Multiple delivery days**: Check "Delivery Days" field wraps properly
+#### Steps
+1. **Login as Customer**
+   - Use customer credentials who has active subscriptions
 
-### What to Check:
-- [ ] Header displays frequency without overflow
-- [ ] Product list shows all items properly
-- [ ] "Total per delivery" section fits in one row
-- [ ] Large amounts scale down if needed
-- [ ] Delivery days text wraps to multiple lines
+2. **Navigate to Monthly Breakout**
+   - Find "Monthly Breakout" in the menu
+   - Or navigate from subscriptions screen
 
-### Success Criteria:
-✅ Popup scrolls smoothly with no horizontal overflow
-✅ All text is readable
-✅ Amount displays prominently without overflow
+3. **Verify Current Month:**
+   - ✅ Month/Year displays correctly (e.g., "November 2025")
+   - ✅ **Total Amount** shows a value > Rs. 0.00
+   - ✅ **Delivered Amount** shows delivered deliveries total
+   - ✅ **Pending Amount** shows pending deliveries total
+   - ✅ Summary card displays at top
 
----
+4. **Verify Subscription List:**
+   - ✅ Each subscription shows as an expandable card
+   - ✅ Subscription title shows (e.g., "Subscription 1")
+   - ✅ Subscription total amount displays
+   - ✅ Tap to expand shows daily breakout
 
-## Test 4: Product Cards - Stock Display
+5. **Verify Daily Breakout:**
+   For each expanded subscription:
+   - ✅ Each delivery date listed (e.g., "01 Nov", "02 Nov")
+   - ✅ Product names displayed
+   - ✅ Individual delivery amounts shown
+   - ✅ Amounts are > Rs. 0.00 (not zero)
 
-### Steps:
-1. **Admin Product List:**
-   - Login as admin
-   - Go to Products tab
-   - Check each product card
+6. **Test Month Navigation:**
+   - Tap left arrow (previous month)
+   - Verify data updates
+   - Tap right arrow (next month)
+   - Verify data updates
+   - Return to current month
 
-2. **Customer Product Selection:**
-   - Login as customer
-   - Create/edit subscription
-   - View product selection screen
-
-### What to Check:
-
-**Admin View:**
-- [ ] Stock badge visible on product image (top-right)
-- [ ] Badge colors:
-  - Green = "In Stock" (stock ≥ 10)
-  - Orange = "Stock: X" (stock < 10)
-  - Red = "Out of Stock" (stock = 0)
-
-**Customer View:**
-- [ ] Stock text below product name
-- [ ] Same color coding as admin
-- [ ] Add button disabled for out-of-stock items
-- [ ] Add button is grey when stock = 0
-
-### Success Criteria:
-✅ Stock information clearly visible
-✅ Color coding helps quick identification
-✅ Out-of-stock items cannot be added
-✅ Stock count shown when low
+#### Expected Behavior
+- All amounts should be calculated correctly
+- No Rs. 0.00 values unless legitimately zero
+- Navigation between months works smoothly
+- Loading states display properly
 
 ---
 
-## Test 5: Product Images Display
+### Test 3: Monthly Invoice Generation
 
-### Steps:
-1. Ensure some products have images uploaded
-2. Check images display in:
-   - Product list (admin)
-   - Product selection (customer)
-   - Subscription cards
-   - Monthly breakout
+#### Objective
+Verify that monthly invoice generation calculates correct totals.
 
-### What to Check:
-- [ ] Images load properly (shows loading indicator)
-- [ ] Fallback icon displays if image fails
-- [ ] Icons match product type (milk, butter, etc.)
-- [ ] Images are properly sized and not distorted
-- [ ] Images display consistently across all screens
+#### Steps
+1. **As Customer, navigate to Invoices**
 
-### Success Criteria:
-✅ All product images load and display
-✅ Graceful fallback to icons when needed
-✅ Consistent sizing and aspect ratio
+2. **Generate Monthly Invoice:**
+   - Select a month with deliveries
+   - Click "Generate Invoice"
+
+3. **Verify Invoice:**
+   - ✅ Invoice number generated
+   - ✅ **Total Amount** is correct (matches monthly breakout)
+   - ✅ All deliveries listed
+   - ✅ Each delivery shows:
+     - Date
+     - Products
+     - Quantity
+     - Amount
+   - ✅ Payment status shown correctly
+
+4. **Download/View Invoice:**
+   - Test PDF generation (if implemented)
+   - Verify all details print correctly
 
 ---
 
-## Backend API Testing
+### Test 4: Delivery Boy Map (Bonus)
 
-### Test Delivery Amount Calculation:
+#### Objective
+Verify delivery boy can see assigned area and customers.
 
-**Endpoint:** `GET /api/customer/subscriptions/:id/monthly-breakout?year=2025&month=10`
+#### Steps
+1. **Login as Delivery Boy**
+
+2. **Navigate to Map View**
+   - Should show delivery map screen
+
+3. **Verify:**
+   - ✅ Area boundary displays (polygon)
+   - ✅ Customer markers visible
+   - ✅ Marker colors indicate delivery status:
+     - 🔵 Blue = Pending delivery
+     - 🟢 Green = Delivered
+     - 🔴 Red = Missed
+   - ✅ Tap marker shows customer details
+   - ✅ Can mark delivery as completed from detail view
+   - ✅ Auto-refresh works (every 30 seconds)
+
+---
+
+## 🔍 Backend API Testing
+
+### Test API Endpoints Directly
+
+#### 1. Test Customer Map Endpoint
+```bash
+# Using curl (requires admin token)
+curl -X GET http://localhost:5000/api/admin/customers/map \
+  -H "Authorization: Bearer YOUR_ADMIN_TOKEN"
+```
+
+**Expected Response:**
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": "customer-uuid",
+      "name": "Customer Name",
+      "phone": "+1234567890",
+      "address": "Customer Address",
+      "latitude": "12.345678",
+      "longitude": "78.901234",
+      "areaId": "area-uuid",
+      "isActive": true,  // ← This field should be present
+      "area": {
+        "id": "area-uuid",
+        "name": "Area Name"
+      }
+    }
+  ]
+}
+```
+
+#### 2. Test Monthly Breakout Endpoint
+```bash
+# Using curl (requires customer token)
+curl -X GET http://localhost:5000/api/customer/monthly-breakout/2025/11 \
+  -H "Authorization: Bearer YOUR_CUSTOMER_TOKEN"
+```
 
 **Expected Response:**
 ```json
 {
   "success": true,
   "data": {
-    "subscriptionId": "uuid",
+    "customerId": "customer-uuid",
     "year": 2025,
-    "month": 10,
-    "monthName": "October 2025",
-    "totalAmount": 450.00,  // NOT 0
-    "deliveredAmount": 150.00,
-    "pendingAmount": 300.00,
-    "breakout": [
+    "month": 11,
+    "monthName": "November 2025",
+    "totalAmount": 1500.00,  // ← Should NOT be 0
+    "deliveredAmount": 800.00,
+    "pendingAmount": 700.00,
+    "subscriptionCount": 2,
+    "subscriptions": [
       {
-        "id": "uuid",
-        "date": "2025-10-23",
-        "amount": 50.00,  // NOT 0
-        "items": [
+        "subscriptionId": "sub-uuid",
+        "totalAmount": 750.00,  // ← Should NOT be 0
+        "breakout": [
           {
-            "productName": "Milk",
-            "quantity": 1,
-            "pricePerUnit": 50,
-            "price": 50.00  // NOT 0
+            "id": "delivery-uuid",
+            "date": "2025-11-01",
+            "amount": 50.00,  // ← Should NOT be 0
+            "items": [...]
           }
         ]
       }
@@ -189,112 +268,101 @@
 }
 ```
 
-### Test Using Postman/cURL:
-```bash
-# Get monthly breakout
-curl -X GET \
-  'http://localhost:5000/api/customer/subscriptions/SUBSCRIPTION_ID/monthly-breakout?year=2025&month=10' \
-  -H 'Authorization: Bearer YOUR_TOKEN'
+---
+
+## 🐛 Troubleshooting
+
+### Issue: Still showing Rs. 0.00 in monthly breakout
+
+**Possible Causes:**
+1. No deliveries exist for the selected month
+2. Deliveries exist but have no items
+3. Products don't have pricePerUnit set
+
+**Solutions:**
+1. Check database for deliveries:
+   ```sql
+   SELECT * FROM deliveries 
+   WHERE customerId = 'customer-uuid' 
+   AND deliveryDate BETWEEN '2025-11-01' AND '2025-11-30';
+   ```
+
+2. Check delivery items:
+   ```sql
+   SELECT di.*, p.pricePerUnit 
+   FROM delivery_items di
+   JOIN products p ON di.productId = p.id
+   WHERE di.deliveryId = 'delivery-uuid';
+   ```
+
+3. Verify product prices:
+   ```sql
+   SELECT id, name, pricePerUnit FROM products;
+   ```
+
+### Issue: Customer map still showing "no customers" error
+
+**Possible Causes:**
+1. Backend not restarted after fix
+2. Customers don't have latitude/longitude
+3. Network error
+
+**Solutions:**
+1. Restart backend server
+2. Add location to customers:
+   ```sql
+   UPDATE users 
+   SET latitude = 12.345678, longitude = 78.901234 
+   WHERE id = 'customer-uuid';
+   ```
+3. Check Flutter app logs for API errors
+
+### Issue: Backend won't start
+
+**Solutions:**
+1. Check if port 5000 is in use:
+   ```bash
+   netstat -ano | findstr :5000
+   ```
+
+2. Kill process if needed:
+   ```bash
+   taskkill /PID <process-id> /F
+   ```
+
+3. Check environment variables:
+   - Ensure `.env` file exists in backend folder
+   - Verify database connection string
+
+4. Reinstall dependencies:
+   ```bash
+   cd backend
+   npm install
+   ```
+
+---
+
+## ✅ Success Criteria
+
+All tests pass if:
+- ✅ Customer map displays all customers with locations
+- ✅ Monthly breakout shows correct amounts (not Rs. 0.00)
+- ✅ Invoice generation calculates proper totals
+- ✅ All navigation and UI interactions work smoothly
+- ✅ Backend API returns expected data structures
+- ✅ No console errors in Flutter or Node.js
+
+---
+
+## 📝 Test Results Template
+
 ```
+=================================
+Test Results - [Date]
+=================================
 
----
+Backend Server:
+[ ] Started successfully
+[ ] No errors in logs
 
-## Common Issues & Solutions
-
-### Issue: Still seeing ₹0 in monthly breakout
-**Solution:**
-1. Run `node fix-delivery-amounts.js` again
-2. Check backend logs for calculation errors
-3. Verify products have valid pricePerUnit values
-4. Ensure subscription_products table has quantities
-
-### Issue: Stock not displaying
-**Solution:**
-1. Check Product model has stock field
-2. Verify database has stock column
-3. Check API returns stock in product JSON
-4. Ensure `showStock` parameter is true (default)
-
-### Issue: Images not loading
-**Solution:**
-1. Verify image URLs in database
-2. Check ImageHelper configuration
-3. Ensure backend serves static files
-4. Test image URLs directly in browser
-
-### Issue: Cards still overflowing
-**Solution:**
-1. Clear Flutter cache: `flutter clean`
-2. Rebuild app: `flutter pub get && flutter run`
-3. Check screen size constraints
-4. Test on different devices
-
----
-
-## Performance Checklist
-
-After all fixes:
-- [ ] App loads quickly
-- [ ] No console errors in debug mode
-- [ ] Backend responses are fast (< 500ms)
-- [ ] Images load progressively
-- [ ] UI is responsive and smooth
-- [ ] No memory leaks
-
----
-
-## Rollback Plan
-
-If issues occur:
-
-### Backend:
-```bash
-git checkout HEAD~1 backend/src/services/subscription.service.js
-npm restart
-```
-
-### Frontend:
-```bash
-git checkout HEAD~1 ksheermitra/lib/widgets/
-flutter clean && flutter pub get
-flutter run
-```
-
-### Database:
-Keep a backup before running fix script:
-```bash
-# PostgreSQL
-pg_dump -U username -d ksheermitra > backup_before_fix.sql
-
-# Restore if needed
-psql -U username -d ksheermitra < backup_before_fix.sql
-```
-
----
-
-## Success Metrics
-
-All tests pass when:
-1. ✅ No ₹0 amounts in monthly breakout
-2. ✅ No overflow in any UI component
-3. ✅ Stock information visible on all product cards
-4. ✅ Product images display consistently
-5. ✅ Backend logs show no calculation errors
-6. ✅ Users can complete full subscription flow
-
----
-
-## Next Steps
-
-After successful testing:
-1. Deploy to staging environment
-2. Perform UAT with real users
-3. Monitor logs for 24-48 hours
-4. Deploy to production
-5. Update user documentation
-
-**Test completed by:** _________________
-**Date:** _________________
-**All tests passed:** [ ] Yes [ ] No
-**Notes:** _________________________________
 

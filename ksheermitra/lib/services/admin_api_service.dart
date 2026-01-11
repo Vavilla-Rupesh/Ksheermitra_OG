@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../models/area.dart';
 import '../models/delivery.dart';
 import '../models/invoice.dart';
@@ -138,12 +139,24 @@ class AdminApiService {
     required String name,
     String? description,
     String? deliveryBoyId,
+    List<LatLng>? boundaries,
+    double? centerLatitude,
+    double? centerLongitude,
   }) async {
-    final response = await _apiService.post('/admin/areas', {
+    final body = {
       'name': name,
       if (description != null) 'description': description,
       if (deliveryBoyId != null) 'deliveryBoyId': deliveryBoyId,
-    });
+      if (boundaries != null && boundaries.isNotEmpty)
+        'boundaries': boundaries.map((point) => {
+          'latitude': point.latitude,
+          'longitude': point.longitude,
+        }).toList(),
+      if (centerLatitude != null) 'centerLatitude': centerLatitude.toString(),
+      if (centerLongitude != null) 'centerLongitude': centerLongitude.toString(),
+    };
+
+    final response = await _apiService.post('/admin/areas', body);
     return Area.fromJson(response['data']);
   }
 
@@ -159,6 +172,23 @@ class AdminApiService {
       if (description != null) 'description': description,
       if (deliveryBoyId != null) 'deliveryBoyId': deliveryBoyId,
       if (isActive != null) 'isActive': isActive,
+    });
+    return Area.fromJson(response['data']);
+  }
+
+  Future<Area> updateAreaBoundaries({
+    required String id,
+    required List<LatLng> boundaries,
+    required double centerLatitude,
+    required double centerLongitude,
+  }) async {
+    final response = await _apiService.put('/admin/areas/$id/boundaries', {
+      'boundaries': boundaries.map((point) => {
+        'latitude': point.latitude,
+        'longitude': point.longitude,
+      }).toList(),
+      'centerLatitude': centerLatitude.toString(),
+      'centerLongitude': centerLongitude.toString(),
     });
     return Area.fromJson(response['data']);
   }

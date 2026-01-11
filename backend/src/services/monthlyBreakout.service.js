@@ -185,7 +185,17 @@ class MonthlyBreakoutService {
       let pendingAmount = 0;
 
       const breakout = deliveries.map(delivery => {
-        const amount = parseFloat(delivery.amount);
+        // Calculate amount from delivery.amount or sum of delivery items if amount is null/zero
+        let amount = parseFloat(delivery.amount) || 0;
+
+        // If delivery amount is 0 or null, calculate from items
+        if (amount === 0 && delivery.items && delivery.items.length > 0) {
+          amount = delivery.items.reduce((sum, item) => {
+            const itemPrice = parseFloat(item.price) || 0;
+            return sum + itemPrice;
+          }, 0);
+        }
+
         totalAmount += amount;
 
         if (delivery.status === 'delivered') {
@@ -445,24 +455,43 @@ class MonthlyBreakoutService {
         throw new Error('No deliveries found for this month');
       }
 
-      // Calculate total amount
-      const totalAmount = deliveries.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+      // Calculate total amount - handle null or zero delivery amounts
+      const totalAmount = deliveries.reduce((sum, d) => {
+        let amount = parseFloat(d.amount) || 0;
+        // If delivery amount is 0 or null, calculate from items
+        if (amount === 0 && d.items && d.items.length > 0) {
+          amount = d.items.reduce((itemSum, item) => {
+            return itemSum + (parseFloat(item.price) || 0);
+          }, 0);
+        }
+        return sum + amount;
+      }, 0);
 
       // Generate invoice number
       const invoiceNumber = await this.generateInvoiceNumber(year, month);
 
       // Create delivery details for invoice
-      const deliveryDetails = deliveries.map(d => ({
-        date: d.deliveryDate,
-        status: d.status,
-        amount: parseFloat(d.amount),
-        items: d.items.map(item => ({
-          productName: item.product.name,
-          quantity: parseFloat(item.quantity),
-          price: parseFloat(item.price),
-          unit: item.product.unit
-        }))
-      }));
+      const deliveryDetails = deliveries.map(d => {
+        let amount = parseFloat(d.amount) || 0;
+        // If delivery amount is 0 or null, calculate from items
+        if (amount === 0 && d.items && d.items.length > 0) {
+          amount = d.items.reduce((itemSum, item) => {
+            return itemSum + (parseFloat(item.price) || 0);
+          }, 0);
+        }
+
+        return {
+          date: d.deliveryDate,
+          status: d.status,
+          amount: amount,
+          items: d.items.map(item => ({
+            productName: item.product.name,
+            quantity: parseFloat(item.quantity),
+            price: parseFloat(item.price),
+            unit: item.product.unit
+          }))
+        };
+      });
 
       // Create invoice
       const invoice = await db.Invoice.create({

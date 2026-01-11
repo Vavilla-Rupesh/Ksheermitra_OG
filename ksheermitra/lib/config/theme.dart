@@ -7,20 +7,25 @@ import 'package:google_fonts/google_fonts.dart';
 class AppTheme {
   // ==================== COLOR PALETTE ====================
 
-  // Primary Brand Colors - Fresh Milk & Nature
-  static const Color primaryColor = Color(0xFF2E7D32); // Deep Forest Green
-  static const Color primaryLight = Color(0xFF60AD5E); // Light Green
-  static const Color primaryDark = Color(0xFF005005); // Dark Green
+  // Primary Brand Colors - Blue Theme
+  static const Color primaryColor = Color(0xFF2196F3); // Bright Blue
+  static const Color primaryLight = Color(0xFF64B5F6); // Light Blue
+  static const Color primaryDark = Color(0xFF1976D2); // Dark Blue
 
-  // Secondary - Creamy Accent
-  static const Color secondaryColor = Color(0xFFFFA726); // Warm Orange
-  static const Color secondaryLight = Color(0xFFFFD95B);
-  static const Color secondaryDark = Color(0xFFC77800);
+  // Secondary - Accent Blue
+  static const Color secondaryColor = Color(0xFF42A5F5); // Medium Blue
+  static const Color secondaryLight = Color(0xFF90CAF9);
+  static const Color secondaryDark = Color(0xFF1565C0);
 
-  // Background Colors
-  static const Color backgroundColor = Color(0xFFF8F9FA); // Soft off-white
+  // Background Colors - Light Theme
+  static const Color backgroundColor = Color(0xFFF5F9FF); // Very light blue tint
   static const Color surfaceColor = Color(0xFFFFFFFF); // Pure white
   static const Color cardColor = Color(0xFFFFFFFF); // White cards
+
+  // Dark Theme Colors
+  static const Color darkBackgroundColor = Color(0xFF0A1929); // Very dark blue (almost black)
+  static const Color darkSurfaceColor = Color(0xFF1A2332); // Dark blue-gray
+  static const Color darkCardColor = Color(0xFF1E2A3A); // Slightly lighter dark blue
 
   // Status Colors
   static const Color successGreen = Color(0xFF4CAF50);
@@ -28,41 +33,80 @@ class AppTheme {
   static const Color errorRed = Color(0xFFF44336);
   static const Color infoBlue = Color(0xFF2196F3);
 
-  // Text Colors
+  // Text Colors - Light Theme
   static const Color textPrimary = Color(0xFF1A1A1A); // Almost black
   static const Color textSecondary = Color(0xFF666666); // Medium grey
   static const Color textTertiary = Color(0xFF999999); // Light grey
   static const Color textOnPrimary = Color(0xFFFFFFFF); // White on colored backgrounds
 
+  // Text Colors - Dark Theme
+  static const Color darkTextPrimary = Color(0xFFE1E9F5); // Light blue-white
+  static const Color darkTextSecondary = Color(0xFFB0BEC5); // Medium blue-grey
+  static const Color darkTextTertiary = Color(0xFF78909C); // Darker blue-grey
+
   // ==================== GRADIENTS ====================
 
-  // Main App Background Gradient
+  // Main App Background Gradient - Light Theme (Blue-White)
   static const LinearGradient mainBackground = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFAFAFA),
-      Color(0xFFF0F4F0), // Very light green tint
+      Color(0xFFE3F2FD), // Very light blue
+      Color(0xFFFFFFFF), // White
+      Color(0xFFF5F9FF), // Slight blue tint
     ],
+    stops: [0.0, 0.5, 1.0],
   );
 
-  // Product Card Gradient
+  // Main App Background Gradient - Dark Theme (Dark Blue-Blackish Blue)
+  static const LinearGradient darkMainBackground = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF0A1929), // Very dark blue (almost black)
+      Color(0xFF0D2137), // Dark blue
+      Color(0xFF0E1621), // Blackish blue
+    ],
+    stops: [0.0, 0.5, 1.0],
+  );
+
+  // Product Card Gradient - Light
   static const LinearGradient productCardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
       Color(0xFFFFFFFF),
-      Color(0xFFF8FBF8), // Subtle green tint
+      Color(0xFFF0F7FF), // Subtle blue tint
     ],
   );
 
-  // Premium Subscription Card Gradient
+  // Product Card Gradient - Dark
+  static const LinearGradient darkProductCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF1E2A3A),
+      Color(0xFF2A3647),
+    ],
+  );
+
+  // Premium Subscription Card Gradient - Light
   static const LinearGradient premiumCardGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF2E7D32), // Deep green
-      Color(0xFF1B5E20), // Darker green
+      Color(0xFF2196F3), // Bright blue
+      Color(0xFF1976D2), // Dark blue
+    ],
+  );
+
+  // Premium Subscription Card Gradient - Dark
+  static const LinearGradient darkPremiumCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF1565C0), // Deep blue
+      Color(0xFF0D47A1), // Darker blue
     ],
   );
 
@@ -76,16 +120,16 @@ class AppTheme {
   );
 
   static const LinearGradient deliveredGradient = LinearGradient(
-    colors: [Color(0xFF2E7D32), Color(0xFF43A047)],
+    colors: [Color(0xFF2196F3), Color(0xFF42A5F5)],
   );
 
-  // Button Gradients
+  // Button Gradients - Light
   static const LinearGradient primaryButtonGradient = LinearGradient(
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFF2E7D32), // Deep green
-      Color(0xFF388E3C), // Medium green
+      Color(0xFF2196F3), // Bright blue
+      Color(0xFF1E88E5), // Medium blue
     ],
   );
 
@@ -93,8 +137,18 @@ class AppTheme {
     begin: Alignment.centerLeft,
     end: Alignment.centerRight,
     colors: [
-      Color(0xFFFFA726), // Warm orange
-      Color(0xFFFB8C00), // Deep orange
+      Color(0xFF42A5F5), // Light blue
+      Color(0xFF1976D2), // Dark blue
+    ],
+  );
+
+  // Button Gradients - Dark
+  static const LinearGradient darkPrimaryButtonGradient = LinearGradient(
+    begin: Alignment.centerLeft,
+    end: Alignment.centerRight,
+    colors: [
+      Color(0xFF1976D2), // Dark blue
+      Color(0xFF1565C0), // Deeper blue
     ],
   );
 
@@ -102,13 +156,23 @@ class AppTheme {
     colors: [Color(0xFFF44336), Color(0xFFE53935)],
   );
 
-  // Header Gradients
+  // Header Gradients - Light
   static const LinearGradient appBarGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFF2E7D32),
-      Color(0xFF1B5E20),
+      Color(0xFF2196F3),
+      Color(0xFF1976D2),
+    ],
+  );
+
+  // Header Gradients - Dark
+  static const LinearGradient darkAppBarGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFF1565C0),
+      Color(0xFF0D47A1),
     ],
   );
 
@@ -116,9 +180,21 @@ class AppTheme {
     begin: Alignment.topCenter,
     end: Alignment.bottomCenter,
     colors: [
-      Color(0xFF2E7D32),
-      Color(0xFF4CAF50),
-      Color(0xFFF8F9FA), // Fades to background
+      Color(0xFF2196F3),
+      Color(0xFF64B5F6),
+      Color(0xFFF5F9FF), // Fades to background
+    ],
+    stops: [0.0, 0.6, 1.0],
+  );
+
+  // Dark Dashboard Header
+  static const LinearGradient darkDashboardHeaderGradient = LinearGradient(
+    begin: Alignment.topCenter,
+    end: Alignment.bottomCenter,
+    colors: [
+      Color(0xFF1565C0),
+      Color(0xFF1976D2),
+      Color(0xFF0A1929), // Fades to dark background
     ],
     stops: [0.0, 0.6, 1.0],
   );
@@ -448,9 +524,182 @@ class AppTheme {
       ),
     );
   }
-}
 
-// ==================== PREMIUM COMPONENTS ====================
+  // ==================== DARK THEME ====================
+  static ThemeData get darkTheme {
+    return ThemeData(
+      useMaterial3: true,
+      primaryColor: primaryLight,
+      scaffoldBackgroundColor: darkBackgroundColor,
+      fontFamily: GoogleFonts.poppins().fontFamily,
+
+      colorScheme: const ColorScheme(
+        primary: primaryLight,
+        secondary: secondaryLight,
+        surface: darkSurfaceColor,
+        error: errorRed,
+        onPrimary: darkTextPrimary,
+        onSecondary: darkTextPrimary,
+        onSurface: darkTextPrimary,
+        onError: textOnPrimary,
+        brightness: Brightness.dark,
+      ),
+
+      textTheme: GoogleFonts.poppinsTextTheme(
+        TextTheme(
+          displayLarge: h1.copyWith(color: darkTextPrimary),
+          displayMedium: h2.copyWith(color: darkTextPrimary),
+          displaySmall: h3.copyWith(color: darkTextPrimary),
+          headlineMedium: h4.copyWith(color: darkTextPrimary),
+          headlineSmall: h5.copyWith(color: darkTextPrimary),
+          bodyLarge: bodyLarge.copyWith(color: darkTextPrimary),
+          bodyMedium: bodyMedium.copyWith(color: darkTextSecondary),
+          bodySmall: bodySmall.copyWith(color: darkTextTertiary),
+          labelLarge: buttonText.copyWith(color: darkTextPrimary),
+          labelMedium: labelText.copyWith(color: darkTextSecondary),
+          labelSmall: caption.copyWith(color: darkTextTertiary),
+        ),
+      ),
+
+      elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+          backgroundColor: primaryLight,
+          foregroundColor: darkBackgroundColor,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          elevation: 4,
+          shadowColor: primaryLight.withValues(alpha: 0.4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMedium),
+          ),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          foregroundColor: primaryLight,
+          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+          side: const BorderSide(color: primaryLight, width: 2),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(radiusMedium),
+          ),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            letterSpacing: 0.5,
+          ),
+        ),
+      ),
+
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          foregroundColor: primaryLight,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          textStyle: GoogleFonts.poppins(
+            fontSize: 15,
+            fontWeight: FontWeight.w600,
+          ),
+        ),
+      ),
+
+      cardTheme: CardThemeData(
+        elevation: 4,
+        color: darkCardColor,
+        shadowColor: const Color(0xFF000000).withValues(alpha: 0.3),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusLarge),
+        ),
+        margin: const EdgeInsets.all(space8),
+      ),
+
+      appBarTheme: AppBarTheme(
+        elevation: 0,
+        centerTitle: true,
+        backgroundColor: darkSurfaceColor,
+        foregroundColor: darkTextPrimary,
+        titleTextStyle: GoogleFonts.poppins(
+          fontSize: 20,
+          fontWeight: FontWeight.w600,
+          color: darkTextPrimary,
+          letterSpacing: 0.15,
+        ),
+      ),
+
+      bottomNavigationBarTheme: BottomNavigationBarThemeData(
+        backgroundColor: darkSurfaceColor,
+        selectedItemColor: primaryLight,
+        unselectedItemColor: darkTextTertiary,
+        selectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+        ),
+        unselectedLabelStyle: GoogleFonts.poppins(
+          fontSize: 11,
+          fontWeight: FontWeight.w400,
+        ),
+        type: BottomNavigationBarType.fixed,
+        elevation: 8,
+      ),
+
+      inputDecorationTheme: InputDecorationTheme(
+        filled: true,
+        fillColor: darkSurfaceColor,
+        hintStyle: GoogleFonts.poppins(
+          color: darkTextTertiary,
+          fontSize: 14,
+        ),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: BorderSide(color: darkTextTertiary.withValues(alpha: 0.3)),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: BorderSide(color: darkTextTertiary.withValues(alpha: 0.3)),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: primaryLight, width: 2),
+        ),
+        errorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: errorRed, width: 2),
+        ),
+        focusedErrorBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(radiusMedium),
+          borderSide: const BorderSide(color: errorRed, width: 2),
+        ),
+        labelStyle: labelText.copyWith(color: darkTextSecondary),
+      ),
+
+      floatingActionButtonTheme: const FloatingActionButtonThemeData(
+        backgroundColor: primaryLight,
+        foregroundColor: darkBackgroundColor,
+        elevation: 6,
+      ),
+
+      dividerTheme: DividerThemeData(
+        color: darkTextTertiary.withValues(alpha: 0.2),
+        thickness: 1,
+        space: space16,
+      ),
+
+      chipTheme: ChipThemeData(
+        backgroundColor: darkSurfaceColor,
+        selectedColor: primaryLight,
+        labelStyle: bodySmall.copyWith(color: darkTextPrimary),
+        padding: const EdgeInsets.symmetric(horizontal: space12, vertical: space8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(radiusPill),
+        ),
+      ),
+    );
+  }
+}
 
 /// Extension methods for easy access to theme properties
 extension BuildContextThemeExtension on BuildContext {

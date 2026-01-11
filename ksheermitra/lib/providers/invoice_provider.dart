@@ -12,31 +12,45 @@ class InvoiceProvider with ChangeNotifier {
 
   List<Invoice> get dailyInvoices => _dailyInvoices;
   List<Invoice> get monthlyInvoices => _monthlyInvoices;
+  List<Invoice> get invoices => [..._dailyInvoices, ..._monthlyInvoices];
   bool get isLoading => _isLoading;
   String? get error => _error;
+
+  Future<void> loadInvoices() async {
+    _isLoading = true;
+    _error = null;
+    notifyListeners();
+
+    try {
+      // Load both daily and monthly invoices
+      await Future.wait([
+        loadDailyInvoices(),
+        loadMonthlyInvoices(),
+      ]);
+      _error = null;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error loading invoices: $e');
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
 
   Future<void> loadDailyInvoices({
     String? startDate,
     String? endDate,
     String? deliveryBoyId,
   }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       _dailyInvoices = await _adminApi.getDailyInvoices(
         startDate: startDate,
         endDate: endDate,
         deliveryBoyId: deliveryBoyId,
       );
-      _error = null;
     } catch (e) {
       _error = e.toString();
       debugPrint('Error loading daily invoices: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 
@@ -46,10 +60,6 @@ class InvoiceProvider with ChangeNotifier {
     String? customerId,
     String? paymentStatus,
   }) async {
-    _isLoading = true;
-    _error = null;
-    notifyListeners();
-
     try {
       _monthlyInvoices = await _adminApi.getMonthlyInvoices(
         startDate: startDate,
@@ -57,13 +67,9 @@ class InvoiceProvider with ChangeNotifier {
         customerId: customerId,
         paymentStatus: paymentStatus,
       );
-      _error = null;
     } catch (e) {
       _error = e.toString();
       debugPrint('Error loading monthly invoices: $e');
-    } finally {
-      _isLoading = false;
-      notifyListeners();
     }
   }
 

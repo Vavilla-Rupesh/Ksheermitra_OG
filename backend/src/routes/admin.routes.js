@@ -158,4 +158,31 @@ router.put('/invoices/:id/payment', [
   validate
 ], adminController.updateInvoicePaymentStatus);
 
+// WhatsApp management routes
+router.get('/whatsapp/status', adminController.getWhatsAppStatus);
+router.post('/whatsapp/reset', adminController.resetWhatsAppSession);
+
+// Offline Sales (In-Store) routes
+router.post('/offline-sales', [
+  body('items').isArray({ min: 1 }).withMessage('At least one item is required'),
+  body('items.*.productId').isUUID().withMessage('Valid product ID is required'),
+  body('items.*.quantity').isInt({ min: 1 }).withMessage('Quantity must be at least 1'),
+  body('customerName').optional({ nullable: true }).isLength({ min: 2, max: 100 }).withMessage('Customer name must be between 2 and 100 characters'),
+  body('customerPhone').optional({ nullable: true }).matches(/^\+?[1-9]\d{1,14}$/).withMessage('Invalid phone number format'),
+  body('paymentMethod').optional({ nullable: true }).isIn(['cash', 'card', 'upi', 'other']).withMessage('Invalid payment method'),
+  body('notes').optional({ nullable: true }).isString(),
+  validate
+], adminController.createOfflineSale);
+
+router.get('/offline-sales', adminController.getOfflineSales);
+
+router.get('/offline-sales/stats', adminController.getOfflineSalesStats);
+
+router.get('/offline-sales/:id', [
+  param('id').isUUID().withMessage('Invalid sale ID'),
+  validate
+], adminController.getOfflineSaleById);
+
+router.get('/invoices/admin-daily', adminController.getAdminDailyInvoice);
+
 module.exports = router;

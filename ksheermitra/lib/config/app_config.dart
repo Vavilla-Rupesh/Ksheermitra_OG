@@ -1,6 +1,6 @@
 class AppConfig {
   static const String appName = 'Ksheermitra';
-  static const String baseUrl = 'https://e1e6b8065a6f.ngrok-free.app/api';
+  static const String baseUrl = 'https://bcd82c85c0c8.ngrok-free.app/api';
   
   static const String googleMapsApiKey = 'AIzaSyCnN2T4O5Q11DGMQ0GGPT7G61A7kkOK6Jg';
   

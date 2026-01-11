@@ -3,6 +3,8 @@ import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/theme.dart';
 import '../../widgets/premium_widgets.dart';
+import 'delivery_map_screen.dart';
+import 'daily_summary_screen.dart';
 
 class DeliveryHome extends StatefulWidget {
   const DeliveryHome({super.key});
@@ -251,15 +253,7 @@ class _DeliveryHomeState extends State<DeliveryHome> {
   }
 
   Widget _buildMapTab() {
-    return PremiumEmptyState(
-      icon: Icons.map_outlined,
-      title: 'Route Map',
-      message: 'Map view with delivery routes will be displayed here',
-      actionText: 'View Deliveries',
-      onAction: () {
-        setState(() => _currentIndex = 0);
-      },
-    );
+    return DeliveryMapScreen();
   }
 
   Widget _buildStatsTab() {

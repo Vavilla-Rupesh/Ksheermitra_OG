@@ -29,15 +29,15 @@ class User {
 
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
-      id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      email: json['email'],
-      role: json['role'],
-      address: json['address'],
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
-      areaId: json['areaId'],
+      id: json['id']?.toString() ?? '',
+      name: json['name']?.toString(),
+      phone: json['phone']?.toString() ?? '',
+      email: json['email']?.toString(),
+      role: json['role']?.toString() ?? 'customer',
+      address: json['address']?.toString(),
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
+      areaId: json['areaId']?.toString(),
       isActive: json['isActive'] ?? true,
       subscriptions: json['subscriptions'] != null
           ? (json['subscriptions'] as List)

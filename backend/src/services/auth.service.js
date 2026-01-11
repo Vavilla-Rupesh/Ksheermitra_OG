@@ -45,30 +45,36 @@ class AuthService {
 
       // Send OTP via WhatsApp - but don't let it block the response
       let whatsappSent = false;
+      let whatsappStatus = 'pending';
       try {
         const whatsappResult = await Promise.race([
           whatsappService.sendOTP(phone, otp),
           new Promise((_, reject) =>
-            setTimeout(() => reject(new Error('WhatsApp timeout')), 10000)
+            setTimeout(() => reject(new Error('WhatsApp timeout - connection may still be establishing')), 180000)
           )
         ]);
         whatsappSent = whatsappResult && whatsappResult.success;
-        logger.info(`WhatsApp OTP ${whatsappSent ? 'sent' : 'failed'} for ${phone}`);
+        whatsappStatus = whatsappSent ? 'sent' : 'failed';
+        logger.info(`WhatsApp OTP ${whatsappStatus} for ${phone}`);
       } catch (whatsappError) {
         logger.warn(`WhatsApp OTP failed for ${phone}: ${whatsappError.message}`);
+        whatsappStatus = whatsappError.message.includes('not connected') ? 'not_connected' : 'failed';
         // Continue without WhatsApp - OTP is still valid in database
       }
 
-      logger.info(`OTP created for ${phone} (WhatsApp: ${whatsappSent ? 'sent' : 'fallback'})`);
+      logger.info(`OTP created for ${phone.replace(/\d(?=\d{2})/g, '*')} (WhatsApp: ${whatsappStatus})`);
 
       return {
         success: true,
         message: whatsappSent
           ? 'OTP sent successfully via WhatsApp'
-          : 'OTP generated. Please check your phone or contact support.',
+          : whatsappStatus === 'not_connected'
+          ? 'OTP generated successfully. WhatsApp is connecting - message may arrive shortly.'
+          : 'OTP generated successfully. Please check your phone or contact support.',
         expiresAt,
         userExists: !!user,
         whatsappSent,
+        whatsappStatus,
         otp: process.env.NODE_ENV === 'development' ? otp : undefined // Only in dev mode
       };
     } catch (error) {

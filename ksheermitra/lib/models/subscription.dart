@@ -29,20 +29,21 @@ class Subscription {
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
-      id: json['id'],
-      customerId: json['customerId'],
-      frequency: json['frequency'],
-      selectedDays: json['selectedDays'] != null 
+      id: json['id']?.toString() ?? '',
+      customerId: json['customerId']?.toString() ?? '',
+      frequency: json['frequency']?.toString() ?? 'daily',
+      selectedDays: json['selectedDays'] != null
           ? List<int>.from(json['selectedDays'])
           : null,
-      startDate: json['startDate'],
-      endDate: json['endDate'],
-      status: json['status'],
-      pauseStartDate: json['pauseStartDate'],
-      pauseEndDate: json['pauseEndDate'],
+      startDate: json['startDate']?.toString() ?? DateTime.now().toString(),
+      endDate: json['endDate']?.toString(),
+      status: json['status']?.toString() ?? 'active',
+      pauseStartDate: json['pauseStartDate']?.toString(),
+      pauseEndDate: json['pauseEndDate']?.toString(),
       autoRenewal: json['autoRenewal'] ?? false,
-      products: json['products'] != null
+      products: json['products'] != null && json['products'] is List
           ? (json['products'] as List)
+              .where((p) => p != null && p is Map<String, dynamic>)
               .map((p) => SubscriptionProduct.fromJson(p))
               .toList()
           : null,
@@ -119,11 +120,15 @@ class SubscriptionProduct {
 
   factory SubscriptionProduct.fromJson(Map<String, dynamic> json) {
     return SubscriptionProduct(
-      id: json['id'],
-      subscriptionId: json['subscriptionId'],
-      productId: json['productId'],
-      quantity: double.parse(json['quantity'].toString()),
-      product: json['product'] != null ? Product.fromJson(json['product']) : null,
+      id: json['id']?.toString() ?? '',
+      subscriptionId: json['subscriptionId']?.toString() ?? '',
+      productId: json['productId']?.toString() ?? '',
+      quantity: json['quantity'] != null
+          ? double.tryParse(json['quantity'].toString()) ?? 0.0
+          : 0.0,
+      product: json['product'] != null && json['product'] is Map<String, dynamic>
+          ? Product.fromJson(json['product'])
+          : null,
     );
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
+import '../../providers/dashboard_provider.dart';
 import '../../config/theme.dart';
 import '../../widgets/premium_widgets.dart';
 import 'dashboard/dashboard_screen.dart';
@@ -9,6 +10,11 @@ import 'customers/customer_list_screen.dart';
 import 'delivery_boys/delivery_boy_list_screen.dart';
 import 'areas/area_list_screen.dart';
 import 'invoices/invoice_list_screen.dart';
+import 'offline_sales/offline_sales_list_screen.dart';
+import 'analytics/analytics_screen.dart';
+import 'reports/reports_screen.dart';
+import 'settings/settings_screen.dart';
+import 'about/about_screen.dart';
 
 class AdminHome extends StatefulWidget {
   const AdminHome({super.key});
@@ -48,9 +54,7 @@ class _AdminHomeState extends State<AdminHome> {
           IconButton(
             icon: const Icon(Icons.notifications_outlined),
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon')),
-              );
+              _showNotificationsDialog();
             },
           ),
           IconButton(
@@ -152,6 +156,21 @@ class _AdminHomeState extends State<AdminHome> {
             child: Column(
               children: [
                 _buildMenuTile(
+                  icon: Icons.shopping_cart,
+                  title: 'In-Store Sales',
+                  subtitle: 'Manage offline sales',
+                  color: AppTheme.primaryColor,
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const OfflineSalesListScreen(),
+                      ),
+                    );
+                  },
+                ),
+                const Divider(height: 1),
+                _buildMenuTile(
                   icon: Icons.map,
                   title: 'Area Management',
                   subtitle: 'Manage delivery areas',
@@ -198,8 +217,11 @@ class _AdminHomeState extends State<AdminHome> {
                   subtitle: 'View business analytics',
                   color: AppTheme.successGreen,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Analytics coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AnalyticsScreen(),
+                      ),
                     );
                   },
                 ),
@@ -210,8 +232,11 @@ class _AdminHomeState extends State<AdminHome> {
                   subtitle: 'Download business reports',
                   color: AppTheme.warningOrange,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Reports coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const ReportsScreen(),
+                      ),
                     );
                   },
                 ),
@@ -233,8 +258,11 @@ class _AdminHomeState extends State<AdminHome> {
                   subtitle: 'Configure app settings',
                   color: AppTheme.textSecondary,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('Settings coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const SettingsScreen(),
+                      ),
                     );
                   },
                 ),
@@ -245,8 +273,11 @@ class _AdminHomeState extends State<AdminHome> {
                   subtitle: 'App information',
                   color: AppTheme.infoBlue,
                   onTap: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(content: Text('About coming soon')),
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AboutScreen(),
+                      ),
                     );
                   },
                 ),
@@ -283,6 +314,182 @@ class _AdminHomeState extends State<AdminHome> {
       subtitle: Text(subtitle, style: AppTheme.bodySmall),
       trailing: const Icon(Icons.arrow_forward_ios, size: 16),
       onTap: onTap,
+    );
+  }
+
+  void _showNotificationsDialog() {
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => DraggableScrollableSheet(
+        initialChildSize: 0.6,
+        minChildSize: 0.3,
+        maxChildSize: 0.9,
+        expand: false,
+        builder: (context, scrollController) => Column(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor,
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.notifications, color: Colors.white),
+                  const SizedBox(width: 12),
+                  const Expanded(
+                    child: Text(
+                      'Notifications',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        const SnackBar(content: Text('All notifications marked as read')),
+                      );
+                    },
+                    child: const Text(
+                      'Mark all read',
+                      style: TextStyle(color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Expanded(
+              child: Consumer<DashboardProvider>(
+                builder: (context, provider, child) {
+                  final stats = provider.stats;
+
+                  // Build notification items based on real data
+                  final notifications = <Map<String, dynamic>>[];
+
+                  if (stats != null) {
+                    if (stats.todaysPending > 0) {
+                      notifications.add({
+                        'icon': Icons.local_shipping,
+                        'color': Colors.orange,
+                        'title': 'Pending Deliveries',
+                        'message': '${stats.todaysPending} deliveries are pending for today',
+                        'time': 'Now',
+                        'isNew': true,
+                      });
+                    }
+
+                    if (stats.pendingPayments > 0) {
+                      notifications.add({
+                        'icon': Icons.payment,
+                        'color': Colors.red,
+                        'title': 'Pending Payments',
+                        'message': '₹${stats.pendingPayments.toStringAsFixed(0)} in pending payments',
+                        'time': 'Today',
+                        'isNew': true,
+                      });
+                    }
+
+                    if (stats.todaysDelivered > 0) {
+                      notifications.add({
+                        'icon': Icons.check_circle,
+                        'color': Colors.green,
+                        'title': 'Deliveries Completed',
+                        'message': '${stats.todaysDelivered} deliveries completed successfully',
+                        'time': 'Today',
+                        'isNew': false,
+                      });
+                    }
+
+                    notifications.add({
+                      'icon': Icons.people,
+                      'color': Colors.blue,
+                      'title': 'Customer Update',
+                      'message': '${stats.activeCustomers} active customers in your network',
+                      'time': 'Today',
+                      'isNew': false,
+                    });
+
+                    notifications.add({
+                      'icon': Icons.subscriptions,
+                      'color': Colors.purple,
+                      'title': 'Active Subscriptions',
+                      'message': '${stats.activeSubscriptions} subscriptions are currently active',
+                      'time': 'Today',
+                      'isNew': false,
+                    });
+                  }
+
+                  if (notifications.isEmpty) {
+                    return const Center(
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Icon(Icons.notifications_off, size: 64, color: Colors.grey),
+                          SizedBox(height: 16),
+                          Text('No notifications', style: TextStyle(color: Colors.grey)),
+                        ],
+                      ),
+                    );
+                  }
+
+                  return ListView.separated(
+                    controller: scrollController,
+                    padding: const EdgeInsets.all(8),
+                    itemCount: notifications.length,
+                    separatorBuilder: (context, index) => const Divider(height: 1),
+                    itemBuilder: (context, index) {
+                      final notif = notifications[index];
+                      return ListTile(
+                        leading: CircleAvatar(
+                          backgroundColor: (notif['color'] as Color).withValues(alpha: 0.1),
+                          child: Icon(notif['icon'] as IconData, color: notif['color'] as Color),
+                        ),
+                        title: Row(
+                          children: [
+                            Expanded(child: Text(notif['title'] as String)),
+                            if (notif['isNew'] as bool)
+                              Container(
+                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                decoration: BoxDecoration(
+                                  color: Colors.red,
+                                  borderRadius: BorderRadius.circular(10),
+                                ),
+                                child: const Text(
+                                  'NEW',
+                                  style: TextStyle(color: Colors.white, fontSize: 10),
+                                ),
+                              ),
+                          ],
+                        ),
+                        subtitle: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(notif['message'] as String),
+                            const SizedBox(height: 4),
+                            Text(
+                              notif['time'] as String,
+                              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                            ),
+                          ],
+                        ),
+                        isThreeLine: true,
+                      );
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 }

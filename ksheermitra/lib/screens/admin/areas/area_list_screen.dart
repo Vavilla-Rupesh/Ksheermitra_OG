@@ -4,6 +4,7 @@ import '../../../models/area.dart';
 import '../../../providers/area_provider.dart';
 import '../../../providers/delivery_boy_provider.dart';
 import 'area_form_screen.dart';
+import 'area_map_screen.dart';
 
 class AreaListScreen extends StatefulWidget {
   const AreaListScreen({super.key});
@@ -92,9 +93,71 @@ class _AreaListScreenState extends State<AreaListScreen> {
         },
       ),
       floatingActionButton: FloatingActionButton.extended(
-        onPressed: () => _navigateToAreaForm(null),
+        onPressed: _showAddAreaOptions,
         icon: const Icon(Icons.add),
         label: const Text('Add Area'),
+      ),
+    );
+  }
+
+  void _showAddAreaOptions() {
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: const EdgeInsets.all(24),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 40,
+              height: 4,
+              decoration: BoxDecoration(
+                color: Colors.grey[300],
+                borderRadius: BorderRadius.circular(2),
+              ),
+            ),
+            const SizedBox(height: 24),
+            const Text(
+              'Add New Area',
+              style: TextStyle(
+                fontSize: 20,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            const SizedBox(height: 24),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.purple,
+                child: Icon(Icons.map, color: Colors.white),
+              ),
+              title: const Text('Draw on Map'),
+              subtitle: const Text('Create area by drawing boundary on map'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToMapScreen(null);
+              },
+            ),
+            const Divider(),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.blue,
+                child: Icon(Icons.add, color: Colors.white),
+              ),
+              title: const Text('Quick Add'),
+              subtitle: const Text('Create area with basic details only'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.pop(context);
+                _navigateToAreaForm(null);
+              },
+            ),
+            const SizedBox(height: 16),
+          ],
+        ),
       ),
     );
   }
@@ -147,8 +210,8 @@ class _AreaListScreenState extends State<AreaListScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   decoration: BoxDecoration(
                     color: area.isActive
-                        ? Colors.green.withOpacity(0.1)
-                        : Colors.grey.withOpacity(0.1),
+                        ? Colors.green.withValues(alpha: 0.1)
+                        : Colors.grey.withValues(alpha: 0.1),
                     borderRadius: BorderRadius.circular(12),
                   ),
                   child: Text(
@@ -172,7 +235,17 @@ class _AreaListScreenState extends State<AreaListScreen> {
                 children: [
                   Icon(Icons.edit, size: 20),
                   SizedBox(width: 8),
-                  Text('Edit'),
+                  Text('Edit Details'),
+                ],
+              ),
+            ),
+            const PopupMenuItem(
+              value: 'map',
+              child: Row(
+                children: [
+                  Icon(Icons.map, size: 20),
+                  SizedBox(width: 8),
+                  Text('Edit Boundary'),
                 ],
               ),
             ),
@@ -190,8 +263,10 @@ class _AreaListScreenState extends State<AreaListScreen> {
           onSelected: (value) {
             if (value == 'edit') {
               _navigateToAreaForm(area);
+            } else if (value == 'map') {
+              _navigateToMapScreen(area);
             } else if (value == 'assign') {
-              // Navigate to assign customers screen
+              _navigateToAssignCustomers(area);
             }
           },
         ),
@@ -210,5 +285,24 @@ class _AreaListScreenState extends State<AreaListScreen> {
     if (result == true && mounted) {
       context.read<AreaProvider>().loadAreas();
     }
+  }
+
+  void _navigateToMapScreen(Area? area) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AreaMapScreen(area: area),
+      ),
+    );
+
+    if (result == true && mounted) {
+      context.read<AreaProvider>().loadAreas();
+    }
+  }
+
+  void _navigateToAssignCustomers(Area area) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      const SnackBar(content: Text('Customer assignment coming soon')),
+    );
   }
 }

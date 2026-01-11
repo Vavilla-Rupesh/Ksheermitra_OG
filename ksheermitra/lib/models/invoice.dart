@@ -43,27 +43,41 @@ class Invoice {
 
   factory Invoice.fromJson(Map<String, dynamic> json) {
     return Invoice(
-      id: json['id'],
-      invoiceNumber: json['invoiceNumber'],
-      type: json['type'],
-      invoiceDate: DateTime.parse(json['invoiceDate']),
-      periodStart: DateTime.parse(json['periodStart']),
-      periodEnd: DateTime.parse(json['periodEnd']),
-      customerId: json['customerId'],
-      deliveryBoyId: json['deliveryBoyId'],
-      totalAmount: double.parse(json['totalAmount'].toString()),
-      paidAmount: double.parse(json['paidAmount'].toString()),
-      paymentStatus: json['paymentStatus'],
-      pdfPath: json['pdfPath'],
-      notes: json['notes'],
-      customer: json['customer'] != null 
-          ? User.fromJson(json['customer']) 
+      id: json['id']?.toString() ?? '',
+      invoiceNumber: json['invoiceNumber']?.toString() ?? '',
+      type: json['type']?.toString() ?? 'customer',
+      invoiceDate: json['invoiceDate'] != null
+          ? DateTime.tryParse(json['invoiceDate'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      periodStart: json['periodStart'] != null
+          ? DateTime.tryParse(json['periodStart'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      periodEnd: json['periodEnd'] != null
+          ? DateTime.tryParse(json['periodEnd'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      customerId: json['customerId']?.toString(),
+      deliveryBoyId: json['deliveryBoyId']?.toString(),
+      totalAmount: json['totalAmount'] != null
+          ? double.tryParse(json['totalAmount'].toString()) ?? 0.0
+          : 0.0,
+      paidAmount: json['paidAmount'] != null
+          ? double.tryParse(json['paidAmount'].toString()) ?? 0.0
+          : 0.0,
+      paymentStatus: json['paymentStatus']?.toString() ?? 'pending',
+      pdfPath: json['pdfPath']?.toString(),
+      notes: json['notes']?.toString(),
+      customer: json['customer'] != null && json['customer'] is Map<String, dynamic>
+          ? User.fromJson(json['customer'])
           : null,
-      deliveryBoy: json['deliveryBoy'] != null 
-          ? User.fromJson(json['deliveryBoy']) 
+      deliveryBoy: json['deliveryBoy'] != null && json['deliveryBoy'] is Map<String, dynamic>
+          ? User.fromJson(json['deliveryBoy'])
           : null,
-      createdAt: DateTime.parse(json['createdAt']),
-      updatedAt: DateTime.parse(json['updatedAt']),
+      createdAt: json['createdAt'] != null
+          ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      updatedAt: json['updatedAt'] != null
+          ? DateTime.tryParse(json['updatedAt'].toString()) ?? DateTime.now()
+          : DateTime.now(),
       deliveryDetails: json['deliveryDetails'] as Map<String, dynamic>?,
     );
   }

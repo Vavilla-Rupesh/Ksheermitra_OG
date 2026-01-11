@@ -1,6 +1,9 @@
 node_modules/
 .env
 whatsapp-session/
+baileys_auth/
+.wwebjs_auth/
+.wwebjs_cache/
 *.log
 .DS_Store
 *.pdf

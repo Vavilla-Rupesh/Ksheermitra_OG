@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../../providers/delivery_boy_provider.dart';
+import '../../common/location_picker_screen.dart';
 
 class DeliveryBoyFormScreen extends StatefulWidget {
   final User? deliveryBoy;
@@ -20,6 +21,8 @@ class _DeliveryBoyFormScreenState extends State<DeliveryBoyFormScreen> {
   final _addressController = TextEditingController();
 
   bool _isSubmitting = false;
+  double? _latitude;
+  double? _longitude;
 
   @override
   void initState() {
@@ -39,6 +42,27 @@ class _DeliveryBoyFormScreenState extends State<DeliveryBoyFormScreen> {
     _emailController.dispose();
     _addressController.dispose();
     super.dispose();
+  }
+
+  Future<void> _pickLocation() async {
+    final result = await Navigator.push<LocationResult>(
+      context,
+      MaterialPageRoute(
+        builder: (context) => LocationPickerScreen(
+          initialLatitude: _latitude,
+          initialLongitude: _longitude,
+          initialAddress: _addressController.text,
+        ),
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _latitude = result.latitude;
+        _longitude = result.longitude;
+        _addressController.text = result.address;
+      });
+    }
   }
 
   @override
@@ -113,15 +137,39 @@ class _DeliveryBoyFormScreenState extends State<DeliveryBoyFormScreen> {
               },
             ),
             const SizedBox(height: 16),
+            // Address field with map picker
             TextFormField(
               controller: _addressController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 labelText: 'Address',
-                border: OutlineInputBorder(),
-                prefixIcon: Icon(Icons.location_on),
+                border: const OutlineInputBorder(),
+                prefixIcon: const Icon(Icons.location_on),
+                suffixIcon: IconButton(
+                  icon: const Icon(Icons.map, color: Colors.blue),
+                  onPressed: _pickLocation,
+                  tooltip: 'Pick location on map',
+                ),
               ),
               maxLines: 3,
+              readOnly: false,
             ),
+            if (_latitude != null && _longitude != null)
+              Padding(
+                padding: const EdgeInsets.only(top: 8, left: 12),
+                child: Row(
+                  children: [
+                    const Icon(Icons.pin_drop, size: 16, color: Colors.grey),
+                    const SizedBox(width: 4),
+                    Text(
+                      'Lat: ${_latitude!.toStringAsFixed(6)}, Lng: ${_longitude!.toStringAsFixed(6)}',
+                      style: TextStyle(
+                        fontSize: 12,
+                        color: Colors.grey[600],
+                      ),
+                    ),
+                  ],
+                ),
+              ),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: _isSubmitting ? null : _submitForm,

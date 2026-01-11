@@ -1,6 +1,8 @@
 const db = require('../config/db');
 const logger = require('../utils/logger');
 const mapsService = require('../services/maps.service');
+const whatsappService = require('../services/whatsapp.service');
+const offlineSaleService = require('../services/offlineSale.service');
 
 class AdminController {
   async getCustomers(req, res, next) {
@@ -62,7 +64,7 @@ class AdminController {
           latitude: { [db.Sequelize.Op.ne]: null },
           longitude: { [db.Sequelize.Op.ne]: null }
         },
-        attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude', 'areaId'],
+        attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude', 'areaId', 'isActive'],
         include: [{
           model: db.Area,
           as: 'area',
@@ -976,6 +978,178 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Error updating product:', error);
+      next(error);
+    }
+  }
+
+  // Get WhatsApp connection status
+  async getWhatsAppStatus(req, res, next) {
+    try {
+      const status = whatsappService.getStatus();
+      res.status(200).json({
+        success: true,
+        data: status
+      });
+    } catch (error) {
+      logger.error('Error getting WhatsApp status:', error);
+      next(error);
+    }
+  }
+
+  // Reset WhatsApp session (clears session and requires new QR scan)
+  async resetWhatsAppSession(req, res, next) {
+    try {
+      logger.info('Admin requested WhatsApp session reset');
+      await whatsappService.resetSession();
+      res.status(200).json({
+        success: true,
+        message: 'WhatsApp session reset initiated. Please scan the new QR code in the server console.'
+      });
+    } catch (error) {
+      logger.error('Error resetting WhatsApp session:', error);
+      next(error);
+    }
+  }
+
+  // ============ OFFLINE SALES (IN-STORE) METHODS ============
+
+  /**
+   * Create an offline/in-store sale
+   */
+  async createOfflineSale(req, res, next) {
+    try {
+      const adminId = req.user.id;
+      const { items, customerName, customerPhone, paymentMethod, notes } = req.body;
+
+      const saleData = {
+        adminId,
+        items,
+        customerName,
+        customerPhone,
+        paymentMethod,
+        notes
+      };
+
+      const sale = await offlineSaleService.createOfflineSale(saleData);
+
+      res.status(201).json({
+        success: true,
+        message: 'Offline sale created successfully',
+        data: sale
+      });
+    } catch (error) {
+      logger.error('Error creating offline sale:', error);
+
+      // Send appropriate error message
+      const statusCode = error.message.includes('Insufficient stock') ? 400 : 500;
+      res.status(statusCode).json({
+        success: false,
+        message: error.message || 'Failed to create offline sale'
+      });
+    }
+  }
+
+  /**
+   * Get offline sales with pagination and filters
+   */
+  async getOfflineSales(req, res, next) {
+    try {
+      const { startDate, endDate, page, limit } = req.query;
+
+      const filters = {
+        startDate,
+        endDate,
+        page,
+        limit
+      };
+
+      const result = await offlineSaleService.getOfflineSales(filters);
+
+      res.status(200).json({
+        success: true,
+        data: result
+      });
+    } catch (error) {
+      logger.error('Error getting offline sales:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Get offline sale by ID
+   */
+  async getOfflineSaleById(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const sale = await offlineSaleService.getOfflineSaleById(id);
+
+      res.status(200).json({
+        success: true,
+        data: sale
+      });
+    } catch (error) {
+      logger.error('Error getting offline sale:', error);
+
+      if (error.message === 'Offline sale not found') {
+        return res.status(404).json({
+          success: false,
+          message: error.message
+        });
+      }
+
+      next(error);
+    }
+  }
+
+  /**
+   * Get offline sales statistics
+   */
+  async getOfflineSalesStats(req, res, next) {
+    try {
+      const { startDate, endDate } = req.query;
+
+      const stats = await offlineSaleService.getSalesStats(startDate, endDate);
+
+      res.status(200).json({
+        success: true,
+        data: stats
+      });
+    } catch (error) {
+      logger.error('Error getting offline sales stats:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * Get admin daily invoice with offline sales
+   */
+  async getAdminDailyInvoice(req, res, next) {
+    try {
+      const { date } = req.query;
+
+      if (!date) {
+        return res.status(400).json({
+          success: false,
+          message: 'Date is required'
+        });
+      }
+
+      const invoice = await offlineSaleService.getAdminDailyInvoice(date);
+
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          message: 'No invoice found for the specified date'
+        });
+      }
+
+      res.status(200).json({
+        success: true,
+        data: invoice
+      });
+    } catch (error) {
+      logger.error('Error getting admin daily invoice:', error);
       next(error);
     }
   }
