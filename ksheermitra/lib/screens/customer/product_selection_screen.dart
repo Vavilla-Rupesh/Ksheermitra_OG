@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../services/customer_api_service.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../config/app_config.dart';
 import '../../utils/image_helper.dart';
 import '../../widgets/premium_widgets.dart';
@@ -127,12 +127,12 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
         children: [
           // Search Bar with Premium Styling
           Container(
-            padding: const EdgeInsets.all(AppTheme.space16),
+            padding: const EdgeInsets.all(DairySpacing.md),
             decoration: BoxDecoration(
-              gradient: AppTheme.appBarGradient,
-              borderRadius: const BorderRadius.only(
-                bottomLeft: Radius.circular(AppTheme.radiusLarge),
-                bottomRight: Radius.circular(AppTheme.radiusLarge),
+              gradient: const LinearGradient(colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark]),
+              borderRadius: BorderRadius.only(
+                bottomLeft: Radius.circular(DairyRadius.lg),
+                bottomRight: Radius.circular(DairyRadius.lg),
               ),
             ),
             child: PremiumInput(
@@ -157,7 +157,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                             : 'Try a different search term',
                       )
                     : ListView.builder(
-                        padding: const EdgeInsets.all(AppTheme.space16),
+                        padding: const EdgeInsets.all(DairySpacing.md),
                         itemCount: _filteredProducts.length,
                         itemBuilder: (context, index) {
                           final product = _filteredProducts[index];
@@ -165,7 +165,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                           final isSelected = quantity > 0;
 
                           return Padding(
-                            padding: const EdgeInsets.only(bottom: AppTheme.space12),
+                            padding: EdgeInsets.only(bottom: DairySpacing.sm + 4),
                             child: ProductCard(
                               onTap: () => _toggleProduct(product.id, !isSelected),
                               child: Column(
@@ -176,7 +176,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                       // Product Image or Icon with gradient
                                       product.imageUrl != null && product.imageUrl!.isNotEmpty
                                           ? ClipRRect(
-                                              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                              borderRadius: DairyRadius.defaultBorderRadius,
                                               child: Image.network(
                                                 '${AppConfig.baseUrl}${product.imageUrl}',
                                                 headers: ImageHelper.imageHeaders,
@@ -189,21 +189,21 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                                     height: 60,
                                                     decoration: BoxDecoration(
                                                       gradient: isSelected
-                                                          ? AppTheme.activeGradient
+                                                          ? const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)])
                                                           : LinearGradient(
                                                               colors: [
-                                                                AppTheme.primaryColor.withValues(alpha: 0.1),
-                                                                AppTheme.primaryColor.withValues(alpha: 0.05),
+                                                                DairyColorsLight.primary.withValues(alpha: 0.1),
+                                                                DairyColorsLight.primary.withValues(alpha: 0.05),
                                                               ],
                                                             ),
-                                                      borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                                                      borderRadius: DairyRadius.defaultBorderRadius,
                                                     ),
                                                     child: Icon(
                                                       Icons.local_drink,
                                                       size: 32,
                                                       color: isSelected
                                                           ? Colors.white
-                                                          : AppTheme.primaryColor,
+                                                          : DairyColorsLight.primary,
                                                     ),
                                                   );
                                                 },

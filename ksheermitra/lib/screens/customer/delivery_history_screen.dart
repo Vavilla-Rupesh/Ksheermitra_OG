@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../../models/delivery.dart';
 import '../../services/customer_api_service.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 
 class DeliveryHistoryScreen extends StatefulWidget {

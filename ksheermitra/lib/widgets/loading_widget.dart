@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Loading Widget with branded styling
 class PremiumLoadingWidget extends StatelessWidget {
@@ -21,16 +21,16 @@ class PremiumLoadingWidget extends StatelessWidget {
           SizedBox(
             width: size,
             height: size,
-            child: CircularProgressIndicator(
+            child: const CircularProgressIndicator(
               strokeWidth: 4,
-              valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+              valueColor: AlwaysStoppedAnimation<Color>(DairyColorsLight.primary),
             ),
           ),
           if (message != null) ...[
-            const SizedBox(height: AppTheme.space16),
+            const SizedBox(height: DairySpacing.md),
             Text(
               message!,
-              style: AppTheme.bodyMedium,
+              style: DairyTypography.body(),
               textAlign: TextAlign.center,
             ),
           ],
@@ -50,7 +50,7 @@ class ShimmerLoading extends StatefulWidget {
     super.key,
     required this.width,
     required this.height,
-    this.borderRadius = AppTheme.radiusMedium,
+    this.borderRadius = DairyRadius.md,
   });
 
   @override

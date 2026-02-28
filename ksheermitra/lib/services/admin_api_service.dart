@@ -193,6 +193,10 @@ class AdminApiService {
     return Area.fromJson(response['data']);
   }
 
+  Future<void> deleteArea({required String id}) async {
+    await _apiService.delete('/admin/areas/$id');
+  }
+
   Future<void> assignArea({
     required String customerId,
     required String areaId,
@@ -211,6 +215,31 @@ class AdminApiService {
       'customerIds': customerIds,
       'areaId': areaId,
     });
+  }
+
+  Future<Area> assignAreaWithMap({
+    required String areaId,
+    required String deliveryBoyId,
+    List<LatLng>? boundaries,
+    double? centerLatitude,
+    double? centerLongitude,
+    String? mapLink,
+  }) async {
+    final body = {
+      'areaId': areaId,
+      'deliveryBoyId': deliveryBoyId,
+      if (boundaries != null && boundaries.isNotEmpty)
+        'boundaries': boundaries.map((point) => {
+          'latitude': point.latitude,
+          'longitude': point.longitude,
+        }).toList(),
+      if (centerLatitude != null) 'centerLatitude': centerLatitude.toString(),
+      if (centerLongitude != null) 'centerLongitude': centerLongitude.toString(),
+      if (mapLink != null) 'mapLink': mapLink,
+    };
+
+    final response = await _apiService.post('/admin/assign-area-with-map', body);
+    return Area.fromJson(response['data']['area']);
   }
 
   // Product Management
@@ -449,5 +478,36 @@ class AdminApiService {
       'recipientIds': recipientIds,
       'message': message,
     });
+  }
+
+  // Invoice Generation
+  Future<Invoice> generateMonthlyInvoice({
+    required String customerId,
+    required int year,
+    required int month,
+  }) async {
+    final response = await _apiService.post(
+      '/admin/invoices/monthly/generate',
+      {
+        'customerId': customerId,
+        'year': year,
+        'month': month,
+      },
+    );
+    return Invoice.fromJson(response['data']);
+  }
+
+  Future<Invoice> generateDailyInvoice({
+    required String deliveryBoyId,
+    required String date,
+  }) async {
+    final response = await _apiService.post(
+      '/admin/invoices/daily/generate',
+      {
+        'deliveryBoyId': deliveryBoyId,
+        'date': date,
+      },
+    );
+    return Invoice.fromJson(response['data']);
   }
 }

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium AppBar with gradient background
 class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
@@ -27,9 +27,18 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
+    final defaultGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [colors.primary, colors.primaryLight],
+    );
+
     return Container(
       decoration: BoxDecoration(
-        gradient: gradient ?? AppTheme.appBarGradient,
+        gradient: gradient ?? defaultGradient,
       ),
       child: AppBar(
         title: Text(title),
@@ -67,6 +76,9 @@ class PremiumSliverAppBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
     return SliverAppBar(
       title: Text(title),
       centerTitle: true,
@@ -78,8 +90,12 @@ class PremiumSliverAppBar extends StatelessWidget {
       flexibleSpace: flexibleSpace ??
           FlexibleSpaceBar(
             background: Container(
-              decoration: const BoxDecoration(
-                gradient: AppTheme.dashboardHeaderGradient,
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [colors.primary, colors.primaryLight],
+                ),
               ),
             ),
           ),

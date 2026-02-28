@@ -51,11 +51,25 @@ class AreaProvider with ChangeNotifier {
         centerLongitude: centerLongitude,
       );
       _areas.add(area);
+      _error = null;
       notifyListeners();
       return true;
     } catch (e) {
-      _error = e.toString();
+      final errorMessage = e.toString();
+
+      // Provide user-friendly error messages
+      if (errorMessage.contains('Connection reset')) {
+        _error = 'Connection lost. Please check your internet and try again.';
+      } else if (errorMessage.contains('timeout')) {
+        _error = 'Request timed out. Please check your connection and try again.';
+      } else if (errorMessage.contains('Network error')) {
+        _error = 'Network error. Please check your internet connection.';
+      } else {
+        _error = 'Failed to create area: ${e.toString()}';
+      }
+
       debugPrint('Error creating area: $e');
+      notifyListeners();
       return false;
     }
   }
@@ -114,6 +128,19 @@ class AreaProvider with ChangeNotifier {
     }
   }
 
+  Future<bool> deleteArea({required String id}) async {
+    try {
+      await _adminApi.deleteArea(id: id);
+      _areas.removeWhere((a) => a.id == id);
+      notifyListeners();
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error deleting area: $e');
+      return false;
+    }
+  }
+
   Future<bool> assignArea({
     required String customerId,
     required String areaId,
@@ -138,6 +165,36 @@ class AreaProvider with ChangeNotifier {
     } catch (e) {
       _error = e.toString();
       debugPrint('Error bulk assigning area: $e');
+      return false;
+    }
+  }
+
+  Future<bool> assignAreaWithMap({
+    required String areaId,
+    required String deliveryBoyId,
+    List<LatLng>? boundaries,
+    double? centerLatitude,
+    double? centerLongitude,
+    String? mapLink,
+  }) async {
+    try {
+      final updatedArea = await _adminApi.assignAreaWithMap(
+        areaId: areaId,
+        deliveryBoyId: deliveryBoyId,
+        boundaries: boundaries,
+        centerLatitude: centerLatitude,
+        centerLongitude: centerLongitude,
+        mapLink: mapLink,
+      );
+      final index = _areas.indexWhere((a) => a.id == areaId);
+      if (index != -1) {
+        _areas[index] = updatedArea;
+        notifyListeners();
+      }
+      return true;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error assigning area with map: $e');
       return false;
     }
   }

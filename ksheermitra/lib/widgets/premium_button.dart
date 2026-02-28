@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Gradient Button with shadow and animation
 class PremiumButton extends StatefulWidget {
@@ -22,7 +22,7 @@ class PremiumButton extends StatefulWidget {
     this.isLoading = false,
     this.width,
     this.height = 56.0,
-    this.borderRadius = AppTheme.radiusMedium,
+    this.borderRadius = DairyRadius.md,
     this.padding,
   });
 
@@ -55,7 +55,15 @@ class _PremiumButtonState extends State<PremiumButton>
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
     final isEnabled = widget.onPressed != null && !widget.isLoading;
+
+    final defaultGradient = LinearGradient(
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [colors.primary, colors.primaryLight],
+    );
 
     return AnimatedBuilder(
       animation: _scaleAnimation,
@@ -67,12 +75,12 @@ class _PremiumButtonState extends State<PremiumButton>
             height: widget.height,
             decoration: BoxDecoration(
               gradient: isEnabled
-                  ? (widget.gradient ?? AppTheme.primaryButtonGradient)
+                  ? (widget.gradient ?? defaultGradient)
                   : const LinearGradient(
                       colors: [Colors.grey, Colors.grey],
                     ),
               borderRadius: BorderRadius.circular(widget.borderRadius),
-              boxShadow: isEnabled ? AppTheme.buttonShadow : null,
+              boxShadow: isEnabled ? colors.buttonShadow : null,
             ),
             child: Material(
               color: Colors.transparent,
@@ -86,7 +94,7 @@ class _PremiumButtonState extends State<PremiumButton>
                 borderRadius: BorderRadius.circular(widget.borderRadius),
                 child: Padding(
                   padding: widget.padding ??
-                      const EdgeInsets.symmetric(horizontal: AppTheme.space24),
+                      const EdgeInsets.symmetric(horizontal: DairySpacing.lg),
                   child: Center(
                     child: widget.isLoading
                         ? const SizedBox(
@@ -104,14 +112,14 @@ class _PremiumButtonState extends State<PremiumButton>
                               if (widget.icon != null) ...[
                                 Icon(
                                   widget.icon,
-                                  color: AppTheme.textOnPrimary,
+                                  color: colors.textOnPrimary,
                                   size: 20,
                                 ),
-                                const SizedBox(width: AppTheme.space8),
+                                const SizedBox(width: DairySpacing.sm),
                               ],
                               Text(
                                 widget.text,
-                                style: AppTheme.buttonText,
+                                style: DairyTypography.button(isDark: isDark),
                               ),
                             ],
                           ),
@@ -147,22 +155,24 @@ class PremiumOutlineButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buttonColor = color ?? AppTheme.primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+    final buttonColor = color ?? colors.primary;
 
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         border: Border.all(color: buttonColor, width: 2),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          borderRadius: BorderRadius.circular(DairyRadius.md),
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: AppTheme.space24),
+            padding: const EdgeInsets.symmetric(horizontal: DairySpacing.lg),
             child: Center(
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
@@ -170,11 +180,11 @@ class PremiumOutlineButton extends StatelessWidget {
                 children: [
                   if (icon != null) ...[
                     Icon(icon, color: buttonColor, size: 20),
-                    const SizedBox(width: AppTheme.space8),
+                    const SizedBox(width: DairySpacing.sm),
                   ],
                   Text(
                     text,
-                    style: AppTheme.buttonText.copyWith(color: buttonColor),
+                    style: DairyTypography.button(isDark: isDark).copyWith(color: buttonColor),
                   ),
                 ],
               ),
@@ -203,15 +213,17 @@ class PremiumTextButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buttonColor = color ?? AppTheme.primaryColor;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+    final buttonColor = color ?? colors.primary;
 
     return TextButton(
       onPressed: onPressed,
       style: TextButton.styleFrom(
         foregroundColor: buttonColor,
         padding: const EdgeInsets.symmetric(
-          horizontal: AppTheme.space16,
-          vertical: AppTheme.space12,
+          horizontal: DairySpacing.md,
+          vertical: DairySpacing.sm,
         ),
       ),
       child: Row(
@@ -219,7 +231,7 @@ class PremiumTextButton extends StatelessWidget {
         children: [
           if (icon != null) ...[
             Icon(icon, size: 18),
-            const SizedBox(width: AppTheme.space8),
+            const SizedBox(width: DairySpacing.sm),
           ],
           Text(
             text,

@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/subscription.dart';
 import '../../services/customer_api_service.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 import '../../widgets/subscription_detail_popup.dart';
 
@@ -92,7 +92,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               : RefreshIndicator(
                   onRefresh: _loadSubscriptions,
                   child: ListView(
-                    padding: const EdgeInsets.all(AppTheme.space16),
+                    padding: const EdgeInsets.all(DairySpacing.md),
                     children: [
                       _buildCategorySection('Daily', 'daily', Icons.wb_sunny),
                       const SizedBox(height: 12),
@@ -136,7 +136,7 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                   Container(
                     padding: const EdgeInsets.all(10),
                     decoration: BoxDecoration(
-                      gradient: AppTheme.activeGradient,
+                      gradient: const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)]),
                       borderRadius: BorderRadius.circular(10),
                     ),
                     child: Icon(icon, color: Colors.white, size: 24),
@@ -277,9 +277,9 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 const SizedBox(height: 8),
                 Text(
                   'View Details',
-                  style: TextStyle(
+                  style: const TextStyle(
                     fontSize: 12,
-                    color: AppTheme.primaryColor,
+                    color: DairyColorsLight.primary,
                     fontWeight: FontWeight.w600,
                   ),
                 ),

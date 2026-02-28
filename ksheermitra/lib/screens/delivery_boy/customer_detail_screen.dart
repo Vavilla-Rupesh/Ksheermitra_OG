@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/delivery_models.dart';
 import '../../services/delivery_service.dart';
+import '../../core/delivery_verification/delivery_verification.dart';
 
 class CustomerDetailScreen extends StatefulWidget {
   final Customer customer;
@@ -14,6 +15,7 @@ class CustomerDetailScreen extends StatefulWidget {
 class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   final DeliveryService _deliveryService = DeliveryService();
   bool _isUpdating = false;
+  bool _showGpsVerification = false;
 
   Future<void> _updateStatus(String status) async {
     final confirm = await showDialog<bool>(
@@ -320,45 +322,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                     ),
                   ],
                 ),
-                child: Row(
-                  children: [
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _isUpdating ? null : () => _updateStatus('missed'),
-                        icon: const Icon(Icons.cancel, color: Colors.white),
-                        label: const Text(
-                          'Missed',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _isUpdating ? null : () => _updateStatus('delivered'),
-                        icon: const Icon(Icons.check_circle, color: Colors.white),
-                        label: const Text(
-                          'Delivered',
-                          style: TextStyle(fontSize: 16, color: Colors.white),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
+                child: _showGpsVerification && _hasValidLocation()
+                    ? _buildGpsVerificationWidget()
+                    : _buildActionButtons(),
               ),
             ),
 
@@ -478,5 +444,130 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     if (name.contains('lassi')) return '🥤';
     return '📦';
   }
-}
 
+  bool _hasValidLocation() {
+    return widget.customer.latitude != null &&
+           widget.customer.longitude != null &&
+           widget.customer.latitude != 0.0 &&
+           widget.customer.longitude != 0.0;
+  }
+
+  Widget _buildActionButtons() {
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Show GPS verification option if customer has valid location
+        if (_hasValidLocation())
+          Padding(
+            padding: const EdgeInsets.only(bottom: 12),
+            child: OutlinedButton.icon(
+              onPressed: () => setState(() => _showGpsVerification = true),
+              icon: const Icon(Icons.gps_fixed),
+              label: const Text('Verify with GPS'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: Colors.blue,
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                minimumSize: const Size(double.infinity, 48),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+            ),
+          ),
+        Row(
+          children: [
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _isUpdating ? null : () => _updateStatus('missed'),
+                icon: const Icon(Icons.cancel, color: Colors.white),
+                label: const Text(
+                  'Missed',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.red,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: ElevatedButton.icon(
+                onPressed: _isUpdating ? null : () => _updateStatus('delivered'),
+                icon: const Icon(Icons.check_circle, color: Colors.white),
+                label: const Text(
+                  'Delivered',
+                  style: TextStyle(fontSize: 16, color: Colors.white),
+                ),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildGpsVerificationWidget() {
+    // Create a DeliveryOrder from the customer data
+    final order = DeliveryOrder(
+      id: widget.customer.deliveryId ?? widget.customer.id,
+      customerId: widget.customer.id,
+      customerName: widget.customer.name,
+      customerPhone: widget.customer.phone,
+      deliveryAddress: widget.customer.address ?? '',
+      destination: DeliveryLocation(
+        latitude: widget.customer.latitude!,
+        longitude: widget.customer.longitude!,
+      ),
+      allowedRadiusMeters: 100.0, // 100 meter radius
+      status: DeliveryOrderStatus.pending,
+      items: const [],
+      totalAmount: 0,
+      deliveryDate: DateTime.now(),
+    );
+
+    return Column(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        // Back button to return to normal buttons
+        TextButton.icon(
+          onPressed: () => setState(() => _showGpsVerification = false),
+          icon: const Icon(Icons.arrow_back, size: 18),
+          label: const Text('Back to manual options'),
+        ),
+        const SizedBox(height: 8),
+        // GPS Verification Widget
+        ProductionDeliveryVerificationWidget(
+          order: order,
+          config: DeliveryVerificationConfig(
+            showDistanceIndicator: true,
+            deliverButtonText: 'Verify & Deliver',
+            outsideButtonText: 'Move closer to customer',
+            onDeliverySuccess: () {
+              // Delivery verified successfully via GPS
+              Navigator.pop(context, true);
+            },
+            onDeliveryFailed: (error) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(
+                  content: Text('Verification failed: $error'),
+                  backgroundColor: Colors.red,
+                ),
+              );
+            },
+          ),
+        ),
+      ],
+    );
+  }
+}

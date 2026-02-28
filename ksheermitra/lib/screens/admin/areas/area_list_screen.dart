@@ -5,6 +5,7 @@ import '../../../providers/area_provider.dart';
 import '../../../providers/delivery_boy_provider.dart';
 import 'area_form_screen.dart';
 import 'area_map_screen.dart';
+import 'area_customer_assignment_screen.dart';
 
 class AreaListScreen extends StatefulWidget {
   const AreaListScreen({super.key});
@@ -138,7 +139,9 @@ class _AreaListScreenState extends State<AreaListScreen> {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.pop(context);
-                _navigateToMapScreen(null);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _navigateToMapScreen(null);
+                });
               },
             ),
             const Divider(),
@@ -152,7 +155,9 @@ class _AreaListScreenState extends State<AreaListScreen> {
               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
               onTap: () {
                 Navigator.pop(context);
-                _navigateToAreaForm(null);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _navigateToAreaForm(null);
+                });
               },
             ),
             const SizedBox(height: 16),
@@ -227,9 +232,9 @@ class _AreaListScreenState extends State<AreaListScreen> {
             ),
           ],
         ),
-        trailing: PopupMenuButton(
-          itemBuilder: (context) => [
-            const PopupMenuItem(
+        trailing: PopupMenuButton<String>(
+          itemBuilder: (context) => <PopupMenuEntry<String>>[
+            const PopupMenuItem<String>(
               value: 'edit',
               child: Row(
                 children: [
@@ -239,7 +244,7 @@ class _AreaListScreenState extends State<AreaListScreen> {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            const PopupMenuItem<String>(
               value: 'map',
               child: Row(
                 children: [
@@ -249,13 +254,24 @@ class _AreaListScreenState extends State<AreaListScreen> {
                 ],
               ),
             ),
-            const PopupMenuItem(
+            const PopupMenuItem<String>(
               value: 'assign',
               child: Row(
                 children: [
                   Icon(Icons.person_add, size: 20),
                   SizedBox(width: 8),
                   Text('Assign Customers'),
+                ],
+              ),
+            ),
+            const PopupMenuDivider(),
+            const PopupMenuItem<String>(
+              value: 'delete',
+              child: Row(
+                children: [
+                  Icon(Icons.delete, size: 20, color: Colors.red),
+                  SizedBox(width: 8),
+                  Text('Delete Area', style: TextStyle(color: Colors.red)),
                 ],
               ),
             ),
@@ -267,6 +283,8 @@ class _AreaListScreenState extends State<AreaListScreen> {
               _navigateToMapScreen(area);
             } else if (value == 'assign') {
               _navigateToAssignCustomers(area);
+            } else if (value == 'delete') {
+              _showDeleteConfirmation(area);
             }
           },
         ),
@@ -300,9 +318,92 @@ class _AreaListScreenState extends State<AreaListScreen> {
     }
   }
 
-  void _navigateToAssignCustomers(Area area) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Customer assignment coming soon')),
+  void _navigateToAssignCustomers(Area area) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => AreaCustomerAssignmentScreen(area: area),
+      ),
     );
+
+    if (result == true && mounted) {
+      context.read<AreaProvider>().loadAreas();
+    }
+  }
+
+  void _showDeleteConfirmation(Area area) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Delete Area'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('Are you sure you want to delete "${area.name}"?'),
+            const SizedBox(height: 12),
+            if (area.customerCount > 0)
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.red.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  children: [
+                    const Icon(Icons.warning, color: Colors.red, size: 20),
+                    const SizedBox(width: 8),
+                    Expanded(
+                      child: Text(
+                        '${area.customerCount} customer(s) assigned to this area. Please reassign them first.',
+                        style: const TextStyle(color: Colors.red, fontSize: 12),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Cancel'),
+          ),
+          if (area.customerCount == 0)
+            TextButton(
+              onPressed: () => _deleteArea(area.id),
+              style: TextButton.styleFrom(foregroundColor: Colors.red),
+              child: const Text('Delete'),
+            ),
+        ],
+      ),
+    );
+  }
+
+  void _deleteArea(String areaId) async {
+    Navigator.pop(context); // Close dialog
+
+    final success = await context.read<AreaProvider>().deleteArea(id: areaId);
+
+    if (mounted) {
+      if (success) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Area deleted successfully'),
+            backgroundColor: Colors.green,
+            duration: Duration(seconds: 2),
+          ),
+        );
+      } else {
+        final error = context.read<AreaProvider>().error ?? 'Failed to delete area';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $error'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 }

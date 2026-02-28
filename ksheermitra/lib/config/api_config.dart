@@ -1,7 +1,7 @@
 class ApiConfig {
   // API endpoints
 
-  static const String baseUrl = 'https://bcd82c85c0c8.ngrok-free.app/api';
+  static const String baseUrl = 'https://d6d7-2401-4900-8fcc-1974-20c5-1c37-cbf0-e6de.ngrok-free.app/api';
   static const String authEndpoint = '/auth';
   static const String adminEndpoint = '/admin';
   static const String customerEndpoint = '/customer';

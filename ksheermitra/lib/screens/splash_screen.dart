@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../providers/auth_provider.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -47,7 +47,7 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: AppTheme.primaryColor,
+      backgroundColor: DairyColorsLight.primary,
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -77,7 +77,7 @@ class _SplashScreenState extends State<SplashScreen> {
                       return const Icon(
                         Icons.local_drink,
                         size: 60,
-                        color: AppTheme.primaryColor,
+                        color: DairyColorsLight.primary,
                       );
                     },
                   ),

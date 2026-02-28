@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../models/area.dart';
-import '../../../models/user.dart';
 import '../../../providers/area_provider.dart';
 import '../../../providers/delivery_boy_provider.dart';
 
@@ -87,7 +86,7 @@ class _AreaFormScreenState extends State<AreaFormScreen> {
                 final deliveryBoys = provider.activeDeliveryBoys;
 
                 return DropdownButtonFormField<String>(
-                  value: _selectedDeliveryBoyId,
+                  initialValue: _selectedDeliveryBoyId,
                   decoration: const InputDecoration(
                     labelText: 'Assign Delivery Boy',
                     border: OutlineInputBorder(),
@@ -160,12 +159,37 @@ class _AreaFormScreenState extends State<AreaFormScreen> {
         deliveryBoyId: _selectedDeliveryBoyId,
       );
     } else {
-      success = await provider.updateArea(
-        id: widget.area!.id,
-        name: name,
-        description: description.isNotEmpty ? description : null,
-        deliveryBoyId: _selectedDeliveryBoyId,
-      );
+      // For editing existing area
+      if (_selectedDeliveryBoyId != null &&
+          _selectedDeliveryBoyId != widget.area!.deliveryBoyId) {
+        // If delivery boy assignment changed, use assignAreaWithMap
+        success = await provider.assignAreaWithMap(
+          areaId: widget.area!.id,
+          deliveryBoyId: _selectedDeliveryBoyId!,
+          boundaries: widget.area!.boundaries,
+          centerLatitude: widget.area!.centerLatitude,
+          centerLongitude: widget.area!.centerLongitude,
+          mapLink: widget.area!.mapLink,
+        );
+
+        // Also update area name and description if changed
+        if (success && (name != widget.area!.name ||
+            description != (widget.area!.description ?? ''))) {
+          success = await provider.updateArea(
+            id: widget.area!.id,
+            name: name,
+            description: description.isNotEmpty ? description : null,
+          );
+        }
+      } else {
+        // Just update area details (name, description, deliveryBoyId)
+        success = await provider.updateArea(
+          id: widget.area!.id,
+          name: name,
+          description: description.isNotEmpty ? description : null,
+          deliveryBoyId: _selectedDeliveryBoyId,
+        );
+      }
     }
 
     setState(() {
@@ -186,12 +210,43 @@ class _AreaFormScreenState extends State<AreaFormScreen> {
         );
         Navigator.pop(context, true);
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${provider.error ?? 'Failed to save area'}'),
-            backgroundColor: Colors.red,
-          ),
-        );
+        // Show error dialog with retry option for network errors
+        final error = provider.error ?? 'Failed to save area';
+        final isNetworkError = error.contains('Connection') ||
+                              error.contains('Network') ||
+                              error.contains('timeout');
+
+        if (mounted) {
+          showDialog(
+            context: context,
+            barrierDismissible: !isNetworkError, // Allow dismiss if not network error
+            builder: (context) => AlertDialog(
+              title: const Text('Error'),
+              content: Text(error),
+              actions: [
+                if (!isNetworkError)
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('OK'),
+                  ),
+                if (isNetworkError) ...[
+                  TextButton(
+                    onPressed: () => Navigator.pop(context),
+                    child: const Text('Cancel'),
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pop(context);
+                      _submitForm(); // Retry
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Retry'),
+                  ),
+                ],
+              ],
+            ),
+          );
+        }
       }
     }
   }

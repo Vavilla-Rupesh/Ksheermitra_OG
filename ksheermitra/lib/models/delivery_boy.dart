@@ -36,7 +36,7 @@ class DeliveryBoy {
       longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       areaId: json['areaId'],
       isActive: json['isActive'] ?? true,
-      area: json['area'] != null ? Area.fromJson(json['area']) : null,
+      area: json['assignedArea'] != null ? Area.fromJson(json['assignedArea']) : (json['area'] != null ? Area.fromJson(json['area']) : null),
       lastLogin: json['lastLogin'] != null ? DateTime.parse(json['lastLogin']) : null,
     );
   }
@@ -126,8 +126,8 @@ class LatLngBoundary {
 
   factory LatLngBoundary.fromJson(Map<String, dynamic> json) {
     return LatLngBoundary(
-      lat: double.parse(json['lat'].toString()),
-      lng: double.parse(json['lng'].toString()),
+      lat: double.tryParse(json['lat'].toString()) ?? 0.0,
+      lng: double.tryParse(json['lng'].toString()) ?? 0.0,
     );
   }
 

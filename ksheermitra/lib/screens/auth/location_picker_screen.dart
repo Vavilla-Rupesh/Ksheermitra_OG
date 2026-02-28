@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geocoding/geocoding.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 
 class LocationPickerScreen extends StatefulWidget {
   final double? initialLatitude;
@@ -96,7 +96,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: AppTheme.primaryColor,
+        backgroundColor: DairyColorsLight.primary,
         title: const Text('Pick Location'),
         actions: [
           IconButton(
@@ -147,7 +147,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                     children: [
                       const Icon(
                         Icons.location_on,
-                        color: AppTheme.primaryColor,
+                        color: DairyColorsLight.primary,
                       ),
                       const SizedBox(width: 8),
                       Expanded(
@@ -178,7 +178,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
                   ElevatedButton(
                     onPressed: _confirmLocation,
                     style: ElevatedButton.styleFrom(
-                      backgroundColor: AppTheme.primaryColor,
+                      backgroundColor: DairyColorsLight.primary,
                       padding: const EdgeInsets.symmetric(vertical: 14),
                     ),
                     child: const Text('Confirm Location'),

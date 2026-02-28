@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../providers/auth_provider.dart';
 import 'delivery_map_screen.dart';
 import 'daily_summary_screen.dart';
+import 'delivery_boy_profile_screen.dart';
 
 class DeliveryBoyHomeScreen extends StatefulWidget {
   const DeliveryBoyHomeScreen({Key? key}) : super(key: key);
@@ -16,6 +19,41 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
       appBar: AppBar(
         title: const Text('Delivery Dashboard'),
         backgroundColor: Colors.blue,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && mounted) {
+                await context.read<AuthProvider>().logout();
+                if (mounted) {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16),
@@ -58,7 +96,7 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
                         Icon(
                           Icons.map,
                           size: 100,
-                          color: Colors.white.withOpacity(0.9),
+                          color: Colors.white.withValues(alpha: 0.9),
                         ),
                         const SizedBox(height: 20),
                         const Text(
@@ -74,7 +112,7 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
                           'View customers & deliveries',
                           style: TextStyle(
                             fontSize: 16,
-                            color: Colors.white.withOpacity(0.9),
+                            color: Colors.white.withValues(alpha: 0.9),
                           ),
                         ),
                       ],
@@ -111,8 +149,9 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
                       Icons.person,
                       Colors.orange,
                       () {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(content: Text('Profile coming soon')),
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const DeliveryBoyProfileScreen()),
                         );
                       },
                     ),
@@ -147,7 +186,7 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
               end: Alignment.bottomRight,
               colors: [
                 color,
-                color.withOpacity(0.7),
+                color.withValues(alpha: 0.7),
               ],
             ),
             borderRadius: BorderRadius.circular(16),

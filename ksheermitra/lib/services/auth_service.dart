@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 import '../models/user.dart';
@@ -63,11 +64,27 @@ class AuthService {
   }
 
   Future<User?> getUser() async {
+    try {
+      // Load the token back into ApiService
+      await _apiService.loadToken();
+
+      // Fetch fresh user data from API
+      final response = await _apiService.get('/customer/profile');
+
+      if (response['success'] == true && response['data'] != null) {
+        final user = User.fromJson(response['data']);
+        // Update cached data with fresh data from API
+        await saveUser(user);
+        return user;
+      }
+    } catch (e) {
+      debugPrint('Error fetching user from API: $e');
+      // Fall back to cached data if API fails
+    }
+
+    // Fallback to cached data if API call fails
     final prefs = await SharedPreferences.getInstance();
     final userData = prefs.getString('user_data');
-    
-    // Load the token back into ApiService
-    await _apiService.loadToken();
 
     if (userData != null) {
       return User.fromJson(json.decode(userData));

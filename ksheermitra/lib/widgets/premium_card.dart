@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Card Widget with gradient, shadow, and smooth animations
 class PremiumCard extends StatelessWidget {
@@ -20,19 +20,22 @@ class PremiumCard extends StatelessWidget {
     this.gradient,
     this.backgroundColor,
     this.shadows,
-    this.borderRadius = AppTheme.radiusLarge,
+    this.borderRadius = DairyRadius.lg,
     this.border,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
     final content = Container(
-      padding: padding ?? const EdgeInsets.all(AppTheme.space16),
+      padding: padding ?? const EdgeInsets.all(DairySpacing.md),
       decoration: BoxDecoration(
         gradient: gradient,
-        color: gradient == null ? (backgroundColor ?? AppTheme.cardColor) : null,
+        color: gradient == null ? (backgroundColor ?? colors.card) : null,
         borderRadius: BorderRadius.circular(borderRadius),
-        boxShadow: shadows ?? AppTheme.cardShadow,
+        boxShadow: shadows ?? colors.cardShadow,
         border: border,
       ),
       child: child,
@@ -68,9 +71,25 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
     return PremiumCard(
-      gradient: AppTheme.productCardGradient,
-      shadows: AppTheme.productCardShadow(AppTheme.primaryColor),
+      gradient: LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          colors.card,
+          colors.primarySurface,
+        ],
+      ),
+      shadows: [
+        BoxShadow(
+          color: colors.primary.withValues(alpha: 0.15),
+          blurRadius: 12,
+          offset: const Offset(0, 4),
+        ),
+      ],
       padding: padding,
       onTap: onTap,
       child: child,
@@ -95,9 +114,25 @@ class SubscriptionCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
     return PremiumCard(
-      gradient: isPremium ? AppTheme.premiumCardGradient : null,
-      shadows: isPremium ? AppTheme.premiumCardShadow : AppTheme.cardShadow,
+      gradient: isPremium ? LinearGradient(
+        begin: Alignment.topLeft,
+        end: Alignment.bottomRight,
+        colors: [
+          colors.primary,
+          colors.primaryLight,
+        ],
+      ) : null,
+      shadows: isPremium ? [
+        BoxShadow(
+          color: colors.primary.withValues(alpha: 0.3),
+          blurRadius: 16,
+          offset: const Offset(0, 6),
+        ),
+      ] : colors.cardShadow,
       padding: padding,
       onTap: onTap,
       child: child,

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 import 'delivery_map_screen.dart';
-import 'daily_summary_screen.dart';
+import 'route_navigation_screen.dart';
+import 'invoice_generation_screen.dart';
+import 'delivery_boy_history_screen.dart';
+import 'delivery_boy_profile_screen.dart';
 
 class DeliveryHome extends StatefulWidget {
   const DeliveryHome({super.key});
@@ -33,6 +36,53 @@ class _DeliveryHomeState extends State<DeliveryHome> {
           ),
         ),
         title: 'Delivery Dashboard',
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.person),
+            tooltip: 'Profile',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const DeliveryBoyProfileScreen(),
+                ),
+              );
+            },
+          ),
+          IconButton(
+            icon: const Icon(Icons.logout),
+            tooltip: 'Logout',
+            onPressed: () async {
+              final confirm = await showDialog<bool>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('Logout'),
+                  content: const Text('Are you sure you want to logout?'),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.pop(context, false),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.pop(context, true),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor: Colors.red,
+                      ),
+                      child: const Text('Logout'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (confirm == true && mounted) {
+                await context.read<AuthProvider>().logout();
+                if (mounted) {
+                  Navigator.of(context).pushReplacementNamed('/login');
+                }
+              }
+            },
+          ),
+        ],
       ),
       body: IndexedStack(
         index: _currentIndex,
@@ -137,7 +187,7 @@ class _DeliveryHomeState extends State<DeliveryHome> {
           ),
 
           const SizedBox(height: AppTheme.space24),
-          const Text(
+          Text(
             'Today\'s Deliveries',
             style: AppTheme.h3,
           ),
@@ -183,8 +233,9 @@ class _DeliveryHomeState extends State<DeliveryHome> {
             text: 'Start Route Navigation',
             icon: Icons.navigation,
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Route navigation coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const RouteNavigationScreen()),
               );
             },
             width: double.infinity,
@@ -194,8 +245,9 @@ class _DeliveryHomeState extends State<DeliveryHome> {
             text: 'Generate Daily Invoice',
             icon: Icons.receipt,
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Invoice generation coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const InvoiceGenerationScreen()),
               );
             },
             gradient: AppTheme.secondaryButtonGradient,
@@ -206,8 +258,9 @@ class _DeliveryHomeState extends State<DeliveryHome> {
             text: 'View Delivery History',
             icon: Icons.history,
             onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('History coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const DeliveryBoyHistoryScreen()),
               );
             },
             width: double.infinity,
@@ -262,7 +315,7 @@ class _DeliveryHomeState extends State<DeliveryHome> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(
+          Text(
             'Performance Statistics',
             style: AppTheme.h3,
           ),
@@ -273,7 +326,7 @@ class _DeliveryHomeState extends State<DeliveryHome> {
             gradient: AppTheme.productCardGradient,
             child: Column(
               children: [
-                const Text(
+                Text(
                   'This Week',
                   style: AppTheme.h4,
                 ),
@@ -297,7 +350,7 @@ class _DeliveryHomeState extends State<DeliveryHome> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'This Month',
                   style: AppTheme.h4,
                 ),

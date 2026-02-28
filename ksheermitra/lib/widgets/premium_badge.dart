@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Status Badge with gradient
 class PremiumBadge extends StatelessWidget {
@@ -25,8 +25,10 @@ class PremiumBadge extends StatelessWidget {
   factory PremiumBadge.active(String text) {
     return PremiumBadge(
       text: text,
-      gradient: AppTheme.activeGradient,
-      textColor: AppTheme.textOnPrimary,
+      gradient: const LinearGradient(
+        colors: [DairyColorsLight.success, Color(0xFF16A34A)],
+      ),
+      textColor: DairyColorsLight.textOnPrimary,
       icon: Icons.check_circle,
     );
   }
@@ -34,8 +36,10 @@ class PremiumBadge extends StatelessWidget {
   factory PremiumBadge.pending(String text) {
     return PremiumBadge(
       text: text,
-      gradient: AppTheme.pendingGradient,
-      textColor: AppTheme.textOnPrimary,
+      gradient: const LinearGradient(
+        colors: [DairyColorsLight.warning, Color(0xFFD97706)],
+      ),
+      textColor: DairyColorsLight.textOnPrimary,
       icon: Icons.schedule,
     );
   }
@@ -43,8 +47,10 @@ class PremiumBadge extends StatelessWidget {
   factory PremiumBadge.delivered(String text) {
     return PremiumBadge(
       text: text,
-      gradient: AppTheme.deliveredGradient,
-      textColor: AppTheme.textOnPrimary,
+      gradient: const LinearGradient(
+        colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark],
+      ),
+      textColor: DairyColorsLight.textOnPrimary,
       icon: Icons.done_all,
     );
   }
@@ -52,8 +58,8 @@ class PremiumBadge extends StatelessWidget {
   factory PremiumBadge.error(String text) {
     return PremiumBadge(
       text: text,
-      backgroundColor: AppTheme.errorRed,
-      textColor: AppTheme.textOnPrimary,
+      backgroundColor: DairyColorsLight.error,
+      textColor: DairyColorsLight.textOnPrimary,
       icon: Icons.error,
     );
   }
@@ -61,8 +67,8 @@ class PremiumBadge extends StatelessWidget {
   factory PremiumBadge.info(String text) {
     return PremiumBadge(
       text: text,
-      backgroundColor: AppTheme.infoBlue,
-      textColor: AppTheme.textOnPrimary,
+      backgroundColor: DairyColorsLight.info,
+      textColor: DairyColorsLight.textOnPrimary,
       icon: Icons.info,
     );
   }
@@ -72,16 +78,16 @@ class PremiumBadge extends StatelessWidget {
     return Container(
       padding: padding ??
           const EdgeInsets.symmetric(
-            horizontal: AppTheme.space12,
-            vertical: AppTheme.space8,
+            horizontal: DairySpacing.sm,
+            vertical: DairySpacing.xs,
           ),
       decoration: BoxDecoration(
         gradient: gradient,
         color: gradient == null ? backgroundColor : null,
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        borderRadius: BorderRadius.circular(DairyRadius.pill),
         boxShadow: [
           BoxShadow(
-            color: (backgroundColor ?? AppTheme.primaryColor)
+            color: (backgroundColor ?? DairyColorsLight.primary)
                 .withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
@@ -95,16 +101,16 @@ class PremiumBadge extends StatelessWidget {
             Icon(
               icon,
               size: fontSize + 2,
-              color: textColor ?? AppTheme.textOnPrimary,
+              color: textColor ?? DairyColorsLight.textOnPrimary,
             ),
-            const SizedBox(width: AppTheme.space4),
+            const SizedBox(width: DairySpacing.xs),
           ],
           Text(
             text,
             style: TextStyle(
               fontSize: fontSize,
               fontWeight: FontWeight.w600,
-              color: textColor ?? AppTheme.textOnPrimary,
+              color: textColor ?? DairyColorsLight.textOnPrimary,
               letterSpacing: 0.3,
             ),
           ),
@@ -123,20 +129,20 @@ class CompactBadge extends StatelessWidget {
   const CompactBadge({
     super.key,
     required this.text,
-    this.backgroundColor = AppTheme.primaryColor,
-    this.textColor = AppTheme.textOnPrimary,
+    this.backgroundColor = DairyColorsLight.primary,
+    this.textColor = DairyColorsLight.textOnPrimary,
   });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.space8,
-        vertical: AppTheme.space4,
+        horizontal: DairySpacing.sm,
+        vertical: DairySpacing.xs,
       ),
       decoration: BoxDecoration(
         color: backgroundColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusSmall),
+        borderRadius: BorderRadius.circular(DairyRadius.sm),
       ),
       child: Text(
         text,

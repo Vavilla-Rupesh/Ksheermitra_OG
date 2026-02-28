@@ -122,7 +122,11 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
       builder: (context) => _AreaDetailsDialog(area: widget.area),
     );
 
+    // Handle null result (cancelled)
     if (result == null) return;
+
+    // Validate result is a Map and cast properly
+    final Map<String, dynamic> resultData = Map<String, dynamic>.from(result);
 
     setState(() => _isSaving = true);
 
@@ -131,15 +135,17 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
 
     bool success;
     if (widget.area == null) {
+      // Creating new area - result has name, description, deliveryBoyId
       success = await provider.createArea(
-        name: result['name'],
-        description: result['description'],
+        name: resultData['name'] as String? ?? 'Area',
+        description: resultData['description'] as String?,
         boundaries: _polygonPoints,
         centerLatitude: center.latitude,
         centerLongitude: center.longitude,
-        deliveryBoyId: result['deliveryBoyId'],
+        deliveryBoyId: resultData['deliveryBoyId'] as String?,
       );
     } else {
+      // Editing existing area - just update boundaries
       success = await provider.updateAreaBoundaries(
         id: widget.area!.id,
         boundaries: _polygonPoints,
@@ -148,26 +154,62 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
       );
     }
 
+    if (!mounted) return;
+
     setState(() => _isSaving = false);
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.area == null
-                  ? 'Area created successfully'
-                  : 'Area boundaries updated successfully',
-            ),
-            backgroundColor: Colors.green,
+    if (!mounted) return;
+
+    if (success) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(
+            widget.area == null
+                ? 'Area created successfully'
+                : 'Area boundaries updated successfully',
           ),
-        );
+          backgroundColor: Colors.green,
+        ),
+      );
+      // Pop the screen outside of any async operations
+      if (mounted && context.mounted) {
         Navigator.pop(context, true);
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error: ${provider.error ?? 'Failed to save area'}'),
-            backgroundColor: Colors.red,
+      }
+    } else {
+      // Show error dialog with retry option for network errors
+      final error = provider.error ?? 'Failed to save area';
+      final isNetworkError = error.contains('Connection') ||
+                            error.contains('Network') ||
+                            error.contains('timeout');
+
+      if (mounted && context.mounted) {
+        showDialog(
+          context: context,
+          barrierDismissible: !isNetworkError,
+          builder: (context) => AlertDialog(
+            title: const Text('Error'),
+            content: Text(error),
+            actions: [
+              if (!isNetworkError)
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('OK'),
+                ),
+              if (isNetworkError) ...[
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: const Text('Cancel'),
+                ),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(context);
+                    _saveArea(); // Retry
+                  },
+                  icon: const Icon(Icons.refresh),
+                  label: const Text('Retry'),
+                ),
+              ],
+            ],
           ),
         );
       }
@@ -351,7 +393,7 @@ class _AreaDetailsDialogState extends State<_AreaDetailsDialog> {
           ),
           PremiumButton(
             text: 'Update',
-            onPressed: () => Navigator.pop(context, {}),
+            onPressed: () => Navigator.pop(context, <String, dynamic>{}),
             height: 40,
           ),
         ],
@@ -401,7 +443,7 @@ class _AreaDetailsDialogState extends State<_AreaDetailsDialog> {
           text: 'Save',
           onPressed: () {
             if (_formKey.currentState!.validate()) {
-              Navigator.pop(context, {
+              Navigator.pop(context, <String, dynamic>{
                 'name': _nameController.text.trim(),
                 'description': _descriptionController.text.trim(),
                 'deliveryBoyId': _selectedDeliveryBoyId,

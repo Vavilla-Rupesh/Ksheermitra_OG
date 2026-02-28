@@ -112,8 +112,10 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
             actions: [
               ElevatedButton(
                 onPressed: () {
-                  Navigator.pop(context);
-                  Navigator.pop(context);
+                  Navigator.pop(context); // Close dialog
+                  if (context.mounted) {
+                    Navigator.pop(context); // Close screen
+                  }
                 },
                 child: const Text('Done'),
               ),

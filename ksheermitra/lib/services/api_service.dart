@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:async';
 import 'package:http/http.dart' as http;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/foundation.dart';
@@ -11,6 +12,10 @@ class ApiService {
 
   String? _token;
   
+  // Retry configuration
+  static const int maxRetries = 3;
+  static const Duration initialRetryDelay = Duration(milliseconds: 500);
+
   Future<void> setToken(String token) async {
     _token = token;
     final prefs = await SharedPreferences.getInstance();
@@ -52,36 +57,78 @@ class ApiService {
     return headers;
   }
 
+  /// Check if an error is a transient/retryable error
+  bool _isRetryableError(dynamic error) {
+    final errorString = error.toString().toLowerCase();
+    // Connection reset, timeout, and network errors are retryable
+    return errorString.contains('connection reset') ||
+        errorString.contains('connection refused') ||
+        errorString.contains('timeout') ||
+        errorString.contains('socket exception') ||
+        errorString.contains('broken pipe') ||
+        errorString.contains('network error') ||
+        errorString.contains('no route to host');
+  }
+
+  /// Retry a request with exponential backoff
+  Future<T> _retryRequest<T>(
+    Future<T> Function() request, {
+    String? description,
+  }) async {
+    int attempt = 0;
+    Duration delay = initialRetryDelay;
+
+    while (attempt <= maxRetries) {
+      try {
+        return await request();
+      } catch (e) {
+        attempt++;
+
+        if (attempt > maxRetries || !_isRetryableError(e)) {
+          debugPrint('❌ Request failed after $attempt attempt(s): $e');
+          rethrow;
+        }
+
+        debugPrint(
+          '⚠️ Attempt $attempt/$maxRetries failed ($description): $e\n'
+          '🔄 Retrying in ${delay.inMilliseconds}ms...'
+        );
+
+        await Future.delayed(delay);
+        delay *= 2; // Exponential backoff
+      }
+    }
+
+    throw Exception('Max retries exceeded');
+  }
+
   Future<Map<String, dynamic>> post(
     String endpoint,
     Map<String, dynamic> data, {
     bool requiresAuth = true,
   }) async {
-    try {
-      debugPrint('📤 POST $endpoint (requiresAuth: $requiresAuth)');
-      debugPrint('📦 Request payload: ${json.encode(data)}');
-      final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
+    return _retryRequest(
+      () async {
+        debugPrint('📤 POST $endpoint (requiresAuth: $requiresAuth)');
+        debugPrint('📦 Request payload: ${json.encode(data)}');
+        final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
 
-      final response = await http.post(
-        url,
-        headers: _getHeaders(includeAuth: requiresAuth),
-        body: json.encode(data),
-      ).timeout(
-        AppConfig.requestTimeout,
-        onTimeout: () {
-          debugPrint('⏱️ Request timeout for POST $endpoint');
-          throw Exception('Request timeout. Please check your connection and try again.');
-        },
-      );
+        final response = await http.post(
+          url,
+          headers: _getHeaders(includeAuth: requiresAuth),
+          body: json.encode(data),
+        ).timeout(
+          AppConfig.requestTimeout,
+          onTimeout: () {
+            debugPrint('⏱️ Request timeout for POST $endpoint');
+            throw Exception('Request timeout. Please check your connection and try again.');
+          },
+        );
 
-      return _handleResponse(response);
-    } catch (e) {
-      debugPrint('❌ POST $endpoint failed: $e');
-      if (e.toString().contains('timeout')) {
-        throw Exception('Request timed out. Please try again.');
-      }
-      throw Exception('Network error: $e');
-    }
+        return _handleResponse(response);
+      },
+      description: 'POST $endpoint',
+    );
   }
 
   Future<Map<String, dynamic>> get(
@@ -89,34 +136,31 @@ class ApiService {
     Map<String, dynamic>? queryParams,
     bool requiresAuth = true,
   }) async {
-    try {
-      var url = Uri.parse('${AppConfig.baseUrl}$endpoint');
-      
-      if (queryParams != null && queryParams.isNotEmpty) {
-        url = url.replace(queryParameters: queryParams.map(
-          (key, value) => MapEntry(key, value.toString()),
-        ));
-      }
+    return _retryRequest(
+      () async {
+        var url = Uri.parse('${AppConfig.baseUrl}$endpoint');
 
-      final response = await http.get(
-        url,
-        headers: _getHeaders(includeAuth: requiresAuth),
-      ).timeout(
-        AppConfig.requestTimeout,
-        onTimeout: () {
-          debugPrint('⏱️ Request timeout for GET $endpoint');
-          throw Exception('Request timeout. Please check your connection and try again.');
-        },
-      );
+        if (queryParams != null && queryParams.isNotEmpty) {
+          url = url.replace(queryParameters: queryParams.map(
+            (key, value) => MapEntry(key, value.toString()),
+          ));
+        }
 
-      return _handleResponse(response);
-    } catch (e) {
-      debugPrint('❌ GET $endpoint failed: $e');
-      if (e.toString().contains('timeout')) {
-        throw Exception('Request timed out. Please try again.');
-      }
-      throw Exception('Network error: $e');
-    }
+        final response = await http.get(
+          url,
+          headers: _getHeaders(includeAuth: requiresAuth),
+        ).timeout(
+          AppConfig.requestTimeout,
+          onTimeout: () {
+            debugPrint('⏱️ Request timeout for GET $endpoint');
+            throw Exception('Request timeout. Please check your connection and try again.');
+          },
+        );
+
+        return _handleResponse(response);
+      },
+      description: 'GET $endpoint',
+    );
   }
 
   Future<Map<String, dynamic>> put(
@@ -124,35 +168,37 @@ class ApiService {
     Map<String, dynamic> data, {
     bool requiresAuth = true,
   }) async {
-    try {
-      final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
-      final response = await http.put(
-        url,
-        headers: _getHeaders(includeAuth: requiresAuth),
-        body: json.encode(data),
-      ).timeout(AppConfig.requestTimeout);
+    return _retryRequest(
+      () async {
+        final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
+        final response = await http.put(
+          url,
+          headers: _getHeaders(includeAuth: requiresAuth),
+          body: json.encode(data),
+        ).timeout(AppConfig.requestTimeout);
 
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
+        return _handleResponse(response);
+      },
+      description: 'PUT $endpoint',
+    );
   }
 
   Future<Map<String, dynamic>> delete(
     String endpoint, {
     bool requiresAuth = true,
   }) async {
-    try {
-      final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
-      final response = await http.delete(
-        url,
-        headers: _getHeaders(includeAuth: requiresAuth),
-      ).timeout(AppConfig.requestTimeout);
+    return _retryRequest(
+      () async {
+        final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
+        final response = await http.delete(
+          url,
+          headers: _getHeaders(includeAuth: requiresAuth),
+        ).timeout(AppConfig.requestTimeout);
 
-      return _handleResponse(response);
-    } catch (e) {
-      throw Exception('Network error: $e');
-    }
+        return _handleResponse(response);
+      },
+      description: 'DELETE $endpoint',
+    );
   }
 
   Future<Map<String, dynamic>> postMultipart(

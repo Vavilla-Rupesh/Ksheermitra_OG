@@ -512,101 +512,185 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                     ],
                   ),
                 )
-              : Stack(
+              : Column(
                   children: [
-                    GoogleMap(
-                      initialCameraPosition: const CameraPosition(
-                        target: LatLng(17.385044, 78.486671),
-                        zoom: 12,
-                      ),
-                      onMapCreated: (controller) {
-                        _mapController = controller;
-                        _updateMapElements();
-                      },
-                      polygons: _polygons,
-                      markers: _markers,
-                      myLocationButtonEnabled: true,
-                      myLocationEnabled: true,
-                      zoomControlsEnabled: true,
-                      compassEnabled: true,
-                    ),
-
-                    // Stats overlay
-                    if (_stats != null)
-                      Positioned(
-                        top: 16,
-                        left: 16,
-                        right: 16,
-                        child: Card(
-                          elevation: 4,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(12),
-                          ),
-                          child: Padding(
-                            padding: const EdgeInsets.all(12),
-                            child: Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceAround,
-                              children: [
-                                _buildStatItem(
-                                  'Pending',
-                                  _stats!.pending.toString(),
-                                  Colors.blue,
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 30,
-                                  color: Colors.grey[300],
-                                ),
-                                _buildStatItem(
-                                  'Delivered',
-                                  _stats!.delivered.toString(),
-                                  Colors.green,
-                                ),
-                                Container(
-                                  width: 1,
-                                  height: 30,
-                                  color: Colors.grey[300],
-                                ),
-                                _buildStatItem(
-                                  'Missed',
-                                  _stats!.missed.toString(),
-                                  Colors.red,
-                                ),
-                              ],
+                    // Area Information Card
+                    if (_area != null)
+                      Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          color: Colors.blue[50],
+                          border: Border(
+                            bottom: BorderSide(
+                              color: Colors.blue[200]!,
+                              width: 1,
                             ),
                           ),
                         ),
+                        child: Row(
+                          children: [
+                            Icon(
+                              Icons.location_on,
+                              color: Colors.blue[700],
+                              size: 24,
+                            ),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    'Assigned Area',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      color: Colors.blue[600],
+                                      fontWeight: FontWeight.w500,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    _area!.name,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                ],
+                              ),
+                            ),
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 8,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.blue[700],
+                                borderRadius: BorderRadius.circular(20),
+                              ),
+                              child: Row(
+                                children: [
+                                  const Icon(
+                                    Icons.people,
+                                    color: Colors.white,
+                                    size: 16,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${_customers.length}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ],
+                        ),
                       ),
 
-                    // Legend
-                    Positioned(
-                      bottom: 16,
-                      left: 16,
-                      child: Card(
-                        elevation: 4,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Padding(
-                          padding: const EdgeInsets.all(12),
-                          child: Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              const Text(
-                                'Status',
-                                style: TextStyle(
-                                  fontWeight: FontWeight.bold,
-                                  fontSize: 12,
+                    // Map and overlays
+                    Expanded(
+                      child: Stack(
+                        children: [
+                          GoogleMap(
+                            initialCameraPosition: const CameraPosition(
+                              target: LatLng(17.385044, 78.486671),
+                              zoom: 12,
+                            ),
+                            onMapCreated: (controller) {
+                              _mapController = controller;
+                              _updateMapElements();
+                            },
+                            polygons: _polygons,
+                            markers: _markers,
+                            myLocationButtonEnabled: true,
+                            myLocationEnabled: true,
+                            zoomControlsEnabled: true,
+                            compassEnabled: true,
+                          ),
+
+                          // Stats overlay
+                          if (_stats != null)
+                            Positioned(
+                              top: 16,
+                              left: 16,
+                              right: 16,
+                              child: Card(
+                                elevation: 4,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.all(12),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                                    children: [
+                                      _buildStatItem(
+                                        'Pending',
+                                        _stats!.pending.toString(),
+                                        Colors.blue,
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: Colors.grey[300],
+                                      ),
+                                      _buildStatItem(
+                                        'Delivered',
+                                        _stats!.delivered.toString(),
+                                        Colors.green,
+                                      ),
+                                      Container(
+                                        width: 1,
+                                        height: 30,
+                                        color: Colors.grey[300],
+                                      ),
+                                      _buildStatItem(
+                                        'Missed',
+                                        _stats!.missed.toString(),
+                                        Colors.red,
+                                      ),
+                                    ],
+                                  ),
                                 ),
                               ),
-                              const SizedBox(height: 8),
-                              _buildLegendItem('🔵', 'Pending'),
-                              _buildLegendItem('🟢', 'Delivered'),
-                              _buildLegendItem('🔴', 'Missed'),
-                            ],
+                            ),
+
+                          // Legend
+                          Positioned(
+                            bottom: 16,
+                            left: 16,
+                            child: Card(
+                              elevation: 4,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12),
+                              ),
+                              child: Padding(
+                                padding: const EdgeInsets.all(12),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    const Text(
+                                      'Status',
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 8),
+                                    _buildLegendItem('🔵', 'Pending'),
+                                    _buildLegendItem('🟢', 'Delivered'),
+                                    _buildLegendItem('🔴', 'Missed'),
+                                  ],
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ],

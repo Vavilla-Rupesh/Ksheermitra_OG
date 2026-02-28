@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:ui';
-import 'theme.dart';
+import 'dairy_theme.dart';
 
 /// Premium reusable widgets following the Ksheermitra Design System
 
@@ -26,7 +26,9 @@ class PremiumButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final buttonGradient = gradient ?? AppTheme.primaryButtonGradient;
+    final buttonGradient = gradient ?? const LinearGradient(
+      colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark],
+    );
     final height = _getHeight();
     final fontSize = _getFontSize();
 
@@ -34,8 +36,8 @@ class PremiumButton extends StatelessWidget {
       height: height,
       decoration: BoxDecoration(
         gradient: buttonGradient,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
-        boxShadow: AppTheme.buttonShadow,
+        borderRadius: DairyRadius.defaultBorderRadius,
+        boxShadow: DairyColorsLight.buttonShadow,
       ),
       child: ElevatedButton(
         onPressed: isLoading ? null : onPressed,
@@ -43,7 +45,7 @@ class PremiumButton extends StatelessWidget {
           backgroundColor: Colors.transparent,
           shadowColor: Colors.transparent,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+            borderRadius: DairyRadius.defaultBorderRadius,
           ),
         ),
         child: isLoading
@@ -60,11 +62,11 @@ class PremiumButton extends StatelessWidget {
                 children: [
                   if (icon != null) ...[
                     Icon(icon, size: fontSize + 2),
-                    const SizedBox(width: AppTheme.space8),
+                    const SizedBox(width: DairySpacing.sm),
                   ],
                   Text(
                     text,
-                    style: AppTheme.buttonText.copyWith(fontSize: fontSize),
+                    style: DairyTypography.button().copyWith(fontSize: fontSize),
                   ),
                 ],
               ),
@@ -119,15 +121,13 @@ class PremiumCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final decoration = BoxDecoration(
       gradient: gradient,
-      color: gradient == null ? AppTheme.cardColor : null,
-      borderRadius: BorderRadius.circular(
-        isPremium ? AppTheme.radiusXLarge : AppTheme.radiusLarge,
-      ),
-      boxShadow: isPremium ? AppTheme.premiumCardShadow : AppTheme.cardShadow,
+      color: gradient == null ? DairyColorsLight.card : null,
+      borderRadius: isPremium ? DairyRadius.xlBorderRadius : DairyRadius.largeBorderRadius,
+      boxShadow: isPremium ? DairyColorsLight.elevatedShadow : DairyColorsLight.cardShadow,
     );
 
     final content = Container(
-      padding: padding ?? const EdgeInsets.all(AppTheme.space16),
+      padding: padding ?? const EdgeInsets.all(DairySpacing.md),
       decoration: decoration,
       child: child,
     );
@@ -136,11 +136,9 @@ class PremiumCard extends StatelessWidget {
       return Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(
-            isPremium ? AppTheme.radiusXLarge : AppTheme.radiusLarge,
-          ),
-          splashColor: AppTheme.primaryColor.withOpacity(0.1),
-          highlightColor: AppTheme.primaryColor.withOpacity(0.05),
+          borderRadius: isPremium ? DairyRadius.xlBorderRadius : DairyRadius.largeBorderRadius,
+          splashColor: DairyColorsLight.primary.withValues(alpha: 0.1),
+          highlightColor: DairyColorsLight.primary.withValues(alpha: 0.05),
           onTap: onTap,
           child: content,
         ),
@@ -165,19 +163,19 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: AppTheme.productCardGradient,
-        borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-        boxShadow: AppTheme.productCardShadow(AppTheme.primaryColor),
+        color: DairyColorsLight.card,
+        borderRadius: DairyRadius.largeBorderRadius,
+        boxShadow: DairyColorsLight.cardShadow,
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
-          borderRadius: BorderRadius.circular(AppTheme.radiusLarge),
-          splashColor: AppTheme.primaryColor.withOpacity(0.1),
-          highlightColor: AppTheme.primaryColor.withOpacity(0.05),
+          borderRadius: DairyRadius.largeBorderRadius,
+          splashColor: DairyColorsLight.primary.withValues(alpha: 0.1),
+          highlightColor: DairyColorsLight.primary.withValues(alpha: 0.05),
           onTap: onTap,
           child: Padding(
-            padding: const EdgeInsets.all(AppTheme.space16),
+            padding: const EdgeInsets.all(DairySpacing.md),
             child: child,
           ),
         ),
@@ -205,15 +203,15 @@ class StatusBadge extends StatelessWidget {
 
     return Container(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.space12,
+        horizontal: DairySpacing.sm + 4,
         vertical: 6,
       ),
       decoration: BoxDecoration(
         gradient: gradient,
-        borderRadius: BorderRadius.circular(AppTheme.radiusPill),
+        borderRadius: DairyRadius.pillBorderRadius,
         boxShadow: [
           BoxShadow(
-            color: color.withOpacity(0.3),
+            color: color.withValues(alpha: 0.3),
             blurRadius: 8,
             offset: const Offset(0, 2),
           ),
@@ -234,26 +232,26 @@ class StatusBadge extends StatelessWidget {
   LinearGradient _getGradient() {
     switch (status) {
       case StatusType.active:
-        return AppTheme.activeGradient;
+        return const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)]);
       case StatusType.pending:
-        return AppTheme.pendingGradient;
+        return const LinearGradient(colors: [DairyColorsLight.warning, Color(0xFFFFB74D)]);
       case StatusType.delivered:
-        return AppTheme.deliveredGradient;
+        return const LinearGradient(colors: [DairyColorsLight.primary, DairyColorsLight.primaryLight]);
       case StatusType.cancelled:
-        return AppTheme.dangerButtonGradient;
+        return const LinearGradient(colors: [DairyColorsLight.error, Color(0xFFE53935)]);
     }
   }
 
   Color _getColor() {
     switch (status) {
       case StatusType.active:
-        return AppTheme.successGreen;
+        return DairyColorsLight.success;
       case StatusType.pending:
-        return AppTheme.warningOrange;
+        return DairyColorsLight.warning;
       case StatusType.delivered:
-        return AppTheme.primaryColor;
+        return DairyColorsLight.primary;
       case StatusType.cancelled:
-        return AppTheme.errorRed;
+        return DairyColorsLight.error;
     }
   }
 }
@@ -285,7 +283,9 @@ class PremiumAppBar extends StatelessWidget implements PreferredSizeWidget {
       flexibleSpace: showGradient
           ? Container(
               decoration: const BoxDecoration(
-                gradient: AppTheme.appBarGradient,
+                gradient: LinearGradient(
+                  colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark],
+                ),
               ),
             )
           : null,
@@ -335,16 +335,16 @@ class PremiumTextField extends StatelessWidget {
       validator: validator,
       maxLines: maxLines,
       enabled: enabled,
-      style: AppTheme.bodyLarge,
+      style: DairyTypography.bodyLarge(),
       decoration: InputDecoration(
         hintText: hintText,
         labelText: labelText,
         prefixIcon: prefixIcon != null
-            ? Icon(prefixIcon, color: AppTheme.primaryColor)
+            ? Icon(prefixIcon, color: DairyColorsLight.primary)
             : null,
         suffixIcon: suffixIcon != null
             ? IconButton(
-                icon: Icon(suffixIcon, color: AppTheme.primaryColor),
+                icon: Icon(suffixIcon, color: DairyColorsLight.primary),
                 onPressed: onSuffixIconTap,
               )
             : null,
@@ -370,13 +370,13 @@ class PremiumLoadingIndicator extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           const CircularProgressIndicator(
-            color: AppTheme.primaryColor,
+            color: DairyColorsLight.primary,
           ),
           if (message != null) ...[
-            const SizedBox(height: AppTheme.space16),
+            const SizedBox(height: DairySpacing.md),
             Text(
               message!,
-              style: AppTheme.bodyMedium,
+              style: DairyTypography.body(),
             ),
           ],
         ],
@@ -407,29 +407,29 @@ class EmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.space32),
+        padding: const EdgeInsets.all(DairySpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Icon(
               icon,
               size: 80,
-              color: AppTheme.textTertiary,
+              color: DairyColorsLight.textTertiary,
             ),
-            const SizedBox(height: AppTheme.space24),
+            const SizedBox(height: DairySpacing.lg),
             Text(
               title,
-              style: AppTheme.h3,
+              style: DairyTypography.headingSmall(),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.space12),
+            const SizedBox(height: DairySpacing.sm + 4),
             Text(
               message,
-              style: AppTheme.bodyMedium,
+              style: DairyTypography.body(),
               textAlign: TextAlign.center,
             ),
             if (actionText != null && onAction != null) ...[
-              const SizedBox(height: AppTheme.space24),
+              const SizedBox(height: DairySpacing.lg),
               PremiumButton(
                 text: actionText!,
                 onPressed: onAction!,
@@ -462,15 +462,15 @@ class GlassmorphicContainer extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(opacity),
-        borderRadius: borderRadius ?? BorderRadius.circular(AppTheme.radiusXLarge),
+        color: Colors.white.withValues(alpha: opacity),
+        borderRadius: borderRadius ?? DairyRadius.xlBorderRadius,
         border: Border.all(
-          color: Colors.white.withOpacity(0.3),
+          color: Colors.white.withValues(alpha: 0.3),
           width: 1.5,
         ),
       ),
       child: ClipRRect(
-        borderRadius: borderRadius ?? BorderRadius.circular(AppTheme.radiusXLarge),
+        borderRadius: borderRadius ?? DairyRadius.xlBorderRadius,
         child: BackdropFilter(
           filter: ImageFilter.blur(sigmaX: blur, sigmaY: blur),
           child: child,
@@ -498,8 +498,8 @@ class SectionHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.space16,
-        vertical: AppTheme.space12,
+        horizontal: DairySpacing.md,
+        vertical: DairySpacing.sm + 4,
       ),
       child: Row(
         children: [
@@ -507,10 +507,10 @@ class SectionHeader extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(title, style: AppTheme.h4),
+                Text(title, style: DairyTypography.headingSmall()),
                 if (subtitle != null) ...[
-                  const SizedBox(height: AppTheme.space4),
-                  Text(subtitle!, style: AppTheme.bodySmall),
+                  const SizedBox(height: DairySpacing.xs),
+                  Text(subtitle!, style: DairyTypography.bodySmall()),
                 ],
               ],
             ),
@@ -538,7 +538,15 @@ class GradientBackground extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       decoration: BoxDecoration(
-        gradient: gradient ?? AppTheme.mainBackground,
+        gradient: gradient ?? const LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            Color(0xFFE8F8E8), // primarySurface
+            DairyColorsLight.background,
+            DairyColorsLight.surface,
+          ],
+        ),
       ),
       child: child,
     );
@@ -563,8 +571,7 @@ class PriceDisplay extends StatelessWidget {
   Widget build(BuildContext context) {
     return Text(
       showCurrency ? '$currency${amount.toStringAsFixed(2)}' : amount.toStringAsFixed(2),
-      style: AppTheme.priceText,
+      style: DairyTypography.price(),
     );
   }
 }
-

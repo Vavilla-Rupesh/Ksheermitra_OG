@@ -2,13 +2,19 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/subscription_provider.dart';
-import '../../config/theme.dart';
+import '../../providers/notification_provider.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 import 'product_selection_screen.dart';
 import 'subscriptions_screen.dart';
 import 'delivery_history_screen.dart';
 import 'billing_screen.dart';
 import 'monthly_breakout_screen.dart';
+import 'notifications_screen.dart';
+import 'edit_profile_screen.dart';
+import 'manage_address_screen.dart';
+import 'help_support_screen.dart';
+import 'about_screen.dart';
 
 class CustomerHome extends StatefulWidget {
   const CustomerHome({super.key});
@@ -46,11 +52,42 @@ class _CustomerHomeState extends State<CustomerHome> {
         ),
         title: const Text('Ksheermitra'),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.notifications_outlined),
-            onPressed: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon')),
+          Consumer<NotificationProvider>(
+            builder: (context, notificationProvider, _) {
+              return Stack(
+                children: [
+                  IconButton(
+                    icon: const Icon(Icons.notifications_outlined),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(builder: (context) => const NotificationsScreen()),
+                      );
+                    },
+                  ),
+                  if (notificationProvider.hasUnread)
+                    Positioned(
+                      right: 8,
+                      top: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: const BoxDecoration(
+                          color: DairyColorsLight.error,
+                          shape: BoxShape.circle,
+                        ),
+                        constraints: const BoxConstraints(minWidth: 16, minHeight: 16),
+                        child: Text(
+                          '${notificationProvider.unreadCount > 9 ? '9+' : notificationProvider.unreadCount}',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
+                      ),
+                    ),
+                ],
               );
             },
           ),
@@ -78,8 +115,8 @@ class _CustomerHomeState extends State<CustomerHome> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.textTertiary,
+        selectedItemColor: DairyColorsLight.primary,
+        unselectedItemColor: DairyColorsLight.textTertiary,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.home),
@@ -104,15 +141,15 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   Widget _buildHomeTab(user) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.space16),
+      padding: const EdgeInsets.all(DairySpacing.md),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Premium Welcome Card with gradient
           PremiumCard(
-            gradient: AppTheme.premiumCardGradient,
-            shadows: AppTheme.premiumCardShadow,
-            padding: const EdgeInsets.all(AppTheme.space20),
+            gradient: const LinearGradient(colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark]),
+            shadows: DairyColorsLight.elevatedShadow,
+            padding: const EdgeInsets.all(DairySpacing.lg - 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
@@ -135,10 +172,10 @@ class _CustomerHomeState extends State<CustomerHome> {
                       child: const Icon(
                         Icons.person,
                         size: 35,
-                        color: AppTheme.primaryColor,
+                        color: DairyColorsLight.primary,
                       ),
                     ),
-                    const SizedBox(width: AppTheme.space16),
+                    const SizedBox(width: DairySpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -165,16 +202,16 @@ class _CustomerHomeState extends State<CustomerHome> {
                     ),
                   ],
                 ),
-                const SizedBox(height: AppTheme.space16),
+                const SizedBox(height: DairySpacing.md),
                 Container(
                   height: 1,
                   color: Colors.white.withValues(alpha: 0.3),
                 ),
-                const SizedBox(height: AppTheme.space12),
+                const SizedBox(height: DairySpacing.sm + 4),
                 Row(
                   children: [
                     const Icon(Icons.phone, color: Colors.white70, size: 16),
-                    const SizedBox(width: AppTheme.space8),
+                    const SizedBox(width: DairySpacing.sm),
                     Text(
                       user?.phone ?? '',
                       style: const TextStyle(
@@ -185,12 +222,12 @@ class _CustomerHomeState extends State<CustomerHome> {
                   ],
                 ),
                 if (user?.address != null && user!.address!.isNotEmpty) ...[
-                  const SizedBox(height: AppTheme.space8),
+                  const SizedBox(height: DairySpacing.sm),
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       const Icon(Icons.location_on, color: Colors.white70, size: 16),
-                      const SizedBox(width: AppTheme.space8),
+                      const SizedBox(width: DairySpacing.sm),
                       Expanded(
                         child: Text(
                           user.address!,
@@ -206,26 +243,26 @@ class _CustomerHomeState extends State<CustomerHome> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.space24),
+          const SizedBox(height: DairySpacing.lg),
 
           // Quick Actions Section
-          const Text(
+          Text(
             'Quick Actions',
-            style: AppTheme.h3,
+            style: DairyTypography.headingSmall(),
           ),
-          const SizedBox(height: AppTheme.space12),
+          const SizedBox(height: DairySpacing.sm + 4),
           GridView.count(
             crossAxisCount: 2,
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            mainAxisSpacing: AppTheme.space12,
-            crossAxisSpacing: AppTheme.space12,
+            mainAxisSpacing: DairySpacing.sm + 4,
+            crossAxisSpacing: DairySpacing.sm + 4,
             childAspectRatio: 1.3,
             children: [
               _buildActionCard(
                 'Browse Products',
                 Icons.shopping_bag,
-                AppTheme.infoBlue,
+                DairyColorsLight.info,
                 () async {
                   await Navigator.push(
                     context,
@@ -239,13 +276,13 @@ class _CustomerHomeState extends State<CustomerHome> {
               _buildActionCard(
                 'My Subscriptions',
                 Icons.subscriptions,
-                AppTheme.successGreen,
+                DairyColorsLight.success,
                 () => setState(() => _currentIndex = 1),
               ),
               _buildActionCard(
                 'View Bills',
                 Icons.receipt_long,
-                AppTheme.warningOrange,
+                DairyColorsLight.warning,
                 () {
                   Navigator.push(
                     context,
@@ -266,7 +303,7 @@ class _CustomerHomeState extends State<CustomerHome> {
               ),
             ],
           ),
-          const SizedBox(height: AppTheme.space24),
+          const SizedBox(height: DairySpacing.lg),
 
           // Active Subscriptions Summary
           Consumer<SubscriptionProvider>(
@@ -279,26 +316,26 @@ class _CustomerHomeState extends State<CustomerHome> {
 
               if (provider.subscriptions.isEmpty) {
                 return PremiumCard(
-                  padding: const EdgeInsets.all(AppTheme.space20),
+                  padding: const EdgeInsets.all((DairySpacing.md + 4)),
                   child: Column(
                     children: [
                       Icon(
                         Icons.subscriptions_outlined,
                         size: 60,
-                        color: AppTheme.primaryColor.withValues(alpha: 0.5),
+                        color: DairyColorsLight.primary.withValues(alpha: 0.5),
                       ),
-                      const SizedBox(height: AppTheme.space12),
-                      const Text(
+                      const SizedBox(height: (DairySpacing.sm + 4)),
+                      Text(
                         'No Active Subscriptions',
-                        style: AppTheme.h4,
+                        style: DairyTypography.headingSmall(),
                       ),
-                      const SizedBox(height: AppTheme.space8),
+                      const SizedBox(height: DairySpacing.sm),
                       Text(
                         'Start a subscription for regular deliveries',
                         textAlign: TextAlign.center,
-                        style: AppTheme.bodyMedium,
+                        style: DairyTypography.body(),
                       ),
-                      const SizedBox(height: AppTheme.space16),
+                      const SizedBox(height: DairySpacing.md),
                       PremiumButton(
                         text: 'Browse Products',
                         icon: Icons.add_circle,
@@ -325,9 +362,9 @@ class _CustomerHomeState extends State<CustomerHome> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      const Text(
+                      Text(
                         'Active Subscriptions',
-                        style: AppTheme.h4,
+                        style: DairyTypography.headingSmall(),
                       ),
                       PremiumTextButton(
                         text: 'View All',
@@ -335,7 +372,7 @@ class _CustomerHomeState extends State<CustomerHome> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: AppTheme.space12),
+                  const SizedBox(height: (DairySpacing.sm + 4)),
                   ...provider.subscriptions.take(3).map((subscription) {
                     final productCount = subscription.products?.length ?? 0;
                     final displayText = productCount == 1
@@ -343,15 +380,15 @@ class _CustomerHomeState extends State<CustomerHome> {
                         : '$productCount products';
 
                     return ProductCard(
-                      padding: const EdgeInsets.all(AppTheme.space16),
+                      padding: const EdgeInsets.all(DairySpacing.md),
                       onTap: () => setState(() => _currentIndex = 1),
                       child: Row(
                         children: [
                           Container(
-                            padding: const EdgeInsets.all(AppTheme.space12),
+                            padding: const EdgeInsets.all((DairySpacing.sm + 4)),
                             decoration: BoxDecoration(
-                              gradient: AppTheme.activeGradient,
-                              borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+                              gradient: const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)]),
+                              borderRadius: BorderRadius.circular(DairyRadius.md),
                             ),
                             child: const Icon(
                               Icons.subscriptions,
@@ -359,19 +396,19 @@ class _CustomerHomeState extends State<CustomerHome> {
                               size: 24,
                             ),
                           ),
-                          const SizedBox(width: AppTheme.space12),
+                          const SizedBox(width: (DairySpacing.sm + 4)),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   displayText,
-                                  style: AppTheme.h5,
+                                  style: DairyTypography.bodyLarge(),
                                 ),
-                                const SizedBox(height: AppTheme.space4),
+                                const SizedBox(height: DairySpacing.xs),
                                 Text(
                                   '${subscription.totalQuantity.toStringAsFixed(1)} total • ${subscription.frequencyDisplay}',
-                                  style: AppTheme.bodySmall,
+                                  style: DairyTypography.bodySmall(),
                                 ),
                               ],
                             ),
@@ -394,28 +431,28 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
     return ProductCard(
-      padding: const EdgeInsets.all(AppTheme.space16),
+      padding: const EdgeInsets.all(DairySpacing.md),
       onTap: onTap,
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            padding: const EdgeInsets.all(AppTheme.space12),
+            padding: const EdgeInsets.all((DairySpacing.sm + 4)),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               shape: BoxShape.circle,
             ),
             child: Icon(icon, size: 32, color: color),
           ),
-          const SizedBox(height: AppTheme.space12),
+          const SizedBox(height: (DairySpacing.sm + 4)),
           Flexible(
             child: Text(
               title,
               textAlign: TextAlign.center,
               maxLines: 2,
               overflow: TextOverflow.ellipsis,
-              style: AppTheme.labelText.copyWith(
+              style: DairyTypography.label().copyWith(
                 fontWeight: FontWeight.w600,
                 fontSize: 13,
               ),
@@ -428,39 +465,40 @@ class _CustomerHomeState extends State<CustomerHome> {
 
   Widget _buildProfileTab(user) {
     return SingleChildScrollView(
-      padding: const EdgeInsets.all(AppTheme.space16),
+      padding: const EdgeInsets.all(DairySpacing.md),
       child: Column(
         children: [
-          const SizedBox(height: AppTheme.space20),
+          const SizedBox(height: (DairySpacing.md + 4)),
           Container(
             width: 120,
             height: 120,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              gradient: AppTheme.primaryButtonGradient,
-              boxShadow: AppTheme.premiumCardShadow,
+              gradient: const LinearGradient(colors: [DairyColorsLight.primary, DairyColorsLight.primaryDark]),
+              boxShadow: DairyColorsLight.elevatedShadow,
             ),
             child: const Icon(Icons.person, size: 60, color: Colors.white),
           ),
-          const SizedBox(height: AppTheme.space16),
+          const SizedBox(height: DairySpacing.md),
           Text(
             user?.name ?? 'Customer',
-            style: AppTheme.h2,
+            style: DairyTypography.headingLarge(),
           ),
-          const SizedBox(height: AppTheme.space8),
+          const SizedBox(height: DairySpacing.sm),
           Text(
             user?.phone ?? '',
-            style: AppTheme.bodyMedium,
+            style: DairyTypography.body(),
           ),
-          const SizedBox(height: AppTheme.space32),
+          const SizedBox(height: DairySpacing.xl),
 
           // Profile Options
           _buildProfileOption(
             icon: Icons.person_outline,
             title: 'Edit Profile',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Edit profile coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const EditProfileScreen()),
               );
             },
           ),
@@ -469,8 +507,9 @@ class _CustomerHomeState extends State<CustomerHome> {
             title: 'Manage Address',
             subtitle: user?.address ?? 'Add your address',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Manage address coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ManageAddressScreen()),
               );
             },
           ),
@@ -488,8 +527,9 @@ class _CustomerHomeState extends State<CustomerHome> {
             icon: Icons.notifications_outlined,
             title: 'Notifications',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Notifications coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const NotificationsScreen()),
               );
             },
           ),
@@ -497,8 +537,9 @@ class _CustomerHomeState extends State<CustomerHome> {
             icon: Icons.help_outline,
             title: 'Help & Support',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Help & support coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const HelpSupportScreen()),
               );
             },
           ),
@@ -506,8 +547,9 @@ class _CustomerHomeState extends State<CustomerHome> {
             icon: Icons.info_outline,
             title: 'About',
             onTap: () {
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('About coming soon')),
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AboutScreen()),
               );
             },
           ),

@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Empty State Widget
 class PremiumEmptyState extends StatelessWidget {
@@ -22,7 +22,7 @@ class PremiumEmptyState extends StatelessWidget {
   Widget build(BuildContext context) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(AppTheme.space32),
+        padding: const EdgeInsets.all(DairySpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
@@ -32,8 +32,8 @@ class PremiumEmptyState extends StatelessWidget {
               decoration: BoxDecoration(
                 gradient: LinearGradient(
                   colors: [
-                    AppTheme.primaryColor.withValues(alpha: 0.1),
-                    AppTheme.primaryColor.withValues(alpha: 0.05),
+                    DairyColorsLight.primary.withValues(alpha: 0.1),
+                    DairyColorsLight.primary.withValues(alpha: 0.05),
                   ],
                 ),
                 shape: BoxShape.circle,
@@ -41,31 +41,31 @@ class PremiumEmptyState extends StatelessWidget {
               child: Icon(
                 icon,
                 size: 60,
-                color: AppTheme.primaryColor.withValues(alpha: 0.6),
+                color: DairyColorsLight.primary.withValues(alpha: 0.6),
               ),
             ),
-            const SizedBox(height: AppTheme.space24),
+            const SizedBox(height: DairySpacing.lg),
             Text(
               title,
-              style: AppTheme.h3,
+              style: DairyTypography.headingSmall(),
               textAlign: TextAlign.center,
             ),
-            const SizedBox(height: AppTheme.space12),
+            const SizedBox(height: DairySpacing.sm + 4),
             Text(
               message,
-              style: AppTheme.bodyMedium,
+              style: DairyTypography.body(),
               textAlign: TextAlign.center,
             ),
             if (actionText != null && onAction != null) ...[
-              const SizedBox(height: AppTheme.space32),
+              const SizedBox(height: DairySpacing.xl),
               ElevatedButton.icon(
                 onPressed: onAction,
                 icon: const Icon(Icons.add),
                 label: Text(actionText!),
                 style: ElevatedButton.styleFrom(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: AppTheme.space32,
-                    vertical: AppTheme.space16,
+                    horizontal: DairySpacing.xl,
+                    vertical: DairySpacing.md,
                   ),
                 ),
               ),

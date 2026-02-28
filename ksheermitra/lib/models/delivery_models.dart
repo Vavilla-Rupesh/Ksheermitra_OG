@@ -25,16 +25,16 @@ class DeliveryBoy {
 
   factory DeliveryBoy.fromJson(Map<String, dynamic> json) {
     return DeliveryBoy(
-      id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      email: json['email'],
-      address: json['address'],
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
+      id: (json['id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      phone: (json['phone'] as String?) ?? '',
+      email: json['email'] as String?,
+      address: json['address'] as String?,
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       isActive: json['isActive'] ?? true,
       area: json['area'] != null ? Area.fromJson(json['area']) : null,
-      createdAt: json['createdAt'] != null ? DateTime.parse(json['createdAt']) : null,
+      createdAt: json['createdAt'] != null ? DateTime.tryParse(json['createdAt'].toString()) : null,
     );
   }
 
@@ -88,18 +88,18 @@ class Area {
     }
 
     return Area(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      deliveryBoyId: json['deliveryBoyId'],
+      id: (json['id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      description: json['description'] as String?,
+      deliveryBoyId: json['deliveryBoyId'] as String?,
       boundaries: boundaries,
       centerLatitude: json['centerLatitude'] != null
-          ? double.parse(json['centerLatitude'].toString())
+          ? double.tryParse(json['centerLatitude'].toString())
           : null,
       centerLongitude: json['centerLongitude'] != null
-          ? double.parse(json['centerLongitude'].toString())
+          ? double.tryParse(json['centerLongitude'].toString())
           : null,
-      mapLink: json['mapLink'],
+      mapLink: json['mapLink'] as String?,
       isActive: json['isActive'] ?? true,
       deliveryBoy: json['deliveryBoy'] != null
           ? DeliveryBoy.fromJson(json['deliveryBoy'])
@@ -133,8 +133,8 @@ class LatLngPoint {
 
   factory LatLngPoint.fromJson(Map<String, dynamic> json) {
     return LatLngPoint(
-      lat: double.parse(json['lat'].toString()),
-      lng: double.parse(json['lng'].toString()),
+      lat: double.tryParse(json['lat'].toString()) ?? 0.0,
+      lng: double.tryParse(json['lng'].toString()) ?? 0.0,
     );
   }
 
@@ -153,6 +153,7 @@ class Customer {
   final List<Subscription>? subscriptions;
   final String? deliveryStatus;
   final double? todayAmount;
+  final String? deliveryId;
 
   Customer({
     required this.id,
@@ -164,21 +165,23 @@ class Customer {
     this.subscriptions,
     this.deliveryStatus,
     this.todayAmount,
+    this.deliveryId,
   });
 
   factory Customer.fromJson(Map<String, dynamic> json) {
     return Customer(
-      id: json['id'],
-      name: json['name'],
-      phone: json['phone'],
-      address: json['address'],
-      latitude: json['latitude'] != null ? double.parse(json['latitude'].toString()) : null,
-      longitude: json['longitude'] != null ? double.parse(json['longitude'].toString()) : null,
+      id: (json['id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      phone: (json['phone'] as String?) ?? '',
+      address: json['address'] as String?,
+      latitude: json['latitude'] != null ? double.tryParse(json['latitude'].toString()) : null,
+      longitude: json['longitude'] != null ? double.tryParse(json['longitude'].toString()) : null,
       subscriptions: json['subscriptions'] != null
           ? (json['subscriptions'] as List).map((s) => Subscription.fromJson(s)).toList()
           : null,
-      deliveryStatus: json['deliveryStatus'],
-      todayAmount: json['todayAmount'] != null ? double.parse(json['todayAmount'].toString()) : null,
+      deliveryStatus: json['deliveryStatus'] as String?,
+      todayAmount: json['todayAmount'] != null ? double.tryParse(json['todayAmount'].toString()) : null,
+      deliveryId: json['deliveryId'] as String?,
     );
   }
 }
@@ -212,8 +215,8 @@ class DeliveryStats {
       cancelled: json['cancelled'] ?? 0,
       totalDelivered: json['totalDelivered'] ?? 0,
       totalMissed: json['totalMissed'] ?? 0,
-      totalAmount: json['totalAmount'] != null ? double.parse(json['totalAmount'].toString()) : 0.0,
-      collectedAmount: json['collectedAmount'] != null ? double.parse(json['collectedAmount'].toString()) : 0.0,
+      totalAmount: json['totalAmount'] != null ? double.tryParse(json['totalAmount'].toString()) ?? 0.0 : 0.0,
+      collectedAmount: json['collectedAmount'] != null ? double.tryParse(json['collectedAmount'].toString()) ?? 0.0 : 0.0,
     );
   }
 }
@@ -237,11 +240,13 @@ class Subscription {
 
   factory Subscription.fromJson(Map<String, dynamic> json) {
     return Subscription(
-      id: json['id'],
-      customerId: json['customerId'],
-      status: json['status'],
-      startDate: DateTime.parse(json['startDate']),
-      endDate: json['endDate'] != null ? DateTime.parse(json['endDate']) : null,
+      id: (json['id'] as String?) ?? '',
+      customerId: (json['customerId'] as String?) ?? '',
+      status: (json['status'] as String?) ?? 'active',
+      startDate: json['startDate'] != null
+          ? DateTime.tryParse(json['startDate'].toString()) ?? DateTime.now()
+          : DateTime.now(),
+      endDate: json['endDate'] != null ? DateTime.tryParse(json['endDate'].toString()) : null,
       products: json['products'] != null
           ? (json['products'] as List).map((p) => SubscriptionProduct.fromJson(p)).toList()
           : null,
@@ -266,10 +271,10 @@ class SubscriptionProduct {
 
   factory SubscriptionProduct.fromJson(Map<String, dynamic> json) {
     return SubscriptionProduct(
-      id: json['id'],
-      subscriptionId: json['subscriptionId'],
-      productId: json['productId'],
-      quantity: double.parse(json['quantity'].toString()),
+      id: (json['id'] as String?) ?? '',
+      subscriptionId: (json['subscriptionId'] as String?) ?? '',
+      productId: (json['productId'] as String?) ?? '',
+      quantity: double.tryParse(json['quantity']?.toString() ?? '') ?? 0.0,
       product: json['product'] != null ? Product.fromJson(json['product']) : null,
     );
   }
@@ -294,12 +299,12 @@ class Product {
 
   factory Product.fromJson(Map<String, dynamic> json) {
     return Product(
-      id: json['id'],
-      name: json['name'],
-      description: json['description'],
-      unit: json['unit'],
-      pricePerUnit: double.parse(json['pricePerUnit'].toString()),
-      imageUrl: json['imageUrl'],
+      id: (json['id'] as String?) ?? '',
+      name: (json['name'] as String?) ?? '',
+      description: json['description'] as String?,
+      unit: (json['unit'] as String?) ?? '',
+      pricePerUnit: double.tryParse(json['pricePerUnit']?.toString() ?? '') ?? 0.0,
+      imageUrl: json['imageUrl'] as String?,
     );
   }
 }

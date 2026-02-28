@@ -130,4 +130,52 @@ class InvoiceProvider with ChangeNotifier {
 
   double get totalCollectedAmount =>
       paidMonthlyInvoices.fold(0.0, (sum, inv) => sum + inv.paidAmount);
+
+  /// Generate a monthly invoice for a customer
+  Future<Invoice?> generateCustomerInvoice({
+    required String customerId,
+    required int year,
+    required int month,
+  }) async {
+    try {
+      final invoice = await _adminApi.generateMonthlyInvoice(
+        customerId: customerId,
+        year: year,
+        month: month,
+      );
+
+      // Add to monthly invoices list
+      _monthlyInvoices.insert(0, invoice);
+      notifyListeners();
+
+      return invoice;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error generating customer invoice: $e');
+      return null;
+    }
+  }
+
+  /// Generate a daily invoice for a delivery boy
+  Future<Invoice?> generateDeliveryBoyInvoice({
+    required String deliveryBoyId,
+    required String date,
+  }) async {
+    try {
+      final invoice = await _adminApi.generateDailyInvoice(
+        deliveryBoyId: deliveryBoyId,
+        date: date,
+      );
+
+      // Add to daily invoices list
+      _dailyInvoices.insert(0, invoice);
+      notifyListeners();
+
+      return invoice;
+    } catch (e) {
+      _error = e.toString();
+      debugPrint('Error generating delivery boy invoice: $e');
+      return null;
+    }
+  }
 }

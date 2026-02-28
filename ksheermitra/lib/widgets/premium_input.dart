@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 /// Premium Text Input Field with enhanced styling
 class PremiumInput extends StatelessWidget {
@@ -41,15 +41,17 @@ class PremiumInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         if (label != null) ...[
           Text(
             label!,
-            style: AppTheme.labelText,
+            style: DairyTypography.label(isDark: isDark),
           ),
-          const SizedBox(height: AppTheme.space8),
+          const SizedBox(height: DairySpacing.sm),
         ],
         TextFormField(
           controller: controller,
@@ -62,7 +64,7 @@ class PremiumInput extends StatelessWidget {
           enabled: enabled,
           inputFormatters: inputFormatters,
           focusNode: focusNode,
-          style: AppTheme.bodyLarge,
+          style: DairyTypography.bodyLarge(isDark: isDark),
           decoration: InputDecoration(
             hintText: hint,
             prefixIcon: prefixIcon,
@@ -93,19 +95,22 @@ class PremiumPhoneInput extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final colors = isDark ? DairyColors.dark() : DairyColors.light();
+
     return PremiumInput(
       label: 'Phone Number',
       hint: 'Enter your phone number',
       controller: controller,
       keyboardType: TextInputType.phone,
-      prefixIcon: const Padding(
-        padding: EdgeInsets.all(AppTheme.space12),
+      prefixIcon: Padding(
+        padding: const EdgeInsets.all(DairySpacing.md),
         child: Text(
           '+91',
           style: TextStyle(
             fontSize: 16,
             fontWeight: FontWeight.w600,
-            color: AppTheme.textPrimary,
+            color: colors.textPrimary,
           ),
         ),
       ),

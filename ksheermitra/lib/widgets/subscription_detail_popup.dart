@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../models/subscription.dart';
-import '../config/theme.dart';
+import '../config/dairy_theme.dart';
 
 class SubscriptionDetailPopup extends StatelessWidget {
   final Subscription subscription;
@@ -29,8 +29,8 @@ class SubscriptionDetailPopup extends StatelessWidget {
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(
                 gradient: isActive
-                    ? AppTheme.activeGradient
-                    : AppTheme.pendingGradient,
+                    ? const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)])
+                    : const LinearGradient(colors: [DairyColorsLight.warning, Color(0xFFFFB74D)]),
                 borderRadius: const BorderRadius.vertical(
                   top: Radius.circular(20),
                 ),
@@ -125,12 +125,12 @@ class SubscriptionDetailPopup extends StatelessWidget {
                             Container(
                               padding: const EdgeInsets.all(8),
                               decoration: BoxDecoration(
-                                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                                color: DairyColorsLight.primary.withValues(alpha: 0.1),
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Icon(
+                              child: const Icon(
                                 Icons.local_drink,
-                                color: AppTheme.primaryColor,
+                                color: DairyColorsLight.primary,
                                 size: 24,
                               ),
                             ),
@@ -184,8 +184,8 @@ class SubscriptionDetailPopup extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           colors: [
-                            AppTheme.primaryColor.withValues(alpha: 0.1),
-                            AppTheme.primaryColor.withValues(alpha: 0.05),
+                            DairyColorsLight.primary.withValues(alpha: 0.1),
+                            DairyColorsLight.primary.withValues(alpha: 0.05),
                           ],
                         ),
                         borderRadius: BorderRadius.circular(12),
@@ -209,10 +209,10 @@ class SubscriptionDetailPopup extends StatelessWidget {
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 '₹${subscription.totalCostPerDelivery.toStringAsFixed(2)}',
-                                style: TextStyle(
+                                style: const TextStyle(
                                   fontSize: 20,
                                   fontWeight: FontWeight.bold,
-                                  color: AppTheme.primaryColor,
+                                  color: DairyColorsLight.primary,
                                 ),
                               ),
                             ),
