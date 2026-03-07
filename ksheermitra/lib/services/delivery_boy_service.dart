@@ -70,12 +70,12 @@ class DeliveryBoyService {
   }) async {
     try {
       final headers = await _getHeaders();
-      final response = await http.post(
-        Uri.parse('$baseUrl/delivery-boy/complete-delivery'),
+      final response = await http.patch(
+        Uri.parse('$baseUrl/delivery-boy/delivery/$deliveryId/status'),
         headers: headers,
         body: json.encode({
-          'deliveryId': deliveryId,
-          'notes': notes,
+          'status': 'delivered',
+          if (notes != null) 'notes': notes,
         }),
       );
 

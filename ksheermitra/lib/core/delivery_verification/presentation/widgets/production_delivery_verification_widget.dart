@@ -8,10 +8,10 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 import 'package:ksheermitra/core/delivery_verification/presentation/providers/delivery_verification_provider.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/entities/delivery_location.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/entities/delivery_order.dart';
-import 'package:ksheermitra/core/delivery_verification/domain/services/geofence_util.dart';
 import 'package:ksheermitra/core/delivery_verification/di/service_locator.dart';
 
 /// Configuration for the delivery verification widget
@@ -256,7 +256,7 @@ class _ProductionDeliveryVerificationWidgetState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.grey[100],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         border: Border.all(
           color: isWithin ? Colors.green : Colors.orange,
           width: 2,
@@ -360,7 +360,7 @@ class _ProductionDeliveryVerificationWidgetState
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: Colors.red[50],
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         border: Border.all(color: Colors.red[200]!),
       ),
       child: Column(
@@ -409,7 +409,7 @@ class _ProductionDeliveryVerificationWidgetState
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
           color: Colors.green,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.circular(DairyRadius.md),
         ),
         child: const Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -440,7 +440,7 @@ class _ProductionDeliveryVerificationWidgetState
           backgroundColor: canDeliver ? Colors.green : Colors.grey,
           foregroundColor: Colors.white,
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(DairyRadius.md),
           ),
           elevation: canDeliver ? 4 : 0,
         ),

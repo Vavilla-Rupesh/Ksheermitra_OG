@@ -4,7 +4,9 @@ import 'package:fl_chart/fl_chart.dart';
 import 'package:intl/intl.dart';
 import '../../../providers/dashboard_provider.dart';
 import '../../../models/dashboard_stats.dart';
-import '../../../config/theme.dart';
+import '../../../config/dairy_theme.dart';
+import '../../../widgets/loading_widget.dart';
+import '../../../widgets/dairy_animations.dart';
 import '../offline_sales/offline_sales_list_screen.dart';
 import '../customers/customer_map_screen.dart';
 import '../products/product_list_screen.dart';
@@ -32,48 +34,74 @@ class _DashboardScreenState extends State<DashboardScreen> {
       body: Consumer<DashboardProvider>(
         builder: (context, provider, child) {
           if (provider.isLoading && provider.stats == null) {
-            return const Center(child: CircularProgressIndicator());
+            return Padding(
+              padding: const EdgeInsets.all(DairySpacing.screenPaddingH),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const SizedBox(height: DairySpacing.lg),
+                  ShimmerLoading(width: 200, height: 28, borderRadius: DairyRadius.sm),
+                  const SizedBox(height: DairySpacing.lg),
+                  const SkeletonCardLoader(itemCount: 6, crossAxisCount: 2),
+                ],
+              ),
+            );
           }
 
           if (provider.error != null && provider.stats == null) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  const Icon(Icons.error_outline, size: 48, color: Colors.red),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Error: ${provider.error}',
-                    textAlign: TextAlign.center,
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton.icon(
-                    onPressed: () => provider.loadDashboardStats(),
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(DairySpacing.xl),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      width: 80,
+                      height: 80,
+                      decoration: const BoxDecoration(
+                        color: DairyColorsLight.errorSurface,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.error_outline, size: 40, color: DairyColorsLight.error),
+                    ),
+                    const SizedBox(height: DairySpacing.lg),
+                    Text('Something went wrong', style: DairyTypography.headingSmall()),
+                    const SizedBox(height: DairySpacing.sm),
+                    Text(
+                      provider.error ?? 'Unknown error',
+                      textAlign: TextAlign.center,
+                      style: DairyTypography.body(),
+                    ),
+                    const SizedBox(height: DairySpacing.lg),
+                    ElevatedButton.icon(
+                      onPressed: () => provider.loadDashboardStats(),
+                      icon: const Icon(Icons.refresh, size: 20),
+                      label: const Text('Retry'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
 
           return RefreshIndicator(
             onRefresh: () => provider.refresh(),
+            color: Theme.of(context).colorScheme.primary,
             child: SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DairySpacing.screenPaddingH),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  _buildHeader(provider),
-                  const SizedBox(height: 24),
-                  _buildQuickActions(),
-                  const SizedBox(height: 24),
-                  _buildStatsGrid(provider.stats!),
-                  const SizedBox(height: 24),
-                  _buildDeliveryStatusChart(provider.stats!),
-                  const SizedBox(height: 24),
-                  _buildRevenueCard(provider.stats!),
-                  const SizedBox(height: 24),
+                  DairySlideUp(child: _buildHeader(provider)),
+                  const SizedBox(height: DairySpacing.sectionSpacing),
+                  DairySlideUp(delay: const Duration(milliseconds: 100), child: _buildQuickActions()),
+                  const SizedBox(height: DairySpacing.sectionSpacing),
+                  DairySlideUp(delay: const Duration(milliseconds: 200), child: _buildStatsGrid(provider.stats!)),
+                  const SizedBox(height: DairySpacing.sectionSpacing),
+                  DairySlideUp(delay: const Duration(milliseconds: 300), child: _buildDeliveryStatusChart(provider.stats!)),
+                  const SizedBox(height: DairySpacing.sectionSpacing),
+                  DairySlideUp(delay: const Duration(milliseconds: 400), child: _buildRevenueCard(provider.stats!)),
+                  const SizedBox(height: DairySpacing.lg),
                 ],
               ),
             ),
@@ -85,35 +113,32 @@ class _DashboardScreenState extends State<DashboardScreen> {
 
   Widget _buildHeader(DashboardProvider provider) {
     final lastRefresh = provider.lastRefresh;
-    final timeAgo = lastRefresh != null
-        ? _getTimeAgo(lastRefresh)
-        : 'Never';
+    final timeAgo = lastRefresh != null ? _getTimeAgo(lastRefresh) : 'Never';
 
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
-        const Column(
+        Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Dashboard',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 4),
+            Text('Dashboard', style: DairyTypography.headingLarge()),
+            const SizedBox(height: DairySpacing.xs),
           ],
         ),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(
-              'Last updated',
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-            Text(
-              timeAgo,
-              style: TextStyle(fontSize: 12, color: Colors.grey[600]),
-            ),
-          ],
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: DairySpacing.md, vertical: DairySpacing.sm),
+          decoration: BoxDecoration(
+            color: Theme.of(context).colorScheme.primaryContainer,
+            borderRadius: DairyRadius.pillBorderRadius,
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Icon(Icons.access_time, size: 14, color: Theme.of(context).colorScheme.primary),
+              const SizedBox(width: DairySpacing.xs),
+              Text(timeAgo, style: DairyTypography.caption(color: Theme.of(context).colorScheme.primary)),
+            ],
+          ),
         ),
       ],
     );
@@ -133,57 +158,27 @@ class _DashboardScreenState extends State<DashboardScreen> {
   }
 
   Widget _buildStatsGrid(DashboardStats stats) {
-    return GridView.count(
-      crossAxisCount: 2,
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      mainAxisSpacing: 12,
-      crossAxisSpacing: 12,
-      childAspectRatio: 1.3,
-      children: [
-        _buildStatCard(
-          'Total Customers',
-          stats.totalCustomers.toString(),
-          Icons.people,
-          Colors.blue,
-          subtitle: '${stats.activeCustomers} active',
-        ),
-        _buildStatCard(
-          'Delivery Boys',
-          stats.totalDeliveryBoys.toString(),
-          Icons.delivery_dining,
-          Colors.green,
-          subtitle: '${stats.activeDeliveryBoys} active',
-        ),
-        _buildStatCard(
-          'Today\'s Deliveries',
-          stats.todaysDeliveries.toString(),
-          Icons.local_shipping,
-          Colors.purple,
-          subtitle: '${stats.todaysDelivered} delivered',
-        ),
-        _buildStatCard(
-          'Today\'s Revenue',
-          '₹${stats.todaysRevenue.toStringAsFixed(0)}',
-          Icons.currency_rupee,
-          Colors.orange,
-          subtitle: 'From deliveries',
-        ),
-        _buildStatCard(
-          'Active Subscriptions',
-          stats.activeSubscriptions.toString(),
-          Icons.subscriptions,
-          Colors.teal,
-          subtitle: 'Ongoing',
-        ),
-        _buildStatCard(
-          'Products',
-          stats.totalProducts.toString(),
-          Icons.inventory,
-          Colors.indigo,
-          subtitle: '${stats.totalAreas} areas',
-        ),
-      ],
+    final primary = Theme.of(context).colorScheme.primary;
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final crossAxisCount = constraints.maxWidth >= 600 ? 3 : 2;
+        return GridView.count(
+          crossAxisCount: crossAxisCount,
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          mainAxisSpacing: DairySpacing.md,
+          crossAxisSpacing: DairySpacing.md,
+          childAspectRatio: 1.25,
+          children: [
+            _buildStatCard('Total Customers', stats.totalCustomers.toString(), Icons.people_outline, const Color(0xFF2563EB), subtitle: '${stats.activeCustomers} active'),
+            _buildStatCard('Delivery Boys', stats.totalDeliveryBoys.toString(), Icons.delivery_dining, const Color(0xFF0EA5E9), subtitle: '${stats.activeDeliveryBoys} active'),
+            _buildStatCard('Today\'s Deliveries', stats.todaysDeliveries.toString(), Icons.local_shipping_outlined, const Color(0xFF6366F1), subtitle: '${stats.todaysDelivered} delivered'),
+            _buildStatCard('Today\'s Revenue', '₹${stats.todaysRevenue.toStringAsFixed(0)}', Icons.currency_rupee, const Color(0xFF8B5CF6), subtitle: 'From deliveries'),
+            _buildStatCard('Subscriptions', stats.activeSubscriptions.toString(), Icons.subscriptions_outlined, const Color(0xFF0891B2), subtitle: 'Active'),
+            _buildStatCard('Products', stats.totalProducts.toString(), Icons.inventory_2_outlined, primary, subtitle: '${stats.totalAreas} areas'),
+          ],
+        );
+      },
     );
   }
 
@@ -194,189 +189,91 @@ class _DashboardScreenState extends State<DashboardScreen> {
     Color color, {
     String? subtitle,
   }) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(10),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Icon(icon, size: 24, color: color),
-            const SizedBox(height: 4),
-            FittedBox(
-              fit: BoxFit.scaleDown,
-              child: Text(
-                value,
-                style: const TextStyle(
-                  fontSize: 20,
-                  fontWeight: FontWeight.bold,
-                ),
-                textAlign: TextAlign.center,
-                maxLines: 1,
-              ),
+    final colors = context.dairyColors;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: DairyRadius.xlBorderRadius,
+        boxShadow: colors.cardShadow,
+        border: context.isDarkMode ? Border.all(color: colors.border) : null,
+      ),
+      padding: const EdgeInsets.all(DairySpacing.md),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 40,
+            height: 40,
+            decoration: BoxDecoration(
+              color: color.withValues(alpha: 0.1),
+              borderRadius: DairyRadius.defaultBorderRadius,
             ),
-            const SizedBox(height: 2),
-            Text(
-              title,
-              textAlign: TextAlign.center,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: 11,
-                height: 1.1,
-              ),
-            ),
-            if (subtitle != null) ...[
-              const SizedBox(height: 2),
-              Text(
-                subtitle,
-                textAlign: TextAlign.center,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: TextStyle(
-                  fontSize: 9,
-                  color: Colors.grey[600],
-                  height: 1,
-                ),
-              ),
-            ],
-          ],
-        ),
+            child: Icon(icon, size: 22, color: color),
+          ),
+          const SizedBox(height: DairySpacing.sm),
+          FittedBox(
+            fit: BoxFit.scaleDown,
+            alignment: Alignment.centerLeft,
+            child: Text(value, style: DairyTypography.headingMedium()),
+          ),
+          const SizedBox(height: 2),
+          Text(title, style: DairyTypography.caption(), maxLines: 1, overflow: TextOverflow.ellipsis),
+          if (subtitle != null)
+            Text(subtitle, style: DairyTypography.caption(color: color), maxLines: 1, overflow: TextOverflow.ellipsis),
+        ],
       ),
     );
   }
 
   Widget _buildDeliveryStatusChart(DashboardStats stats) {
     final total = stats.todaysDeliveries;
-    if (total == 0) {
-      return const SizedBox.shrink();
-    }
+    if (total == 0) return const SizedBox.shrink();
+    final colors = context.dairyColors;
 
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Today\'s Delivery Status',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 24),
-            SizedBox(
-              height: 200,
-              child: PieChart(
-                PieChartData(
-                  sections: [
-                    PieChartSectionData(
-                      value: stats.todaysPending.toDouble(),
-                      title: '${stats.todaysPending}\nPending',
-                      color: Colors.orange,
-                      radius: 80,
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    PieChartSectionData(
-                      value: stats.todaysDelivered.toDouble(),
-                      title: '${stats.todaysDelivered}\nDelivered',
-                      color: Colors.green,
-                      radius: 80,
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                    PieChartSectionData(
-                      value: stats.todaysMissed.toDouble(),
-                      title: '${stats.todaysMissed}\nMissed',
-                      color: Colors.red,
-                      radius: 80,
-                      titleStyle: const TextStyle(
-                        fontSize: 12,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.white,
-                      ),
-                    ),
-                  ],
-                  sectionsSpace: 2,
-                  centerSpaceRadius: 40,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRevenueCard(DashboardStats stats) {
-    return Card(
-      elevation: 2,
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            const Text(
-              'Payment Summary',
-              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 16),
-            Row(
-              children: [
-                Expanded(
-                  child: _buildRevenueItem(
-                    'Collected',
-                    stats.collectedPayments,
-                    Colors.green,
-                  ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: _buildRevenueItem(
-                    'Pending',
-                    stats.pendingPayments,
-                    Colors.orange,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildRevenueItem(String title, double amount, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(8),
+        color: colors.card,
+        borderRadius: DairyRadius.xlBorderRadius,
+        boxShadow: colors.cardShadow,
+        border: context.isDarkMode ? Border.all(color: colors.border) : null,
       ),
+      padding: DairySpacing.cardContentPadding,
       child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              color: color,
-              fontWeight: FontWeight.w600,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            '₹${amount.toStringAsFixed(2)}',
-            style: TextStyle(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
-              color: color,
+          Text('Today\'s Delivery Status', style: DairyTypography.headingSmall()),
+          const SizedBox(height: DairySpacing.lg),
+          SizedBox(
+            height: 200,
+            child: PieChart(
+              PieChartData(
+                sections: [
+                  PieChartSectionData(
+                    value: stats.todaysPending.toDouble(),
+                    title: '${stats.todaysPending}\nPending',
+                    color: DairyColorsLight.warning,
+                    radius: 80,
+                    titleStyle: DairyTypography.badge(),
+                  ),
+                  PieChartSectionData(
+                    value: stats.todaysDelivered.toDouble(),
+                    title: '${stats.todaysDelivered}\nDelivered',
+                    color: DairyColorsLight.success,
+                    radius: 80,
+                    titleStyle: DairyTypography.badge(),
+                  ),
+                  PieChartSectionData(
+                    value: stats.todaysMissed.toDouble(),
+                    title: '${stats.todaysMissed}\nMissed',
+                    color: DairyColorsLight.error,
+                    radius: 80,
+                    titleStyle: DairyTypography.badge(),
+                  ),
+                ],
+                sectionsSpace: 3,
+                centerSpaceRadius: 44,
+              ),
             ),
           ),
         ],
@@ -384,83 +281,88 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
+  Widget _buildRevenueCard(DashboardStats stats) {
+    final colors = context.dairyColors;
+    return Container(
+      decoration: BoxDecoration(
+        color: colors.card,
+        borderRadius: DairyRadius.xlBorderRadius,
+        boxShadow: colors.cardShadow,
+        border: context.isDarkMode ? Border.all(color: colors.border) : null,
+      ),
+      padding: DairySpacing.cardContentPadding,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text('Payment Summary', style: DairyTypography.headingSmall()),
+          const SizedBox(height: DairySpacing.md),
+          Row(
+            children: [
+              Expanded(child: _buildRevenueItem('Collected', stats.collectedPayments, DairyColorsLight.success)),
+              const SizedBox(width: DairySpacing.md),
+              Expanded(child: _buildRevenueItem('Pending', stats.pendingPayments, DairyColorsLight.warning)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildRevenueItem(String title, double amount, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(DairySpacing.md),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.08),
+        borderRadius: DairyRadius.largeBorderRadius,
+      ),
+      child: Column(
+        children: [
+          Text(title, style: DairyTypography.label(color: color)),
+          const SizedBox(height: DairySpacing.sm),
+          Text(
+            '₹${amount.toStringAsFixed(2)}',
+            style: DairyTypography.headingSmall(color: color),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildQuickActions() {
+    final primary = Theme.of(context).colorScheme.primary;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          'Quick Actions',
-          style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-        ),
-        const SizedBox(height: 12),
+        Text('Quick Actions', style: DairyTypography.headingSmall()),
+        const SizedBox(height: DairySpacing.md),
         Row(
           children: [
             Expanded(
-              child: _buildActionCard(
-                'In-Store Sales',
-                Icons.shopping_cart,
-                AppTheme.primaryColor,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const OfflineSalesListScreen(),
-                    ),
-                  );
-                },
-              ),
+              child: _buildActionCard('In-Store Sales', Icons.shopping_cart_outlined, primary, () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const OfflineSalesListScreen()));
+              }),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DairySpacing.md),
             Expanded(
-              child: _buildActionCard(
-                'Add Customer',
-                Icons.person_add,
-                Colors.green,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CustomerListScreen(),
-                    ),
-                  );
-                },
-              ),
+              child: _buildActionCard('Add Customer', Icons.person_add_outlined, const Color(0xFF0EA5E9), () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerListScreen()));
+              }),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: DairySpacing.md),
         Row(
           children: [
             Expanded(
-              child: _buildActionCard(
-                'Add Product',
-                Icons.add_box,
-                Colors.orange,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const ProductFormScreen(product: null),
-                    ),
-                  );
-                },
-              ),
+              child: _buildActionCard('Add Product', Icons.add_box_outlined, const Color(0xFF6366F1), () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const ProductFormScreen(product: null)));
+              }),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DairySpacing.md),
             Expanded(
-              child: _buildActionCard(
-                'View Map',
-                Icons.map,
-                Colors.purple,
-                () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const CustomerMapScreen(),
-                    ),
-                  );
-                },
-              ),
+              child: _buildActionCard('View Map', Icons.map_outlined, const Color(0xFF8B5CF6), () {
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerMapScreen()));
+              }),
             ),
           ],
         ),
@@ -468,50 +370,45 @@ class _DashboardScreenState extends State<DashboardScreen> {
     );
   }
 
-  Widget _buildActionCard(
-    String title,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return Card(
-      elevation: 2,
+  Widget _buildActionCard(String title, IconData icon, Color color, VoidCallback onTap) {
+    return Material(
+      color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: DairyRadius.xlBorderRadius,
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DairySpacing.md),
           decoration: BoxDecoration(
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: [
-                color,
-                color.withValues(alpha: 0.7),
-              ],
+              colors: [color, color.withValues(alpha: 0.8)],
             ),
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: DairyRadius.xlBorderRadius,
+            boxShadow: [
+              BoxShadow(
+                color: color.withValues(alpha: 0.25),
+                blurRadius: 12,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.all(DairySpacing.sm + 4),
                 decoration: BoxDecoration(
-                  color: Colors.white.withValues(alpha: 0.3),
-                  borderRadius: BorderRadius.circular(12),
+                  color: Colors.white.withValues(alpha: 0.2),
+                  borderRadius: DairyRadius.defaultBorderRadius,
                 ),
-                child: Icon(icon, size: 32, color: Colors.white),
+                child: Icon(icon, size: 28, color: Colors.white),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: DairySpacing.sm),
               Text(
                 title,
                 textAlign: TextAlign.center,
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontWeight: FontWeight.bold,
-                  fontSize: 14,
-                ),
+                style: DairyTypography.label(color: Colors.white),
               ),
             ],
           ),
@@ -519,58 +416,4 @@ class _DashboardScreenState extends State<DashboardScreen> {
       ),
     );
   }
-
-  // Widget _buildQuickActions() {
-  //   return Column(
-  //     crossAxisAlignment: CrossAxisAlignment.start,
-  //     children: [
-  //       const Text(
-  //         'Quick Actions',
-  //         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-  //       ),
-  //       const SizedBox(height: 12),
-  //       Card(
-  //         child: Column(
-  //           children: [
-  //             ListTile(
-  //               leading: const Icon(Icons.person_add, color: Colors.blue),
-  //               title: const Text('Add Customer'),
-  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-  //               onTap: () {
-  //                 // Navigate to add customer
-  //               },
-  //             ),
-  //             const Divider(height: 1),
-  //             ListTile(
-  //               leading: const Icon(Icons.add_business, color: Colors.green),
-  //               title: const Text('Add Delivery Boy'),
-  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-  //               onTap: () {
-  //                 // Navigate to add delivery boy
-  //               },
-  //             ),
-  //             const Divider(height: 1),
-  //             ListTile(
-  //               leading: const Icon(Icons.add_box, color: Colors.orange),
-  //               title: const Text('Add Product'),
-  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-  //               onTap: () {
-  //                 // Navigate to add product
-  //               },
-  //             ),
-  //             const Divider(height: 1),
-  //             ListTile(
-  //               leading: const Icon(Icons.map, color: Colors.purple),
-  //               title: const Text('View Customer Map'),
-  //               trailing: const Icon(Icons.arrow_forward_ios, size: 16),
-  //               onTap: () {
-  //                 // Navigate to customer map
-  //               },
-  //             ),
-  //           ],
-  //         ),
-  //       ),
-  //     ],
-  //   );
-  // }
 }

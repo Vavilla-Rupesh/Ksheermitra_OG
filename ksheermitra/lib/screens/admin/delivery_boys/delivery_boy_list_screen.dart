@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../../providers/delivery_boy_provider.dart';
@@ -181,7 +182,7 @@ class _DeliveryBoyListScreenState extends State<DeliveryBoyListScreen> {
                 color: deliveryBoy.isActive
                     ? Colors.green.withOpacity(0.1)
                     : Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DairyRadius.md),
               ),
               child: Text(
                 deliveryBoy.isActive ? 'Active' : 'Inactive',

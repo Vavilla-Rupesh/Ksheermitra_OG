@@ -95,11 +95,11 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                     padding: const EdgeInsets.all(DairySpacing.md),
                     children: [
                       _buildCategorySection('Daily', 'daily', Icons.wb_sunny),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DairySpacing.md),
                       _buildCategorySection('Selected Days', 'selected_days', Icons.date_range),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DairySpacing.md),
                       _buildCategorySection('Monthly', 'monthly', Icons.calendar_month),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DairySpacing.md),
                       _buildCategorySection('Custom', 'custom', Icons.tune),
                     ],
                   ),
@@ -116,9 +116,10 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.lg),
+        side: const BorderSide(color: DairyColorsLight.border, width: 1),
       ),
       child: Column(
         children: [
@@ -128,45 +129,40 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                 _expandedCategories[category] = !isExpanded;
               });
             },
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              padding: const EdgeInsets.all(16),
+            borderRadius: BorderRadius.circular(DairyRadius.lg),
+            child: Padding(
+              padding: const EdgeInsets.all(DairySpacing.md),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(10),
+                    padding: const EdgeInsets.all(DairySpacing.sm + 2),
                     decoration: BoxDecoration(
                       gradient: const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)]),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(DairyRadius.button),
                     ),
-                    child: Icon(icon, color: Colors.white, size: 24),
+                    child: Icon(icon, color: Colors.white, size: 22),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DairySpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           title,
-                          style: const TextStyle(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: DairyTypography.headingSmall(),
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DairySpacing.xs),
                         Text(
                           '${subscriptions.length} subscription${subscriptions.length != 1 ? 's' : ''}',
-                          style: TextStyle(
-                            fontSize: 13,
-                            color: Colors.grey.shade600,
-                          ),
+                          style: DairyTypography.caption(),
                         ),
                       ],
                     ),
                   ),
                   Icon(
                     isExpanded ? Icons.expand_less : Icons.expand_more,
-                    size: 28,
+                    size: 24,
+                    color: DairyColorsLight.textSecondary,
                   ),
                 ],
               ),
@@ -187,32 +183,32 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
     return InkWell(
       onTap: () => _showSubscriptionDetails(subscription),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DairySpacing.md),
         decoration: BoxDecoration(
           border: Border(
             bottom: BorderSide(
-              color: Colors.grey.shade200,
-              width: 0.5,
+              color: DairyColorsLight.border,
+              width: 1,
             ),
           ),
         ),
         child: Row(
           children: [
             Container(
-              padding: const EdgeInsets.all(8),
+              padding: const EdgeInsets.all(DairySpacing.sm),
               decoration: BoxDecoration(
                 color: isActive
-                    ? Colors.green.withValues(alpha: 0.1)
-                    : Colors.orange.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(8),
+                    ? DairyColorsLight.success.withValues(alpha: 0.1)
+                    : DairyColorsLight.warning.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(DairyRadius.sm),
               ),
               child: Icon(
                 Icons.local_drink,
-                color: isActive ? Colors.green : Colors.orange,
+                color: isActive ? DairyColorsLight.success : DairyColorsLight.warning,
                 size: 20,
               ),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: DairySpacing.md),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,28 +219,18 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
                             ? subscription.products![0].product?.name ?? 'Product'
                             : '${subscription.products!.length} Products')
                         : 'Product',
-                    style: const TextStyle(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: DairyTypography.productName(),
                   ),
-                  const SizedBox(height: 4),
+                  const SizedBox(height: DairySpacing.xs),
                   Row(
                     children: [
                       Text(
                         '₹${subscription.totalCostPerDelivery.toStringAsFixed(2)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.green.shade700,
-                          fontWeight: FontWeight.w600,
-                        ),
+                        style: DairyTypography.label(color: DairyColorsLight.success),
                       ),
                       Text(
                         ' • ${_getFrequencyText(subscription)}',
-                        style: TextStyle(
-                          fontSize: 13,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: DairyTypography.caption(),
                       ),
                     ],
                   ),
@@ -256,32 +242,24 @@ class _SubscriptionsScreenState extends State<SubscriptionsScreen> {
               children: [
                 Container(
                   padding: const EdgeInsets.symmetric(
-                    horizontal: 8,
-                    vertical: 4,
+                    horizontal: DairySpacing.sm,
+                    vertical: DairySpacing.xs,
                   ),
                   decoration: BoxDecoration(
                     color: isActive
-                        ? Colors.green
-                        : Colors.orange,
-                    borderRadius: BorderRadius.circular(12),
+                        ? DairyColorsLight.success
+                        : DairyColorsLight.warning,
+                    borderRadius: BorderRadius.circular(DairyRadius.pill),
                   ),
                   child: Text(
                     subscription.status.toUpperCase(),
-                    style: const TextStyle(
-                      fontSize: 10,
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
+                    style: DairyTypography.badge(),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: DairySpacing.sm),
                 Text(
                   'View Details',
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: DairyColorsLight.primary,
-                    fontWeight: FontWeight.w600,
-                  ),
+                  style: DairyTypography.label(color: DairyColorsLight.primary),
                 ),
               ],
             ),

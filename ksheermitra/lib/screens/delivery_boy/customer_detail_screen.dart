@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../config/dairy_theme.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../models/delivery_models.dart';
 import '../../services/delivery_service.dart';
 import '../../core/delivery_verification/delivery_verification.dart';
@@ -48,8 +50,13 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
     setState(() => _isUpdating = true);
 
     try {
+      final deliveryId = widget.customer.deliveryId;
+      if (deliveryId == null || deliveryId.isEmpty) {
+        throw Exception('No delivery record found for this customer');
+      }
+
       await _deliveryService.updateDeliveryStatus(
-        customerId: widget.customer.id,
+        deliveryId: deliveryId,
         status: status,
       );
 
@@ -110,9 +117,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
               children: [
                 // Customer Info Card
                 Card(
-                  elevation: 2,
+                  elevation: 0,
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
                   ),
                   child: Padding(
                     padding: const EdgeInsets.all(20),
@@ -180,9 +187,9 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
 
                       return Card(
                         margin: const EdgeInsets.only(bottom: 12),
-                        elevation: 2,
+                        elevation: 0,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(DairyRadius.md),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(16),
@@ -193,7 +200,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                                 height: 60,
                                 decoration: BoxDecoration(
                                   color: Colors.orange[100],
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(DairyRadius.md),
                                 ),
                                 child: Center(
                                   child: Text(
@@ -219,14 +226,14 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                                       '${sp.quantity} ${product.unit}',
                                       style: TextStyle(
                                         fontSize: 14,
-                                        color: Colors.grey[600],
+                                        color: DairyColorsLight.textSecondary,
                                       ),
                                     ),
                                     Text(
                                       '₹${product.pricePerUnit}/${product.unit}',
                                       style: TextStyle(
                                         fontSize: 12,
-                                        color: Colors.grey[500],
+                                        color: DairyColorsLight.textTertiary,
                                       ),
                                     ),
                                   ],
@@ -255,7 +262,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                       gradient: LinearGradient(
                         colors: [Colors.green[400]!, Colors.green[600]!],
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
                       boxShadow: [
                         BoxShadow(
                           color: Colors.green.withOpacity(0.3),
@@ -343,7 +350,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                         Text('Updating delivery status...'),
                         Text(
                           'Sending WhatsApp notification',
-                          style: TextStyle(fontSize: 12, color: Colors.grey),
+                          style: TextStyle(fontSize: 12, color: DairyColorsLight.textTertiary),
                         ),
                       ],
                     ),
@@ -357,10 +364,12 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
   }
 
   Widget _buildInfoRow(IconData icon, String label, String value) {
+    final isPhoneNumber = label == 'Phone';
+
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Icon(icon, size: 20, color: Colors.grey[600]),
+        Icon(icon, size: 20, color: DairyColorsLight.textSecondary),
         const SizedBox(width: 12),
         Expanded(
           child: Column(
@@ -370,7 +379,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey[600],
+                  color: DairyColorsLight.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -384,8 +393,47 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
             ],
           ),
         ),
+        if (isPhoneNumber)
+          IconButton(
+            icon: const Icon(Icons.phone, color: Colors.green),
+            tooltip: 'Call customer',
+            onPressed: () => _makePhoneCall(value),
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
+          ),
       ],
     );
+  }
+
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    // Remove any spaces from phone number
+    final cleanPhone = phoneNumber.replaceAll(' ', '');
+    final Uri phoneUri = Uri(scheme: 'tel', path: cleanPhone);
+
+    try {
+      if (await canLaunchUrl(phoneUri)) {
+        await launchUrl(phoneUri);
+        debugPrint('Initiated call to customer: $cleanPhone');
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Could not launch phone dialer'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error calling: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    }
   }
 
   Widget _buildStatusChip(String status) {
@@ -469,7 +517,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 minimumSize: const Size(double.infinity, 48),
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DairyRadius.md),
                 ),
               ),
             ),
@@ -488,7 +536,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   backgroundColor: Colors.red,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
                   ),
                 ),
               ),
@@ -506,7 +554,7 @@ class _CustomerDetailScreenState extends State<CustomerDetailScreen> {
                   backgroundColor: Colors.green,
                   padding: const EdgeInsets.symmetric(vertical: 16),
                   shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
                   ),
                 ),
               ),

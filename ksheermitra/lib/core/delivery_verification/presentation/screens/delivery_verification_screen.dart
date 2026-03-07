@@ -6,6 +6,7 @@ library;
 
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 import '../providers/delivery_verification_provider.dart';
 import '../../domain/entities/entities.dart';
 import 'widgets/widgets.dart';
@@ -229,7 +230,7 @@ class _DeliveryVerificationScreenState extends State<DeliveryVerificationScreen>
               foregroundColor: Colors.white,
               minimumSize: const Size(double.infinity, 56),
               shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DairyRadius.md),
               ),
             ),
             child: const Text(

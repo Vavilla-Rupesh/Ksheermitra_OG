@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 
 /// Button for marking delivery as complete.
 ///
@@ -77,7 +78,7 @@ class DeliveryButton extends StatelessWidget {
                 disabledBackgroundColor: Colors.grey[300],
                 disabledForegroundColor: Colors.grey[600],
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DairyRadius.md),
                 ),
                 elevation: canDeliver ? 4 : 0,
               ),

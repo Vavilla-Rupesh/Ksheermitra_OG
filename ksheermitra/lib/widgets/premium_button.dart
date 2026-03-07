@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../config/dairy_theme.dart';
 
-/// Premium Gradient Button with shadow and animation
+/// Premium Gradient Button with shadow and animation — Blue Ecosystem
 class PremiumButton extends StatefulWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -21,8 +21,8 @@ class PremiumButton extends StatefulWidget {
     this.icon,
     this.isLoading = false,
     this.width,
-    this.height = 56.0,
-    this.borderRadius = DairyRadius.md,
+    this.height = DairySpacing.touchTarget,
+    this.borderRadius = DairyRadius.button,
     this.padding,
   });
 
@@ -42,7 +42,7 @@ class _PremiumButtonState extends State<PremiumButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.95).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
     );
   }
@@ -134,7 +134,7 @@ class _PremiumButtonState extends State<PremiumButton>
   }
 }
 
-/// Secondary Outline Button with premium styling
+/// Secondary Outline Button with premium styling — Blue Ecosystem
 class PremiumOutlineButton extends StatelessWidget {
   final String text;
   final VoidCallback? onPressed;
@@ -150,7 +150,7 @@ class PremiumOutlineButton extends StatelessWidget {
     this.icon,
     this.color,
     this.width,
-    this.height = 56.0,
+    this.height = DairySpacing.touchTarget,
   });
 
   @override
@@ -163,14 +163,15 @@ class PremiumOutlineButton extends StatelessWidget {
       width: width,
       height: height,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(DairyRadius.md),
-        border: Border.all(color: buttonColor, width: 2),
+        color: isDark ? Colors.transparent : Colors.white,
+        borderRadius: BorderRadius.circular(DairyRadius.button),
+        border: Border.all(color: isDark ? buttonColor : colors.border, width: 1),
       ),
       child: Material(
         color: Colors.transparent,
         child: InkWell(
           onTap: onPressed,
-          borderRadius: BorderRadius.circular(DairyRadius.md),
+          borderRadius: BorderRadius.circular(DairyRadius.button),
           child: Padding(
             padding: const EdgeInsets.symmetric(horizontal: DairySpacing.lg),
             child: Center(

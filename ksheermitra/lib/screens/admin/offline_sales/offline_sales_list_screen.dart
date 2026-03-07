@@ -192,14 +192,14 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
                 Icons.shopping_cart,
                 AppTheme.primaryColor,
               ),
-              Container(width: 1, height: 40, color: Colors.grey.shade300),
+              Container(width: 1, height: 40, color: DairyColorsLight.border),
               _buildStatItem(
                 'Revenue',
                 '₹${_stats!.totalRevenue.toStringAsFixed(0)}',
                 Icons.currency_rupee,
                 Colors.green,
               ),
-              Container(width: 1, height: 40, color: Colors.grey.shade300),
+              Container(width: 1, height: 40, color: DairyColorsLight.border),
               _buildStatItem(
                 'Avg Sale',
                 '₹${_stats!.averageSaleAmount.toStringAsFixed(0)}',
@@ -229,7 +229,7 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey.shade600,
+            color: DairyColorsLight.textSecondary,
           ),
         ),
       ],
@@ -303,7 +303,7 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
               'No sales found',
               style: TextStyle(
                 fontSize: 18,
-                color: Colors.grey.shade600,
+                color: DairyColorsLight.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
@@ -365,12 +365,12 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  Icon(Icons.calendar_today, size: 14, color: Colors.grey.shade600),
+                  Icon(Icons.calendar_today, size: 14, color: DairyColorsLight.textSecondary),
                   const SizedBox(width: 4),
                   Text(
                     DateFormat('MMM d, yyyy • HH:mm').format(sale.createdAt),
                     style: TextStyle(
-                      color: Colors.grey.shade600,
+                      color: DairyColorsLight.textSecondary,
                       fontSize: 12,
                     ),
                   ),
@@ -391,7 +391,7 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
                         '${sale.items.length} items',
                         style: TextStyle(
                           fontSize: 12,
-                          color: Colors.grey.shade600,
+                          color: DairyColorsLight.textSecondary,
                         ),
                       ),
                     ],
@@ -439,7 +439,7 @@ class _OfflineSalesListScreenState extends State<OfflineSalesListScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,

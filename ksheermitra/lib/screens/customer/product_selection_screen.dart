@@ -213,7 +213,7 @@ class _ProductSelectionScreenState extends State<ProductSelectionScreen> {
                                                     width: 60,
                                                     height: 60,
                                                     decoration: BoxDecoration(
-                                                      color: Colors.grey.shade200,
+                                                      color: DairyColorsLight.surfaceVariant,
                                                       borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
                                                     ),
                                                     child: const Center(

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/dairy_theme.dart';
 import 'package:intl/intl.dart';
 import '../../models/product.dart';
 import 'subscription_review_screen.dart';
@@ -283,7 +284,7 @@ class _SubscriptionScheduleScreenState extends State<SubscriptionScheduleScreen>
                             '${quantity.toInt()} ${product.unit}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: DairyColorsLight.textSecondary,
                             ),
                           ),
                         ],
@@ -309,7 +310,7 @@ class _SubscriptionScheduleScreenState extends State<SubscriptionScheduleScreen>
       elevation: isSelected ? 3 : 1,
       margin: const EdgeInsets.only(bottom: 12),
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         side: isSelected
             ? BorderSide(color: Theme.of(context).primaryColor, width: 2)
             : BorderSide.none,
@@ -345,9 +346,9 @@ class _SubscriptionScheduleScreenState extends State<SubscriptionScheduleScreen>
       margin: const EdgeInsets.only(left: 16, bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: DairyColorsLight.surface,
+        borderRadius: BorderRadius.circular(DairyRadius.md),
+        border: Border.all(color: DairyColorsLight.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -390,9 +391,9 @@ class _SubscriptionScheduleScreenState extends State<SubscriptionScheduleScreen>
       margin: const EdgeInsets.only(left: 16, bottom: 12),
       padding: const EdgeInsets.all(12),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: DairyColorsLight.surface,
+        borderRadius: BorderRadius.circular(DairyRadius.md),
+        border: Border.all(color: DairyColorsLight.border),
       ),
       child: Column(
         children: [
@@ -449,9 +450,9 @@ class _SubscriptionScheduleScreenState extends State<SubscriptionScheduleScreen>
       margin: const EdgeInsets.only(left: 16, bottom: 12),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: Colors.grey.shade50,
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.grey.shade300),
+        color: DairyColorsLight.surface,
+        borderRadius: BorderRadius.circular(DairyRadius.md),
+        border: Border.all(color: DairyColorsLight.border),
       ),
       child: SwitchListTile(
         value: _autoRenewal,

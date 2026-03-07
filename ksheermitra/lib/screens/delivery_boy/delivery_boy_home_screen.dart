@@ -64,7 +64,7 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
             Expanded(
               flex: 2,
               child: Card(
-                elevation: 8,
+                elevation: 0,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(20),
                 ),
@@ -172,7 +172,7 @@ class _DeliveryBoyHomeScreenState extends State<DeliveryBoyHomeScreen> {
     VoidCallback onTap,
   ) {
     return Card(
-      elevation: 4,
+      elevation: 0,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(16),
       ),

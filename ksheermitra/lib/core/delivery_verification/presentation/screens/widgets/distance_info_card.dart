@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/services/geofence_util.dart';
 
 /// Card showing distance details when outside delivery zone
@@ -20,10 +21,10 @@ class DistanceInfoCard extends StatelessWidget {
     final distanceToMove = geofenceResult.distanceFromBoundary;
 
     return Card(
-      elevation: 2,
+      elevation: 0,
       color: Colors.orange[50],
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         side: BorderSide(color: Colors.orange.withAlpha(77)),
       ),
       child: Padding(

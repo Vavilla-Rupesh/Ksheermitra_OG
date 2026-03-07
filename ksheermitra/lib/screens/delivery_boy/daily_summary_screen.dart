@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/dairy_theme.dart';
 import '../../models/delivery_models.dart';
 import '../../services/delivery_service.dart';
 
@@ -151,47 +152,44 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Today\'s Summary'),
-        backgroundColor: Colors.blue,
+        backgroundColor: DairyColorsLight.primary,
+        foregroundColor: Colors.white,
+        elevation: 0,
       ),
       body: _isLoading
           ? const Center(child: CircularProgressIndicator())
           : SingleChildScrollView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DairySpacing.md),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   // Date Card
                   Card(
-                    elevation: 2,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DairyRadius.lg),
+                      side: const BorderSide(color: DairyColorsLight.border, width: 1),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(DairySpacing.lg),
                       child: Column(
                         children: [
-                          Icon(Icons.calendar_today, size: 48, color: Colors.blue[600]),
-                          const SizedBox(height: 12),
+                          Icon(Icons.calendar_today, size: 44, color: DairyColorsLight.primary),
+                          const SizedBox(height: DairySpacing.md),
                           Text(
                             DateTime.now().toString().split(' ')[0],
-                            style: const TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: DairyTypography.headingLarge(),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: DairySpacing.xs),
                           Text(
                             _getDayOfWeek(),
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
+                            style: DairyTypography.body(),
                           ),
                         ],
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DairySpacing.md),
 
                   // Stats Grid
                   Row(
@@ -201,21 +199,21 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
                           'Pending',
                           _stats?.pending.toString() ?? '0',
                           Icons.pending,
-                          Colors.blue,
+                          DairyColorsLight.info,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DairySpacing.md),
                       Expanded(
                         child: _buildStatCard(
                           'Delivered',
                           _stats?.delivered.toString() ?? '0',
                           Icons.check_circle,
-                          Colors.green,
+                          DairyColorsLight.success,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 12),
+                  const SizedBox(height: DairySpacing.md),
                   Row(
                     children: [
                       Expanded(
@@ -223,40 +221,38 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
                           'Missed',
                           _stats?.missed.toString() ?? '0',
                           Icons.cancel,
-                          Colors.red,
+                          DairyColorsLight.error,
                         ),
                       ),
-                      const SizedBox(width: 12),
+                      const SizedBox(width: DairySpacing.md),
                       Expanded(
                         child: _buildStatCard(
                           'Total',
                           totalDeliveries.toString(),
                           Icons.local_shipping,
-                          Colors.purple,
+                          DairyColorsLight.secondary,
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DairySpacing.md),
 
                   // Completion Rate Card
                   Card(
-                    elevation: 2,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DairyRadius.lg),
+                      side: const BorderSide(color: DairyColorsLight.border, width: 1),
                     ),
                     child: Padding(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.all(DairySpacing.lg),
                       child: Column(
                         children: [
-                          const Text(
+                          Text(
                             'Completion Rate',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey,
-                            ),
+                            style: DairyTypography.body(),
                           ),
-                          const SizedBox(height: 12),
+                          const SizedBox(height: DairySpacing.md),
                           Stack(
                             alignment: Alignment.center,
                             children: [
@@ -266,9 +262,9 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
                                 child: CircularProgressIndicator(
                                   value: double.parse(completionRate) / 100,
                                   strokeWidth: 12,
-                                  backgroundColor: Colors.grey[200],
-                                  valueColor: AlwaysStoppedAnimation<Color>(
-                                    Colors.green[600]!,
+                                  backgroundColor: DairyColorsLight.surfaceVariant,
+                                  valueColor: const AlwaysStoppedAnimation<Color>(
+                                    DairyColorsLight.success,
                                   ),
                                 ),
                               ),
@@ -276,18 +272,11 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
                                 children: [
                                   Text(
                                     '$completionRate%',
-                                    style: TextStyle(
-                                      fontSize: 32,
-                                      fontWeight: FontWeight.bold,
-                                      color: Colors.green[600],
-                                    ),
+                                    style: DairyTypography.headingLarge(color: DairyColorsLight.success),
                                   ),
-                                  const Text(
+                                  Text(
                                     'Complete',
-                                    style: TextStyle(
-                                      fontSize: 12,
-                                      color: Colors.grey,
-                                    ),
+                                    style: DairyTypography.caption(),
                                   ),
                                 ],
                               ),
@@ -297,88 +286,77 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
                       ),
                     ),
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: DairySpacing.md),
 
                   // Amount Collected Card
                   Container(
-                    padding: const EdgeInsets.all(24),
+                    padding: const EdgeInsets.all(DairySpacing.lg),
                     decoration: BoxDecoration(
-                      gradient: LinearGradient(
-                        colors: [Colors.green[400]!, Colors.green[600]!],
+                      gradient: const LinearGradient(
+                        colors: [DairyColorsLight.success, Color(0xFF16A34A)],
                       ),
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DairyRadius.lg),
                       boxShadow: [
                         BoxShadow(
-                          color: Colors.green.withOpacity(0.3),
-                          blurRadius: 8,
+                          color: DairyColorsLight.success.withValues(alpha: 0.25),
+                          blurRadius: 12,
                           offset: const Offset(0, 4),
                         ),
                       ],
                     ),
                     child: Column(
                       children: [
-                        const Row(
+                        Row(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(Icons.currency_rupee, color: Colors.white, size: 32),
+                            const Icon(Icons.currency_rupee, color: Colors.white, size: 28),
+                            const SizedBox(width: DairySpacing.sm),
                             Text(
                               'Total Collected',
-                              style: TextStyle(
-                                fontSize: 20,
-                                color: Colors.white70,
-                              ),
+                              style: DairyTypography.bodyLarge(color: Colors.white70),
                             ),
                           ],
                         ),
-                        const SizedBox(height: 12),
+                        const SizedBox(height: DairySpacing.md),
                         Text(
                           '₹${_stats?.collectedAmount.toStringAsFixed(2) ?? '0.00'}',
-                          style: const TextStyle(
-                            fontSize: 48,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                          style: DairyTypography.headingXLarge(color: Colors.white).copyWith(fontSize: 40),
                         ),
-                        const SizedBox(height: 8),
+                        const SizedBox(height: DairySpacing.sm),
                         Text(
                           'From ${_stats?.delivered ?? 0} deliveries',
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Colors.white70,
-                          ),
+                          style: DairyTypography.bodySmall(color: Colors.white70),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: DairySpacing.lg),
 
                   // Performance Message
                   if ((_stats?.pending ?? 0) == 0 && totalDeliveries > 0)
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(DairySpacing.md),
                       decoration: BoxDecoration(
-                        color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.green[200]!),
+                        color: DairyColorsLight.successSurface,
+                        borderRadius: BorderRadius.circular(DairyRadius.lg),
+                        border: Border.all(color: DairyColorsLight.success.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.stars, color: Colors.green[700], size: 32),
-                          const SizedBox(width: 12),
-                          const Expanded(
+                          Icon(Icons.stars, color: DairyColorsLight.success, size: 28),
+                          const SizedBox(width: DairySpacing.md),
+                          Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
                                   'Excellent Work!',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: DairyTypography.headingSmall(),
                                 ),
+                                const SizedBox(height: DairySpacing.xs),
                                 Text(
                                   'All deliveries completed for today',
-                                  style: TextStyle(fontSize: 12),
+                                  style: DairyTypography.bodySmall(),
                                 ),
                               ],
                             ),
@@ -389,30 +367,28 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
 
                   if ((_stats?.pending ?? 0) > 0)
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(DairySpacing.md),
                       decoration: BoxDecoration(
-                        color: Colors.orange[50],
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(color: Colors.orange[200]!),
+                        color: DairyColorsLight.warningSurface,
+                        borderRadius: BorderRadius.circular(DairyRadius.lg),
+                        border: Border.all(color: DairyColorsLight.warning.withValues(alpha: 0.3)),
                       ),
                       child: Row(
                         children: [
-                          Icon(Icons.info, color: Colors.orange[700], size: 32),
-                          const SizedBox(width: 12),
+                          Icon(Icons.info, color: DairyColorsLight.warning, size: 28),
+                          const SizedBox(width: DairySpacing.md),
                           Expanded(
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                const Text(
+                                Text(
                                   'Pending Deliveries',
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                  ),
+                                  style: DairyTypography.headingSmall(),
                                 ),
+                                const SizedBox(height: DairySpacing.xs),
                                 Text(
                                   '${_stats?.pending ?? 0} deliveries still pending',
-                                  style: const TextStyle(fontSize: 12),
+                                  style: DairyTypography.bodySmall(),
                                 ),
                               ],
                             ),
@@ -426,38 +402,36 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
               ),
             ),
       bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DairySpacing.md),
         decoration: BoxDecoration(
-          color: Colors.white,
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.1),
-              blurRadius: 10,
-              offset: const Offset(0, -5),
-            ),
-          ],
-        ),
-        child: ElevatedButton.icon(
-          onPressed: _isGeneratingInvoice ? null : _generateInvoice,
-          icon: _isGeneratingInvoice
-              ? const SizedBox(
-                  width: 20,
-                  height: 20,
-                  child: CircularProgressIndicator(
-                    color: Colors.white,
-                    strokeWidth: 2,
-                  ),
-                )
-              : const Icon(Icons.receipt_long, color: Colors.white),
-          label: Text(
-            _isGeneratingInvoice ? 'Generating...' : 'End Day & Generate Invoice',
-            style: const TextStyle(fontSize: 16, color: Colors.white),
+          color: DairyColorsLight.card,
+          border: const Border(
+            top: BorderSide(color: DairyColorsLight.border, width: 1),
           ),
-          style: ElevatedButton.styleFrom(
-            backgroundColor: Colors.blue,
-            padding: const EdgeInsets.symmetric(vertical: 16),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(12),
+        ),
+        child: SafeArea(
+          child: ElevatedButton.icon(
+            onPressed: _isGeneratingInvoice ? null : _generateInvoice,
+            icon: _isGeneratingInvoice
+                ? const SizedBox(
+                    width: 20,
+                    height: 20,
+                    child: CircularProgressIndicator(
+                      color: Colors.white,
+                      strokeWidth: 2.5,
+                    ),
+                  )
+                : const Icon(Icons.receipt_long, color: Colors.white, size: 20),
+            label: Text(
+              _isGeneratingInvoice ? 'Generating...' : 'End Day & Generate Invoice',
+              style: DairyTypography.button(),
+            ),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: DairyColorsLight.primary,
+              padding: const EdgeInsets.symmetric(vertical: DairySpacing.buttonPaddingV),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DairyRadius.button),
+              ),
             ),
           ),
         ),
@@ -467,31 +441,25 @@ class _DailySummaryScreenState extends State<DailySummaryScreen> {
 
   Widget _buildStatCard(String label, String value, IconData icon, Color color) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.lg),
+        side: const BorderSide(color: DairyColorsLight.border, width: 1),
       ),
       child: Padding(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(DairySpacing.md),
         child: Column(
           children: [
-            Icon(icon, size: 32, color: color),
-            const SizedBox(height: 12),
+            Icon(icon, size: 28, color: color),
+            const SizedBox(height: DairySpacing.sm),
             Text(
               value,
-              style: TextStyle(
-                fontSize: 32,
-                fontWeight: FontWeight.bold,
-                color: color,
-              ),
+              style: DairyTypography.headingLarge(color: color),
             ),
-            const SizedBox(height: 4),
+            const SizedBox(height: DairySpacing.xs),
             Text(
               label,
-              style: TextStyle(
-                fontSize: 14,
-                color: Colors.grey[600],
-              ),
+              style: DairyTypography.caption(),
             ),
           ],
         ),

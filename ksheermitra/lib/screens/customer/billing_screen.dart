@@ -71,12 +71,12 @@ class _BillingScreenState extends State<BillingScreen> {
       builder: (context) => const Center(
         child: Card(
           child: Padding(
-            padding: EdgeInsets.all(24),
+            padding: EdgeInsets.all(DairySpacing.lg),
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 CircularProgressIndicator(),
-                SizedBox(height: 16),
+                SizedBox(height: DairySpacing.md),
                 Text('Downloading invoice...'),
               ],
             ),
@@ -460,20 +460,14 @@ class _BillingScreenState extends State<BillingScreen> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text(
+                          Text(
                             'Invoice Details',
-                            style: TextStyle(
-                              color: Colors.white,
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: DairyTypography.headingSmall(color: Colors.white),
                           ),
+                          const SizedBox(height: DairySpacing.xs),
                           Text(
                             '#${invoice.invoiceNumber}',
-                            style: const TextStyle(
-                              color: Colors.white70,
-                              fontSize: 14,
-                            ),
+                            style: DairyTypography.bodySmall(color: Colors.white70),
                           ),
                         ],
                       ),
@@ -611,8 +605,8 @@ class _BillingScreenState extends State<BillingScreen> {
                         Text('Notes:', style: AppTheme.h5),
                         const SizedBox(height: AppTheme.space8),
                         PremiumCard(
-                          backgroundColor: Colors.grey.shade50,
-                          child: Text(invoice.notes!),
+                          backgroundColor: DairyColorsLight.surface,
+                          child: Text(invoice.notes!, style: DairyTypography.body()),
                         ),
                       ],
                     ],
@@ -623,9 +617,9 @@ class _BillingScreenState extends State<BillingScreen> {
               Container(
                 padding: const EdgeInsets.all(AppTheme.space16),
                 decoration: BoxDecoration(
-                  color: Colors.grey.shade50,
+                  color: DairyColorsLight.surface,
                   border: Border(
-                    top: BorderSide(color: Colors.grey.shade200),
+                    top: BorderSide(color: DairyColorsLight.border),
                   ),
                 ),
                 child: Row(
@@ -688,12 +682,12 @@ class _BillingScreenState extends State<BillingScreen> {
 
   Widget _buildDetailRow(String label, String value) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
+      padding: const EdgeInsets.symmetric(vertical: DairySpacing.sm),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(label, style: const TextStyle(color: Colors.grey)),
-          Text(value, style: const TextStyle(fontWeight: FontWeight.w600)),
+          Text(label, style: DairyTypography.body()),
+          Text(value, style: DairyTypography.bodyLarge()),
         ],
       ),
     );

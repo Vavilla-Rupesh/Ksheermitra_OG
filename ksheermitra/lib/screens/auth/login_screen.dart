@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pinput/pinput.dart';
 import '../../providers/auth_provider.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 import 'signup_screen.dart';
 
@@ -72,12 +72,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     if (success && authProvider.user != null) {
       final user = authProvider.user!;
+      final themeProvider = Provider.of<DairyThemeProvider>(context, listen: false);
 
       if (user.isCustomer) {
+        themeProvider.setRole(UserRole.customer);
         Navigator.of(context).pushReplacementNamed('/customer-home');
       } else if (user.isDeliveryBoy) {
+        themeProvider.setRole(UserRole.deliveryBoy);
         Navigator.of(context).pushReplacementNamed('/delivery-home');
       } else if (user.isAdmin) {
+        themeProvider.setRole(UserRole.admin);
         Navigator.of(context).pushReplacementNamed('/admin-home');
       }
     } else {
@@ -195,9 +199,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
                         if (_otpSent) ...[
                           const SizedBox(height: AppTheme.space24),
-                          const Text(
+                          Text(
                             'Enter OTP',
-                            style: AppTheme.h4,
+                            style: DairyTypography.headingSmall(),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: AppTheme.space16),

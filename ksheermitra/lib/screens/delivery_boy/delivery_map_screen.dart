@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/dairy_theme.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import '../../models/delivery_models.dart';
 import '../../services/delivery_service.dart';
@@ -170,7 +171,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                       width: 40,
                       height: 4,
                       decoration: BoxDecoration(
-                        color: Colors.grey[300],
+                        color: DairyColorsLight.border,
                         borderRadius: BorderRadius.circular(2),
                       ),
                     ),
@@ -281,7 +282,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                       padding: const EdgeInsets.all(16),
                       decoration: BoxDecoration(
                         color: Colors.green[50],
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -357,7 +358,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                   label,
                   style: TextStyle(
                     fontSize: 12,
-                    color: Colors.grey[600],
+                    color: DairyColorsLight.textSecondary,
                   ),
                 ),
                 const SizedBox(height: 2),
@@ -402,7 +403,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
       decoration: BoxDecoration(
         color: color.withOpacity(0.1),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         border: Border.all(color: color),
       ),
       child: Row(
@@ -619,9 +620,9 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                               left: 16,
                               right: 16,
                               child: Card(
-                                elevation: 4,
+                                elevation: 0,
                                 shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
+                                  borderRadius: BorderRadius.circular(DairyRadius.md),
                                 ),
                                 child: Padding(
                                   padding: const EdgeInsets.all(12),
@@ -636,7 +637,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                                       Container(
                                         width: 1,
                                         height: 30,
-                                        color: Colors.grey[300],
+                                        color: DairyColorsLight.border,
                                       ),
                                       _buildStatItem(
                                         'Delivered',
@@ -646,7 +647,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                                       Container(
                                         width: 1,
                                         height: 30,
-                                        color: Colors.grey[300],
+                                        color: DairyColorsLight.border,
                                       ),
                                       _buildStatItem(
                                         'Missed',
@@ -664,9 +665,9 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
                             bottom: 16,
                             left: 16,
                             child: Card(
-                              elevation: 4,
+                              elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(12),
+                                borderRadius: BorderRadius.circular(DairyRadius.md),
                               ),
                               child: Padding(
                                 padding: const EdgeInsets.all(12),
@@ -713,7 +714,7 @@ class _DeliveryMapScreenState extends State<DeliveryMapScreen> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Colors.grey[600],
+            color: DairyColorsLight.textSecondary,
           ),
         ),
       ],

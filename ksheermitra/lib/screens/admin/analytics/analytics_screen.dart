@@ -206,7 +206,7 @@ class _AnalyticsScreenState extends State<AnalyticsScreen> {
     String subtitle,
   ) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       child: Padding(
         padding: const EdgeInsets.all(12),
         child: Column(

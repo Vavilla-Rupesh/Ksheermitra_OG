@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/entities/delivery_verification_result.dart';
 
 /// Card showing successful delivery verification
@@ -18,10 +19,10 @@ class SuccessCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
+      elevation: 0,
       color: Colors.green[50],
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
         side: BorderSide(color: Colors.green.withAlpha(77)),
       ),
       child: Padding(

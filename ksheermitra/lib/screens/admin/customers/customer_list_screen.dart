@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../../providers/customer_provider.dart';
@@ -105,7 +106,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DairyRadius.md),
                 ),
               ),
               onSubmitted: (value) {
@@ -249,7 +250,7 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
                 color: customer.isActive
                     ? Colors.green.withOpacity(0.1)
                     : Colors.grey.withOpacity(0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DairyRadius.md),
               ),
               child: Text(
                 customer.isActive ? 'Active' : 'Inactive',

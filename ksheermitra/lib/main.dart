@@ -64,8 +64,8 @@ class MyApp extends StatelessWidget {
         builder: (context, dairyThemeProvider, _) {
           return MaterialApp(
             title: 'KsheerMitra',
-            theme: DairyTheme.lightTheme,
-            darkTheme: DairyTheme.darkTheme,
+            theme: dairyThemeProvider.lightTheme,
+            darkTheme: dairyThemeProvider.darkTheme,
             themeMode: dairyThemeProvider.themeMode,
             debugShowCheckedModeBanner: false,
             home: const SplashScreen(),

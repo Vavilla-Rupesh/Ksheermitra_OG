@@ -85,14 +85,10 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
     return Container(
       padding: const EdgeInsets.all(AppTheme.space16),
       decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.05),
-            blurRadius: 4,
-            offset: const Offset(0, 2),
-          ),
-        ],
+        color: DairyColorsLight.card,
+        border: Border(
+          bottom: BorderSide(color: DairyColorsLight.border, width: 1),
+        ),
       ),
       child: Row(
         children: [
@@ -257,8 +253,8 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(AppTheme.radiusLarge)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(DairyRadius.xxl)),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
@@ -276,7 +272,7 @@ class _DeliveryHistoryScreenState extends State<DeliveryHistoryScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: DairyColorsLight.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),

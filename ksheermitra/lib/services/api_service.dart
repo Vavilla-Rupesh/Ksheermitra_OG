@@ -183,6 +183,26 @@ class ApiService {
     );
   }
 
+  Future<Map<String, dynamic>> patch(
+    String endpoint,
+    Map<String, dynamic> data, {
+    bool requiresAuth = true,
+  }) async {
+    return _retryRequest(
+      () async {
+        final url = Uri.parse('${AppConfig.baseUrl}$endpoint');
+        final response = await http.patch(
+          url,
+          headers: _getHeaders(includeAuth: requiresAuth),
+          body: json.encode(data),
+        ).timeout(AppConfig.requestTimeout);
+
+        return _handleResponse(response);
+      },
+      description: 'PATCH $endpoint',
+    );
+  }
+
   Future<Map<String, dynamic>> delete(
     String endpoint, {
     bool requiresAuth = true,

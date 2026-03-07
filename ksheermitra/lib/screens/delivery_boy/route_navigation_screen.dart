@@ -3,6 +3,7 @@ import 'package:provider/provider.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'dart:async';
 import '../../config/dairy_theme.dart';
 import '../../services/api_service.dart';
 import '../../widgets/premium_widgets.dart';
@@ -29,15 +30,70 @@ class _RouteNavigationScreenState extends State<RouteNavigationScreen> {
   String _areaName = '';
   int _totalCustomers = 0;
 
+  // For midnight reset
+  late DateTime _screenOpenDate;
+  Timer? _midnightCheckTimer;
+
   @override
   void initState() {
     super.initState();
+    _screenOpenDate = DateTime.now();
     _initializeRoute();
+    _setupMidnightReset();
+  }
+
+  void _setupMidnightReset() {
+    // Check every minute if it's a new day
+    _midnightCheckTimer = Timer.periodic(const Duration(minutes: 1), (timer) {
+      final now = DateTime.now();
+      final today = DateTime(now.year, now.month, now.day);
+      final screenOpenDay = DateTime(_screenOpenDate.year, _screenOpenDate.month, _screenOpenDate.day);
+
+      if (today.isAfter(screenOpenDay)) {
+        // Date has changed, reset the route navigation
+        _resetRouteNavigation();
+      }
+    });
+  }
+
+  void _resetRouteNavigation() {
+    if (mounted) {
+      setState(() {
+        _screenOpenDate = DateTime.now();
+        _currentStopIndex = 0;
+        _deliveryStops = [];
+        _markers = {};
+        _polylines = {};
+        _isLoading = true;
+      });
+
+      _initializeRoute();
+
+      // Show notification to user
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('New day! Route has been reset. Loading fresh delivery data.'),
+          backgroundColor: DairyColorsLight.info,
+          duration: Duration(seconds: 3),
+        ),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _midnightCheckTimer?.cancel();
+    super.dispose();
   }
 
   Future<void> _initializeRoute() async {
     await _getCurrentLocation();
     await _loadDeliveryStops();
+    // Set current stop index to the first non-completed stop
+    _currentStopIndex = _deliveryStops.indexWhere((stop) => stop.status != 'completed');
+    if (_currentStopIndex < 0) {
+      _currentStopIndex = _deliveryStops.isEmpty ? 0 : _deliveryStops.length - 1;
+    }
     _generateMarkers();
     setState(() => _isLoading = false);
   }
@@ -86,15 +142,20 @@ class _RouteNavigationScreenState extends State<RouteNavigationScreen> {
             final int index = entry.key;
             final customer = entry.value as Map<String, dynamic>;
 
+            // Normalize backend status to UI status
+            final backendStatus = (customer['deliveryStatus'] as String?) ?? 'pending';
+            final uiStatus = (backendStatus == 'delivered') ? 'completed' : backendStatus;
+
             return DeliveryStop(
               id: (customer['id'] as String?) ?? '$index',
+              deliveryId: customer['deliveryId'] as String?,
               customerName: (customer['name'] as String?) ?? 'Customer $index',
               address: (customer['address'] as String?) ?? 'Address not available',
               phone: (customer['phone'] as String?) ?? 'N/A',
               latitude: customer['latitude'] != null ? double.tryParse(customer['latitude'].toString()) ?? 0.0 : 0.0,
               longitude: customer['longitude'] != null ? double.tryParse(customer['longitude'].toString()) ?? 0.0 : 0.0,
               products: _getProductsFromSubscriptions(customer['subscriptions']),
-              status: (customer['deliveryStatus'] as String?) ?? 'pending',
+              status: uiStatus,
               estimatedTime: _calculateEstimatedTime(index),
             );
           }).toList();
@@ -429,11 +490,20 @@ class _RouteNavigationScreenState extends State<RouteNavigationScreen> {
   }
 
   Future<void> _markAsDelivered(DeliveryStop stop, int index) async {
+    if (stop.deliveryId == null || stop.deliveryId!.isEmpty) {
+      _showSnackBar('No active subscription/delivery for this customer today. Please refresh.');
+      return;
+    }
+
     try {
       final apiService = ApiService();
-      await apiService.put('/delivery-boy/deliveries/${stop.id}/complete', {});
+      await apiService.patch('/delivery-boy/delivery/${stop.deliveryId}/status', {
+        'status': 'delivered',
+      });
     } catch (e) {
-      // Continue anyway for demo
+      debugPrint('Error marking delivery as complete: $e');
+      _showSnackBar('Failed to mark delivery: $e');
+      return;
     }
 
     setState(() {
@@ -820,6 +890,7 @@ class _RouteNavigationScreenState extends State<RouteNavigationScreen> {
 
 class DeliveryStop {
   final String id;
+  final String? deliveryId;
   final String customerName;
   final String address;
   final String phone;
@@ -831,6 +902,7 @@ class DeliveryStop {
 
   DeliveryStop({
     required this.id,
+    this.deliveryId,
     required this.customerName,
     required this.address,
     required this.phone,
@@ -844,6 +916,7 @@ class DeliveryStop {
   factory DeliveryStop.fromJson(Map<String, dynamic> json) {
     return DeliveryStop(
       id: json['id']?.toString() ?? '',
+      deliveryId: json['deliveryId']?.toString(),
       customerName: json['customerName']?.toString() ?? '',
       address: json['address']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
@@ -858,6 +931,7 @@ class DeliveryStop {
   DeliveryStop copyWith({String? status}) {
     return DeliveryStop(
       id: id,
+      deliveryId: deliveryId,
       customerName: customerName,
       address: address,
       phone: phone,

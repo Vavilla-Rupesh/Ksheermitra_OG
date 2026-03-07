@@ -280,28 +280,30 @@ class _SignupScreenState extends State<SignupScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 // Welcome message
-                const Icon(
-                  Icons.person_add,
-                  size: 80,
-                  color: AppTheme.primaryColor,
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.person_add,
+                    size: 40,
+                    color: AppTheme.primaryColor,
+                  ),
                 ),
                 const SizedBox(height: AppTheme.space16),
-                const Text(
+                Text(
                   'Create Account',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 28,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: DairyTypography.headingLarge(),
                 ),
                 const SizedBox(height: AppTheme.space8),
                 Text(
                   'Please provide your details to get started',
                   textAlign: TextAlign.center,
-                  style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.grey.shade600,
-                  ),
+                  style: DairyTypography.body(),
                 ),
                 const SizedBox(height: AppTheme.space32),
 
@@ -313,10 +315,10 @@ class _SignupScreenState extends State<SignupScreen> {
                     labelText: 'Phone Number *',
                     prefixIcon: const Icon(Icons.phone),
                     border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(12),
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
                     ),
                     filled: _otpSent,
-                    fillColor: _otpSent ? Colors.grey.shade100 : null,
+                    fillColor: _otpSent ? DairyColorsLight.surface : null,
                   ),
                   keyboardType: TextInputType.phone,
                   validator: (value) {
@@ -367,26 +369,28 @@ class _SignupScreenState extends State<SignupScreen> {
                       defaultPinTheme: PinTheme(
                         width: 50,
                         height: 56,
-                        textStyle: const TextStyle(
+                        textStyle: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
+                          color: DairyColorsLight.textPrimary,
                         ),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade100,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(color: Colors.grey.shade300),
+                          color: DairyColorsLight.surface,
+                          borderRadius: BorderRadius.circular(DairyRadius.sm),
+                          border: Border.all(color: DairyColorsLight.border),
                         ),
                       ),
                       focusedPinTheme: PinTheme(
                         width: 50,
                         height: 56,
-                        textStyle: const TextStyle(
+                        textStyle: TextStyle(
                           fontSize: 20,
                           fontWeight: FontWeight.w600,
+                          color: DairyColorsLight.textPrimary,
                         ),
                         decoration: BoxDecoration(
                           color: Colors.white,
-                          borderRadius: BorderRadius.circular(8),
+                          borderRadius: BorderRadius.circular(DairyRadius.sm),
                           border: Border.all(color: AppTheme.primaryColor, width: 2),
                         ),
                       ),
@@ -417,24 +421,20 @@ class _SignupScreenState extends State<SignupScreen> {
                 // Show registration form only after OTP is verified
                 if (_otpVerified) ...[
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(DairySpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.green.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.green.shade200),
+                      color: DairyColorsLight.successSurface,
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
+                      border: Border.all(color: DairyColorsLight.success.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       children: [
-                        Icon(Icons.verified, color: Colors.green.shade700, size: 20),
-                        const SizedBox(width: 8),
+                        Icon(Icons.verified, color: DairyColorsLight.success, size: 20),
+                        const SizedBox(width: DairySpacing.sm),
                         Expanded(
                           child: Text(
                             'OTP verified! Please complete your profile',
-                            style: TextStyle(
-                              fontSize: 13,
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.w500,
-                            ),
+                            style: DairyTypography.bodySmall(color: DairyColorsLight.success),
                           ),
                         ),
                       ],
@@ -449,7 +449,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       labelText: 'Full Name *',
                       prefixIcon: const Icon(Icons.person),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       hintText: 'Enter your full name',
                     ),
@@ -473,7 +473,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       labelText: 'Email (Optional)',
                       prefixIcon: const Icon(Icons.email),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       hintText: 'Enter your email',
                     ),
@@ -496,7 +496,7 @@ class _SignupScreenState extends State<SignupScreen> {
                       labelText: 'Delivery Address (Optional)',
                       prefixIcon: const Icon(Icons.location_on),
                       border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       hintText: 'Enter your address',
                       suffixIcon: IconButton(
@@ -518,15 +518,12 @@ class _SignupScreenState extends State<SignupScreen> {
                   // Location help text
                   Row(
                     children: [
-                      Icon(Icons.info_outline, size: 16, color: Colors.grey.shade600),
-                      const SizedBox(width: 4),
+                      Icon(Icons.info_outline, size: 16, color: DairyColorsLight.textTertiary),
+                      const SizedBox(width: DairySpacing.xs),
                       Expanded(
                         child: Text(
                           'Tap the location icon to auto-fill your current address',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: Colors.grey.shade600,
-                          ),
+                          style: DairyTypography.caption(),
                         ),
                       ),
                     ],
@@ -539,7 +536,7 @@ class _SignupScreenState extends State<SignupScreen> {
                     style: ElevatedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
                       shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                     ),
                     child: authProvider.isLoading
@@ -563,24 +560,21 @@ class _SignupScreenState extends State<SignupScreen> {
 
                   // Note
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(DairySpacing.md),
                     decoration: BoxDecoration(
-                      color: Colors.blue.shade50,
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: Colors.blue.shade200),
+                      color: DairyColorsLight.infoSurface,
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
+                      border: Border.all(color: DairyColorsLight.info.withValues(alpha: 0.3)),
                     ),
                     child: Row(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.lock, size: 20, color: Colors.blue.shade700),
-                        const SizedBox(width: 8),
+                        Icon(Icons.lock, size: 20, color: DairyColorsLight.info),
+                        const SizedBox(width: DairySpacing.sm),
                         Expanded(
                           child: Text(
                             'Your information is secure and will only be used for delivery purposes.',
-                            style: TextStyle(
-                              fontSize: 12,
-                              color: Colors.blue.shade700,
-                            ),
+                            style: DairyTypography.bodySmall(color: DairyColorsLight.info),
                           ),
                         ),
                       ],

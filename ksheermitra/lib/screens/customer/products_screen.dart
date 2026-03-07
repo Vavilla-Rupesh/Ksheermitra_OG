@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../models/product.dart';
 import '../../services/customer_api_service.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/product_card.dart';
 import 'create_subscription_screen.dart';
 
@@ -76,9 +77,9 @@ class _ProductsScreenState extends State<ProductsScreen> {
           ),
         ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(60),
+          preferredSize: const Size.fromHeight(56),
           child: Padding(
-            padding: const EdgeInsets.all(8.0),
+            padding: const EdgeInsets.symmetric(horizontal: DairySpacing.md, vertical: DairySpacing.sm),
             child: TextField(
               decoration: InputDecoration(
                 hintText: 'Search products...',
@@ -86,9 +87,10 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(10),
+                  borderRadius: BorderRadius.circular(DairyRadius.md),
                   borderSide: BorderSide.none,
                 ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: DairySpacing.md, vertical: DairySpacing.sm),
               ),
               onChanged: _filterProducts,
             ),
@@ -103,16 +105,13 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Icon(Icons.inventory_2_outlined,
-                          size: 80, color: Colors.grey.shade400),
-                      const SizedBox(height: 16),
+                          size: 72, color: DairyColorsLight.textTertiary),
+                      const SizedBox(height: DairySpacing.md),
                       Text(
                         _searchQuery.isEmpty
                             ? 'No products available'
                             : 'No products found',
-                        style: TextStyle(
-                          fontSize: 18,
-                          color: Colors.grey.shade600,
-                        ),
+                        style: DairyTypography.headingSmall(),
                       ),
                     ],
                   ),
@@ -126,12 +125,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Widget _buildGridView() {
     return GridView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DairySpacing.md),
       gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
         crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
         childAspectRatio: 0.75,
-        crossAxisSpacing: 12,
-        mainAxisSpacing: 12,
+        crossAxisSpacing: DairySpacing.md,
+        mainAxisSpacing: DairySpacing.md,
       ),
       itemCount: _filteredProducts.length,
       itemBuilder: (context, index) {
@@ -148,7 +147,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
 
   Widget _buildListView() {
     return ListView.builder(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(DairySpacing.md),
       itemCount: _filteredProducts.length,
       itemBuilder: (context, index) {
         final product = _filteredProducts[index];
@@ -166,8 +165,8 @@ class _ProductsScreenState extends State<ProductsScreen> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(DairyRadius.xxl)),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
@@ -176,7 +175,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
         expand: false,
         builder: (context, scrollController) => SingleChildScrollView(
           controller: scrollController,
-          padding: const EdgeInsets.all(24),
+          padding: const EdgeInsets.all(DairySpacing.lg),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             mainAxisSize: MainAxisSize.min,
@@ -186,12 +185,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                   width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade300,
+                    color: DairyColorsLight.border,
                     borderRadius: BorderRadius.circular(2),
                   ),
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: DairySpacing.lg),
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -199,12 +198,12 @@ class _ProductsScreenState extends State<ProductsScreen> {
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
-                      color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
+                      color: DairyColorsLight.primarySurface,
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
                     ),
                     child: _buildProductImage(product, fit: BoxFit.cover),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DairySpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -212,21 +211,14 @@ class _ProductsScreenState extends State<ProductsScreen> {
                       children: [
                         Text(
                           product.name,
-                          style: const TextStyle(
-                            fontSize: 22,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: DairyTypography.headingMedium(),
                           maxLines: 3,
                           overflow: TextOverflow.ellipsis,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DairySpacing.xs),
                         Text(
                           '₹${product.pricePerUnit.toStringAsFixed(2)} per ${product.unit}',
-                          style: TextStyle(
-                            fontSize: 16,
-                            color: Colors.green.shade700,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: DairyTypography.label(color: DairyColorsLight.success),
                         ),
                       ],
                     ),
@@ -234,47 +226,41 @@ class _ProductsScreenState extends State<ProductsScreen> {
                 ],
               ),
               if (product.description != null && product.description!.isNotEmpty) ...[
-                const SizedBox(height: 24),
-                const Text(
+                const SizedBox(height: DairySpacing.lg),
+                Text(
                   'Description',
-                  style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  style: DairyTypography.headingSmall(),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: DairySpacing.sm),
                 Text(
                   product.description!,
-                  style: TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey.shade700,
-                  ),
+                  style: DairyTypography.body(),
                 ),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: DairySpacing.lg),
               Row(
                 children: [
                   Expanded(
                     child: OutlinedButton.icon(
                       onPressed: () => Navigator.pop(context),
-                      icon: const Icon(Icons.close),
+                      icon: const Icon(Icons.close, size: 20),
                       label: const Text('Close'),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: DairySpacing.buttonPaddingV),
                       ),
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: DairySpacing.md),
                   Expanded(
                     child: ElevatedButton.icon(
                       onPressed: () {
                         Navigator.pop(context);
                         _createSubscription(product);
                       },
-                      icon: const Icon(Icons.add_circle),
+                      icon: const Icon(Icons.add_circle, size: 20),
                       label: const Text('Subscribe'),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: DairySpacing.buttonPaddingV),
                       ),
                     ),
                   ),
@@ -304,7 +290,7 @@ class _ProductsScreenState extends State<ProductsScreen> {
   Widget _buildProductImage(Product product, {BoxFit fit = BoxFit.contain}) {
     if (product.imageUrl != null && product.imageUrl!.isNotEmpty) {
       return ClipRRect(
-        borderRadius: BorderRadius.circular(8),
+        borderRadius: BorderRadius.circular(DairyRadius.sm),
         child: Image.network(
           '${product.imageUrl}',
           fit: fit,

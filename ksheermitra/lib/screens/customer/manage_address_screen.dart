@@ -735,7 +735,7 @@ class _MapPickerScreenState extends State<MapPickerScreen> {
             left: 16,
             right: 16,
             child: Card(
-              elevation: 4,
+              elevation: 0,
               child: Padding(
                 padding: const EdgeInsets.all(12),
                 child: Row(

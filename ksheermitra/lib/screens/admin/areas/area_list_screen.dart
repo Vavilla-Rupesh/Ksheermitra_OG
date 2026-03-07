@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../models/area.dart';
 import '../../../providers/area_provider.dart';
@@ -217,7 +218,7 @@ class _AreaListScreenState extends State<AreaListScreen> {
                     color: area.isActive
                         ? Colors.green.withValues(alpha: 0.1)
                         : Colors.grey.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
                   ),
                   child: Text(
                     area.isActive ? 'Active' : 'Inactive',

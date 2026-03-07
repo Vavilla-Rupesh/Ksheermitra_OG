@@ -44,64 +44,35 @@ class _InvoiceGenerationScreenState extends State<InvoiceGenerationScreen> {
             .toList() ?? [];
         _calculateTotals();
       } else {
-        _deliveries = _getDemoDeliveries();
+        // Show error if no data from API
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'No deliveries found for this date'),
+              backgroundColor: Colors.orange,
+            ),
+          );
+        }
+        _deliveries = [];
         _calculateTotals();
       }
     } catch (e) {
-      _deliveries = _getDemoDeliveries();
+      // Show actual error to user
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error loading deliveries: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+      _deliveries = [];
       _calculateTotals();
     }
 
-    setState(() => _isLoading = false);
-  }
-
-  List<DeliveryInvoiceItem> _getDemoDeliveries() {
-    return [
-      DeliveryInvoiceItem(
-        id: '1',
-        customerName: 'Rahul Kumar',
-        customerPhone: '+91 98765 43210',
-        products: 'Milk 1L x 2, Curd 500g x 1',
-        amount: 150.0,
-        collected: 150.0,
-        paymentMode: 'cash',
-        status: 'completed',
-        time: '5:32 AM',
-      ),
-      DeliveryInvoiceItem(
-        id: '2',
-        customerName: 'Priya Sharma',
-        customerPhone: '+91 98765 43211',
-        products: 'Milk 500ml x 4',
-        amount: 120.0,
-        collected: 120.0,
-        paymentMode: 'upi',
-        status: 'completed',
-        time: '5:48 AM',
-      ),
-      DeliveryInvoiceItem(
-        id: '3',
-        customerName: 'Amit Patel',
-        customerPhone: '+91 98765 43212',
-        products: 'Milk 1L x 1, Paneer 200g x 2',
-        amount: 180.0,
-        collected: 0.0,
-        paymentMode: 'pending',
-        status: 'completed',
-        time: '6:05 AM',
-      ),
-      DeliveryInvoiceItem(
-        id: '4',
-        customerName: 'Sneha Reddy',
-        customerPhone: '+91 98765 43213',
-        products: 'Milk 1L x 3',
-        amount: 135.0,
-        collected: 135.0,
-        paymentMode: 'cash',
-        status: 'completed',
-        time: '6:22 AM',
-      ),
-    ];
+    if (mounted) {
+      setState(() => _isLoading = false);
+    }
   }
 
   void _calculateTotals() {
@@ -124,91 +95,143 @@ class _InvoiceGenerationScreenState extends State<InvoiceGenerationScreen> {
   }
 
   Future<void> _generateInvoice() async {
+    if (_deliveries.isEmpty) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('No deliveries to invoice for this date'),
+            backgroundColor: Colors.orange,
+          ),
+        );
+      }
+      return;
+    }
+
     setState(() => _isGenerating = true);
 
     try {
       final apiService = ApiService();
       final response = await apiService.post(
-        '/delivery-boy/generate-daily-invoice',
+        '/delivery-boy/generate-invoice',
         {
           'date': DateFormat('yyyy-MM-dd').format(_selectedDate),
-          'deliveries': _deliveries.map((d) => d.toJson()).toList(),
-          'totalAmount': _totalAmount,
-          'totalCollected': _totalCollected,
         },
       );
 
-      if (response['success'] == true || true) {
-        _showSuccessDialog();
+      if (mounted) {
+        if (response['success'] == true) {
+          _showSuccessDialog(response['data']);
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(response['message'] ?? 'Failed to generate invoice'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     } catch (e) {
-      _showSuccessDialog(); // Show success for demo
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isGenerating = false);
+      }
     }
-
-    setState(() => _isGenerating = false);
   }
 
-  void _showSuccessDialog() {
+  void _showSuccessDialog(dynamic invoiceData) {
+    final bool whatsappSent = invoiceData?['whatsappNotificationSent'] == true;
+    final bool pdfGenerated = invoiceData?['pdfGenerated'] == true;
+
     showDialog(
       context: context,
+      barrierDismissible: false,
       builder: (context) => AlertDialog(
-        icon: Container(
-          padding: const EdgeInsets.all(16),
-          decoration: const BoxDecoration(
-            color: DairyColorsLight.successSurface,
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.check_circle,
-            color: DairyColorsLight.success,
-            size: 48,
-          ),
+        title: Row(
+          children: [
+            Icon(Icons.check_circle, color: Colors.green[600], size: 32),
+            const SizedBox(width: 12),
+            const Text('Invoice Generated!'),
+          ],
         ),
-        title: const Text('Invoice Generated!'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              'Daily invoice for ${DateFormat('dd MMM yyyy').format(_selectedDate)} has been generated successfully.',
-              textAlign: TextAlign.center,
-              style: DairyTypography.body(color: DairyColorsLight.textSecondary),
+            const Text(
+              '✅ Invoice generated successfully',
+              style: TextStyle(fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: DairySpacing.md),
-            Container(
-              padding: const EdgeInsets.all(DairySpacing.md),
-              decoration: BoxDecoration(
-                color: DairyColorsLight.surface,
-                borderRadius: DairyRadius.defaultBorderRadius,
+            const SizedBox(height: 8),
+            Text(pdfGenerated
+                ? '📄 PDF invoice created'
+                : '⚠️ PDF generation pending'),
+            const SizedBox(height: 8),
+            Text(whatsappSent
+                ? '📱 Invoice & PDF sent to admin via WhatsApp'
+                : '⚠️ WhatsApp notification could not be sent'),
+            if (invoiceData != null && invoiceData['invoiceNumber'] != null) ...[
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.blue[50],
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'Invoice #${invoiceData['invoiceNumber']}',
+                      style: const TextStyle(fontWeight: FontWeight.bold),
+                    ),
+                    Text(
+                      'Total: ₹${invoiceData['totalAmount']?.toStringAsFixed(2) ?? _totalAmount.toStringAsFixed(2)}',
+                      style: TextStyle(color: DairyColorsLight.textSecondary),
+                    ),
+                  ],
+                ),
               ),
-              child: Column(
-                children: [
-                  _buildSummaryRow('Total Amount', '₹${_totalAmount.toStringAsFixed(2)}'),
-                  _buildSummaryRow('Collected', '₹${_totalCollected.toStringAsFixed(2)}'),
-                  _buildSummaryRow('Pending', '₹${(_totalAmount - _totalCollected).toStringAsFixed(2)}'),
-                ],
+            ],
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: Colors.green[50],
+                borderRadius: BorderRadius.circular(8),
+              ),
+              child: const Text(
+                'Great work today! Your deliveries have been recorded and invoice is ready.',
+                style: TextStyle(fontSize: 12),
               ),
             ),
           ],
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Close'),
-          ),
-          ElevatedButton.icon(
+          ElevatedButton(
             onPressed: () {
-              Navigator.pop(context);
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) _shareInvoice();
-              });
+              Navigator.pop(context); // Close dialog
+              if (mounted) {
+                Navigator.pop(context); // Close screen
+              }
             },
-            icon: const Icon(Icons.share),
-            label: const Text('Share'),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.green,
+            ),
+            child: const Text('Done'),
           ),
         ],
       ),
     );
   }
+
 
   Widget _buildSummaryRow(String label, String value) {
     return Padding(

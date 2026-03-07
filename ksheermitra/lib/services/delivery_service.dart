@@ -76,19 +76,16 @@ class DeliveryService {
   }
 
   Future<void> updateDeliveryStatus({
-    required String customerId,
+    required String deliveryId,
     required String status,
     String? notes,
-    String? date,
   }) async {
     try {
-      await _dio.post(
-        '${ApiConfig.deliveryBoyEndpoint}/update-status',
-        queryParameters: date != null ? {'date': date} : null,
+      await _dio.patch(
+        '${ApiConfig.deliveryBoyEndpoint}/delivery/$deliveryId/status',
         data: {
-          'customerId': customerId,
           'status': status,
-          'notes': notes,
+          if (notes != null) 'notes': notes,
         },
       );
     } catch (e) {
@@ -96,11 +93,14 @@ class DeliveryService {
     }
   }
 
-  Future<DeliveryStats> getDeliveryStats({String? date}) async {
+  Future<DeliveryStats> getDeliveryStats({String? date, String period = 'today'}) async {
     try {
       final response = await _dio.get(
         '${ApiConfig.deliveryBoyEndpoint}/stats',
-        queryParameters: date != null ? {'date': date} : null,
+        queryParameters: {
+          'period': period,
+          if (date != null) 'date': date,
+        },
       );
       return DeliveryStats.fromJson(response.data['data']);
     } catch (e) {

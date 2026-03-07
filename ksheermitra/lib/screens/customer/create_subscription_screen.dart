@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import '../../config/dairy_theme.dart';
 import '../../models/product.dart';
 import '../../services/customer_api_service.dart';
 
@@ -43,47 +44,44 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
       body: Form(
         key: _formKey,
         child: ListView(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(DairySpacing.md),
           children: [
             // Product Info Card
             Card(
-              elevation: 2,
+              elevation: 0,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(DairyRadius.lg),
+                side: const BorderSide(color: DairyColorsLight.border, width: 1),
+              ),
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(DairySpacing.md),
                 child: Row(
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(12),
+                      padding: const EdgeInsets.all(DairySpacing.sm + 4),
                       decoration: BoxDecoration(
                         color: Theme.of(context).primaryColor.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       child: Icon(
                         Icons.local_drink,
-                        size: 32,
+                        size: 28,
                         color: Theme.of(context).primaryColor,
                       ),
                     ),
-                    const SizedBox(width: 16),
+                    const SizedBox(width: DairySpacing.md),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             widget.product.name,
-                            style: const TextStyle(
-                              fontSize: 18,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: DairyTypography.headingSmall(),
                           ),
-                          const SizedBox(height: 4),
+                          const SizedBox(height: DairySpacing.xs),
                           Text(
                             '₹${widget.product.pricePerUnit.toStringAsFixed(2)}/${widget.product.unit}',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.green.shade700,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: DairyTypography.label(color: DairyColorsLight.success),
                           ),
                         ],
                       ),
@@ -92,7 +90,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                 ),
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: DairySpacing.lg),
 
             // Quantity Input
             const Text(
@@ -115,7 +113,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                   child: Container(
                     padding: const EdgeInsets.symmetric(vertical: 12),
                     decoration: BoxDecoration(
-                      border: Border.all(color: Colors.grey.shade300),
+                      border: Border.all(color: DairyColorsLight.border),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Text(
@@ -165,7 +163,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
               child: Container(
                 padding: const EdgeInsets.all(16),
                 decoration: BoxDecoration(
-                  border: Border.all(color: Colors.grey.shade300),
+                  border: Border.all(color: DairyColorsLight.border),
                   borderRadius: BorderRadius.circular(8),
                 ),
                 child: Row(
@@ -201,7 +199,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                 child: Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade300),
+                    border: Border.all(color: DairyColorsLight.border),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: Row(
@@ -295,7 +293,7 @@ class _CreateSubscriptionScreenState extends State<CreateSubscriptionScreen> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(title, style: const TextStyle(fontWeight: FontWeight.w600)),
-                  Text(subtitle, style: TextStyle(fontSize: 12, color: Colors.grey.shade600)),
+                  Text(subtitle, style: TextStyle(fontSize: 12, color: DairyColorsLight.textSecondary)),
                 ],
               ),
             ),

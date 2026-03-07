@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
+import '../../../config/dairy_theme.dart';
 import '../../../config/theme.dart';
 import '../../../models/offline_sale.dart';
 import '../../../services/offline_sale_service.dart';
@@ -158,7 +159,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Sale Number',
                   style: AppTheme.labelText,
                 ),
@@ -175,7 +176,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Sale Date',
                   style: AppTheme.labelText,
                 ),
@@ -189,7 +190,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Time',
                   style: AppTheme.labelText,
                 ),
@@ -212,7 +213,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Customer Information',
               style: AppTheme.h4,
             ),
@@ -277,7 +278,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
               padding: const EdgeInsets.all(12),
               decoration: BoxDecoration(
                 color: color.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
+                borderRadius: BorderRadius.circular(DairyRadius.md),
               ),
               child: Icon(icon, color: color, size: 24),
             ),
@@ -285,7 +286,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text(
+                Text(
                   'Payment Method',
                   style: AppTheme.labelText,
                 ),
@@ -313,7 +314,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Items',
               style: AppTheme.h4,
             ),
@@ -340,7 +341,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
                             '${item.quantity} ${item.unit} × ₹${item.pricePerUnit.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 12,
-                              color: Colors.grey.shade600,
+                              color: DairyColorsLight.textSecondary,
                             ),
                           ),
                         ],
@@ -370,7 +371,7 @@ class _OfflineSaleDetailScreenState extends State<OfflineSaleDetailScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Notes',
               style: AppTheme.h4,
             ),

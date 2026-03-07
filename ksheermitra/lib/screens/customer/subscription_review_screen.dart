@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../config/dairy_theme.dart';
 import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import '../../models/product.dart';
@@ -163,7 +164,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
                   Text(
                     'Your subscription has been created successfully.',
                     textAlign: TextAlign.center,
-                    style: TextStyle(color: Colors.grey.shade600),
+                    style: TextStyle(color: DairyColorsLight.textSecondary),
                   ),
                   const SizedBox(height: 24),
                   ElevatedButton(
@@ -244,7 +245,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
                   onPressed: _isCreating ? null : () => Navigator.pop(context),
                   style: OutlinedButton.styleFrom(
                     padding: const EdgeInsets.symmetric(vertical: 16),
-                    side: BorderSide(color: Colors.grey.shade400),
+                    side: BorderSide(color: DairyColorsLight.textDisabled),
                   ),
                   child: const Text('Back'),
                 ),
@@ -344,7 +345,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
                             '$quantity ${product.unit} × ₹${product.pricePerUnit.toStringAsFixed(2)}',
                             style: TextStyle(
                               fontSize: 13,
-                              color: Colors.grey.shade600,
+                              color: DairyColorsLight.textSecondary,
                             ),
                           ),
                         ],
@@ -456,7 +457,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
                 label,
                 style: TextStyle(
                   fontSize: 12,
-                  color: Colors.grey.shade600,
+                  color: DairyColorsLight.textSecondary,
                 ),
               ),
               const SizedBox(height: 2),
@@ -485,7 +486,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
             Colors.green.shade100,
           ],
         ),
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
       ),
       child: Column(
         children: [
@@ -546,7 +547,7 @@ class _SubscriptionReviewScreenState extends State<SubscriptionReviewScreen> {
         onChanged: (value) => setState(() => _termsAccepted = value ?? false),
         title: RichText(
           text: TextSpan(
-            style: TextStyle(color: Colors.grey.shade800, fontSize: 14),
+            style: TextStyle(color: DairyColorsLight.textPrimary, fontSize: 14),
             children: [
               const TextSpan(text: 'I agree to the '),
               TextSpan(

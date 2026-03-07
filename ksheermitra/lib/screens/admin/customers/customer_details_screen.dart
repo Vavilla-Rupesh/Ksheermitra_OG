@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import '../../../models/user.dart';
 import '../../../providers/customer_provider.dart';
@@ -304,9 +305,9 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
     }
 
     return Card(
-      elevation: 2,
+      elevation: 0,
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(12),
+        borderRadius: BorderRadius.circular(DairyRadius.md),
       ),
       child: Column(
         children: [
@@ -316,7 +317,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 _expandedCategories[category] = !isExpanded;
               });
             },
-            borderRadius: BorderRadius.circular(12),
+            borderRadius: BorderRadius.circular(DairyRadius.md),
             child: Container(
               padding: const EdgeInsets.all(16),
               child: Row(
@@ -346,7 +347,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                           '${categorySubscriptions.length} subscription${categorySubscriptions.length != 1 ? 's' : ''}',
                           style: TextStyle(
                             fontSize: 12,
-                            color: Colors.grey.shade600,
+                            color: DairyColorsLight.textSecondary,
                           ),
                         ),
                       ],
@@ -369,7 +370,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                 decoration: BoxDecoration(
                   border: Border(
                     bottom: BorderSide(
-                      color: Colors.grey.shade200,
+                      color: DairyColorsLight.surfaceVariant,
                       width: 0.5,
                     ),
                   ),
@@ -438,7 +439,7 @@ class _CustomerDetailsScreenState extends State<CustomerDetailsScreen> {
                                 : subscription.isPaused
                                     ? Colors.orange
                                     : Colors.red,
-                            borderRadius: BorderRadius.circular(12),
+                            borderRadius: BorderRadius.circular(DairyRadius.md),
                           ),
                           child: Text(
                             subscription.status.toUpperCase(),

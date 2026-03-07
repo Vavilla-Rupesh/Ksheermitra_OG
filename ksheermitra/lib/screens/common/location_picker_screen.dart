@@ -292,7 +292,7 @@ class _LocationPickerScreenState extends State<LocationPickerScreen> {
             child: Column(
               children: [
                 Card(
-                  elevation: 4,
+                  elevation: 0,
                   child: TextField(
                     controller: _searchController,
                     decoration: InputDecoration(

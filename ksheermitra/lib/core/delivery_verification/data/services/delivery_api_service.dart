@@ -177,19 +177,16 @@ class DeliveryApiService {
   /// Used for status updates that don't require geofence validation
   /// (e.g., marking as "in progress", adding notes).
   Future<void> updateDeliveryStatus({
-    required String customerId,
+    required String deliveryId,
     required String status,
     String? notes,
-    String? date,
   }) async {
     try {
-      await _dio.post(
-        '${ApiConfig.deliveryBoyEndpoint}/update-status',
-        queryParameters: date != null ? {'date': date} : null,
+      await _dio.patch(
+        '${ApiConfig.deliveryBoyEndpoint}/delivery/$deliveryId/status',
         data: {
-          'customerId': customerId,
           'status': status,
-          'notes': notes,
+          if (notes != null) 'notes': notes,
         },
       );
     } on DioException catch (e) {

@@ -2,16 +2,16 @@ import 'package:flutter/material.dart';
 import '../config/dairy_theme.dart';
 import 'dairy_buttons.dart';
 
-/// KsheerMitra Premium Card System
-/// Modern, clean card designs for dairy product app
-/// Following Material 3 with Instacart-style freshness
+/// KsheerMitra Premium Card System — Blue Ecosystem
+/// Stripe-inspired card designs with hover lift animations
+/// Radius: 16px, Padding: 24px, Premium shadows
 
 // ============================================================================
 // BASE DAIRY CARD - Foundation for all cards
-// Radius: 16px, Padding: 16px, Subtle shadow in light mode
+// Hover: translateY(-4px), enhanced shadow, 0.25s ease
 // ============================================================================
 
-class DairyCard extends StatelessWidget {
+class DairyCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
@@ -21,6 +21,7 @@ class DairyCard extends StatelessWidget {
   final double borderRadius;
   final bool showBorder;
   final bool showShadow;
+  final bool enableLiftEffect;
 
   const DairyCard({
     super.key,
@@ -33,53 +34,119 @@ class DairyCard extends StatelessWidget {
     this.borderRadius = DairyRadius.lg,
     this.showBorder = true,
     this.showShadow = true,
+    this.enableLiftEffect = true,
   });
+
+  @override
+  State<DairyCard> createState() => _DairyCardState();
+}
+
+class _DairyCardState extends State<DairyCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _liftController;
+  late Animation<double> _liftAnimation;
+  late Animation<double> _shadowAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _liftController = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _liftAnimation = Tween<double>(begin: 0.0, end: -4.0).animate(
+      CurvedAnimation(parent: _liftController, curve: Curves.easeOut),
+    );
+    _shadowAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _liftController, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _liftController.dispose();
+    super.dispose();
+  }
+
+  void _onHoverStart() {
+    if (widget.enableLiftEffect && widget.onTap != null) {
+      _liftController.forward();
+    }
+  }
+
+  void _onHoverEnd() {
+    if (widget.enableLiftEffect && widget.onTap != null) {
+      _liftController.reverse();
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final colors = context.dairyColors;
 
-    final bgColor = backgroundColor ?? colors.card;
-    final border = borderColor ?? colors.border;
+    final bgColor = widget.backgroundColor ?? colors.card;
+    final borderCol = widget.borderColor ?? colors.border;
 
-    final content = AnimatedContainer(
-      duration: const Duration(milliseconds: 200),
-      padding: padding ?? DairySpacing.cardContentPadding,
-      margin: margin,
-      decoration: BoxDecoration(
-        color: bgColor,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: showBorder || isDark
-            ? Border.all(color: border, width: 1)
-            : null,
-        boxShadow: showShadow && !isDark ? colors.cardShadow : null,
-      ),
-      child: child,
-    );
+    return AnimatedBuilder(
+      animation: _liftController,
+      builder: (context, child) {
+        final normalShadow = widget.showShadow && !isDark ? colors.cardShadow : <BoxShadow>[];
+        final hoverShadow = widget.showShadow && !isDark ? colors.cardHoverShadow : <BoxShadow>[];
 
-    if (onTap != null) {
-      return Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
-          splashColor: colors.primary.withOpacity(0.1),
-          highlightColor: colors.primary.withOpacity(0.05),
+        // Interpolate shadow
+        final currentShadow = _shadowAnimation.value == 0.0
+            ? normalShadow
+            : hoverShadow;
+
+        final content = Container(
+          padding: widget.padding ?? DairySpacing.cardContentPadding,
+          margin: widget.margin,
+          decoration: BoxDecoration(
+            color: bgColor,
+            borderRadius: BorderRadius.circular(widget.borderRadius),
+            border: widget.showBorder || isDark
+                ? Border.all(color: borderCol, width: 1)
+                : null,
+            boxShadow: currentShadow,
+          ),
+          child: widget.child,
+        );
+
+        final transformed = Transform.translate(
+          offset: Offset(0, _liftAnimation.value),
           child: content,
-        ),
-      );
-    }
+        );
 
-    return content;
+        if (widget.onTap != null) {
+          return GestureDetector(
+            onTapDown: (_) => _onHoverStart(),
+            onTapUp: (_) {
+              _onHoverEnd();
+              widget.onTap?.call();
+            },
+            onTapCancel: () => _onHoverEnd(),
+            onLongPressStart: (_) => _onHoverStart(),
+            onLongPressEnd: (_) => _onHoverEnd(),
+            child: MouseRegion(
+              onEnter: (_) => _onHoverStart(),
+              onExit: (_) => _onHoverEnd(),
+              child: transformed,
+            ),
+          );
+        }
+
+        return transformed;
+      },
+    );
   }
 }
 
 // ============================================================================
-// ELEVATED DAIRY CARD - Card with more prominent shadow
+// ELEVATED DAIRY CARD - Card with more prominent shadow + lift
 // ============================================================================
 
-class DairyElevatedCard extends StatelessWidget {
+class DairyElevatedCard extends StatefulWidget {
   final Widget child;
   final EdgeInsetsGeometry? padding;
   final EdgeInsetsGeometry? margin;
@@ -98,29 +165,69 @@ class DairyElevatedCard extends StatelessWidget {
   });
 
   @override
+  State<DairyElevatedCard> createState() => _DairyElevatedCardState();
+}
+
+class _DairyElevatedCardState extends State<DairyElevatedCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _lift;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 250),
+      vsync: this,
+    );
+    _lift = Tween<double>(begin: 0.0, end: -4.0).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final isDark = context.isDarkMode;
     final colors = context.dairyColors;
 
-    return Container(
-      margin: margin,
-      decoration: BoxDecoration(
-        color: backgroundColor ?? colors.card,
-        borderRadius: BorderRadius.circular(borderRadius),
-        border: isDark ? Border.all(color: colors.border, width: 1) : null,
-        boxShadow: !isDark ? colors.elevatedShadow : null,
-      ),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
-          child: Padding(
-            padding: padding ?? DairySpacing.cardContentPadding,
-            child: child,
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return Transform.translate(
+          offset: Offset(0, _lift.value),
+          child: Container(
+            margin: widget.margin,
+            decoration: BoxDecoration(
+              color: widget.backgroundColor ?? colors.card,
+              borderRadius: BorderRadius.circular(widget.borderRadius),
+              border: isDark ? Border.all(color: colors.border, width: 1) : Border.all(color: colors.border, width: 1),
+              boxShadow: !isDark ? (_controller.value > 0 ? colors.cardHoverShadow : colors.elevatedShadow) : null,
+            ),
+            child: GestureDetector(
+              onTapDown: (_) => _controller.forward(),
+              onTapUp: (_) {
+                _controller.reverse();
+                widget.onTap?.call();
+              },
+              onTapCancel: () => _controller.reverse(),
+              child: MouseRegion(
+                onEnter: (_) => _controller.forward(),
+                onExit: (_) => _controller.reverse(),
+                child: Padding(
+                  padding: widget.padding ?? DairySpacing.cardContentPadding,
+                  child: widget.child,
+                ),
+              ),
+            ),
           ),
-        ),
-      ),
+        );
+      },
     );
   }
 }

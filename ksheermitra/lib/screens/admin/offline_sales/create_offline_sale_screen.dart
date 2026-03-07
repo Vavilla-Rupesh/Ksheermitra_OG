@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../../config/theme.dart';
 import '../../../models/product.dart';
@@ -235,7 +235,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Select Products',
               style: AppTheme.h4,
             ),
@@ -261,7 +261,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
                   ),
                   title: Text(product.name),
                   subtitle: Text(
-                    '₹${product.pricePerUnit}/${product.unit} • Stock: ${product.stock}',
+                    'â‚¹${product.pricePerUnit}/${product.unit} â€¢ Stock: ${product.stock}',
                   ),
                   trailing: isSelected
                       ? Container(
@@ -317,7 +317,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Customer Information (Optional)',
               style: AppTheme.h4,
             ),
@@ -359,7 +359,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Payment Method',
               style: AppTheme.h4,
             ),
@@ -410,7 +410,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Text(
+            Text(
               'Notes (Optional)',
               style: AppTheme.h4,
             ),
@@ -440,7 +440,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Items Selected:',
                   style: AppTheme.bodyLarge,
                 ),
@@ -454,12 +454,12 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                const Text(
+                Text(
                   'Total Amount:',
                   style: AppTheme.h4,
                 ),
                 Text(
-                  '₹${total.toStringAsFixed(2)}',
+                  'â‚¹${total.toStringAsFixed(2)}',
                   style: AppTheme.h4.copyWith(color: AppTheme.primaryColor),
                 ),
               ],

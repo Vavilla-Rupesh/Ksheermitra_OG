@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../../providers/auth_provider.dart';
 import '../../providers/dashboard_provider.dart';
-import '../../config/theme.dart';
+import '../../config/dairy_theme.dart';
 import '../../widgets/premium_widgets.dart';
 import 'dashboard/dashboard_screen.dart';
 import 'products/product_list_screen.dart';
@@ -97,8 +97,8 @@ class _AdminHomeState extends State<AdminHome> {
         currentIndex: _currentIndex,
         onTap: (index) => setState(() => _currentIndex = index),
         type: BottomNavigationBarType.fixed,
-        selectedItemColor: AppTheme.primaryColor,
-        unselectedItemColor: AppTheme.textTertiary,
+        selectedItemColor: Theme.of(context).colorScheme.primary,
+        unselectedItemColor: DairyColorsLight.textTertiary,
         items: const [
           BottomNavigationBarItem(
             icon: Icon(Icons.dashboard),
@@ -145,13 +145,13 @@ class _AdminHomeState extends State<AdminHome> {
   Widget _buildMoreTab() {
     return SafeArea(
       child: ListView(
-        padding: const EdgeInsets.all(AppTheme.space16),
+        padding: const EdgeInsets.all(DairySpacing.screenPaddingH),
         children: [
-          const Text(
+          Text(
             'Management',
-            style: AppTheme.h3,
+            style: DairyTypography.headingMedium(),
           ),
-          const SizedBox(height: AppTheme.space12),
+          const SizedBox(height: DairySpacing.md),
           PremiumCard(
             child: Column(
               children: [
@@ -202,12 +202,12 @@ class _AdminHomeState extends State<AdminHome> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.space24),
-          const Text(
+          const SizedBox(height: DairySpacing.sectionSpacing),
+          Text(
             'Reports & Analytics',
-            style: AppTheme.h3,
+            style: DairyTypography.headingMedium(),
           ),
-          const SizedBox(height: AppTheme.space12),
+          const SizedBox(height: DairySpacing.md),
           PremiumCard(
             child: Column(
               children: [
@@ -243,12 +243,12 @@ class _AdminHomeState extends State<AdminHome> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.space24),
-          const Text(
+          const SizedBox(height: DairySpacing.sectionSpacing),
+          Text(
             'Settings',
-            style: AppTheme.h3,
+            style: DairyTypography.headingMedium(),
           ),
-          const SizedBox(height: AppTheme.space12),
+          const SizedBox(height: DairySpacing.md),
           PremiumCard(
             child: Column(
               children: [
@@ -284,7 +284,7 @@ class _AdminHomeState extends State<AdminHome> {
               ],
             ),
           ),
-          const SizedBox(height: AppTheme.space16), // Extra space at bottom
+          const SizedBox(height: DairySpacing.md), // Extra space at bottom
         ],
       ),
     );
@@ -299,20 +299,21 @@ class _AdminHomeState extends State<AdminHome> {
   }) {
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.space16,
-        vertical: AppTheme.space8,
+        horizontal: DairySpacing.md,
+        vertical: DairySpacing.sm,
       ),
       leading: Container(
-        padding: const EdgeInsets.all(AppTheme.space12),
+        width: 40,
+        height: 40,
         decoration: BoxDecoration(
           color: color.withValues(alpha: 0.1),
-          borderRadius: BorderRadius.circular(AppTheme.radiusMedium),
+          borderRadius: BorderRadius.circular(DairyRadius.button),
         ),
-        child: Icon(icon, color: color, size: 24),
+        child: Icon(icon, color: color, size: 20),
       ),
-      title: Text(title, style: AppTheme.h5),
-      subtitle: Text(subtitle, style: AppTheme.bodySmall),
-      trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+      title: Text(title, style: DairyTypography.bodyLarge()),
+      subtitle: Text(subtitle, style: DairyTypography.bodySmall()),
+      trailing: Icon(Icons.arrow_forward_ios, size: 16, color: DairyColorsLight.textTertiary),
       onTap: onTap,
     );
   }
@@ -321,8 +322,8 @@ class _AdminHomeState extends State<AdminHome> {
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(DairyRadius.xxl)),
       ),
       builder: (context) => DraggableScrollableSheet(
         initialChildSize: 0.6,
@@ -332,23 +333,19 @@ class _AdminHomeState extends State<AdminHome> {
         builder: (context, scrollController) => Column(
           children: [
             Container(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(DairySpacing.md),
               decoration: BoxDecoration(
                 color: AppTheme.primaryColor,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(DairyRadius.xxl)),
               ),
               child: Row(
                 children: [
                   const Icon(Icons.notifications, color: Colors.white),
-                  const SizedBox(width: 12),
-                  const Expanded(
+                  const SizedBox(width: DairySpacing.md),
+                  Expanded(
                     child: Text(
                       'Notifications',
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: DairyTypography.headingSmall(color: Colors.white),
                     ),
                   ),
                   TextButton(
@@ -428,13 +425,13 @@ class _AdminHomeState extends State<AdminHome> {
                   }
 
                   if (notifications.isEmpty) {
-                    return const Center(
+                    return Center(
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(Icons.notifications_off, size: 64, color: Colors.grey),
-                          SizedBox(height: 16),
-                          Text('No notifications', style: TextStyle(color: Colors.grey)),
+                          Icon(Icons.notifications_off, size: 56, color: DairyColorsLight.textTertiary),
+                          const SizedBox(height: DairySpacing.md),
+                          Text('No notifications', style: DairyTypography.body()),
                         ],
                       ),
                     );
@@ -442,7 +439,7 @@ class _AdminHomeState extends State<AdminHome> {
 
                   return ListView.separated(
                     controller: scrollController,
-                    padding: const EdgeInsets.all(8),
+                    padding: const EdgeInsets.all(DairySpacing.sm),
                     itemCount: notifications.length,
                     separatorBuilder: (context, index) => const Divider(height: 1),
                     itemBuilder: (context, index) {
@@ -454,17 +451,17 @@ class _AdminHomeState extends State<AdminHome> {
                         ),
                         title: Row(
                           children: [
-                            Expanded(child: Text(notif['title'] as String)),
+                            Expanded(child: Text(notif['title'] as String, style: DairyTypography.bodyLarge())),
                             if (notif['isNew'] as bool)
                               Container(
-                                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                padding: const EdgeInsets.symmetric(horizontal: DairySpacing.sm, vertical: DairySpacing.xs),
                                 decoration: BoxDecoration(
-                                  color: Colors.red,
-                                  borderRadius: BorderRadius.circular(10),
+                                  color: DairyColorsLight.error,
+                                  borderRadius: BorderRadius.circular(DairyRadius.pill),
                                 ),
-                                child: const Text(
+                                child: Text(
                                   'NEW',
-                                  style: TextStyle(color: Colors.white, fontSize: 10),
+                                  style: DairyTypography.badge(),
                                 ),
                               ),
                           ],
@@ -472,11 +469,12 @@ class _AdminHomeState extends State<AdminHome> {
                         subtitle: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(notif['message'] as String),
-                            const SizedBox(height: 4),
+                            const SizedBox(height: DairySpacing.xs),
+                            Text(notif['message'] as String, style: DairyTypography.bodySmall()),
+                            const SizedBox(height: DairySpacing.xs),
                             Text(
                               notif['time'] as String,
-                              style: TextStyle(fontSize: 11, color: Colors.grey[500]),
+                              style: DairyTypography.caption(),
                             ),
                           ],
                         ),

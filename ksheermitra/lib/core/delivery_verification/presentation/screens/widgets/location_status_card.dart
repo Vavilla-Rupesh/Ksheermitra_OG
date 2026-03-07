@@ -4,6 +4,7 @@
 library;
 
 import 'package:flutter/material.dart';
+import 'package:ksheermitra/config/dairy_theme.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/entities/delivery_location.dart';
 import 'package:ksheermitra/core/delivery_verification/domain/services/geofence_util.dart';
 import 'package:ksheermitra/core/delivery_verification/presentation/providers/delivery_verification_provider.dart';
@@ -28,8 +29,8 @@ class LocationStatusCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Card(
-      elevation: 2,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+      elevation: 0,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(DairyRadius.md)),
       child: Padding(
         padding: const EdgeInsets.all(16),
         child: Column(

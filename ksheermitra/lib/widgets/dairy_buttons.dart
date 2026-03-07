@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import '../config/dairy_theme.dart';
 
-/// KsheerMitra Premium Button System
-/// Modern, accessible, conversion-optimized buttons
-/// Following Material 3 guidelines with subtle micro-interactions
+/// KsheerMitra Premium Button System — Blue Ecosystem
+/// Modern, accessible, min 44px height, 10px radius
+/// Scale 0.97 on press for premium micro-interaction
 
 // ============================================================================
-// PRIMARY BUTTON - Main CTA with fresh dairy green
-// Height: 48px, Radius: 12px, Bold text, Scale animation on press
+// PRIMARY BUTTON - Main CTA with blue #2563EB
+// Height: 44px, Radius: 10px, Bold text, Scale animation on press
 // ============================================================================
 
 class DairyPrimaryButton extends StatefulWidget {
@@ -54,7 +54,7 @@ class _DairyPrimaryButtonState extends State<DairyPrimaryButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -105,14 +105,14 @@ class _DairyPrimaryButtonState extends State<DairyPrimaryButton>
               height: widget.height,
               decoration: BoxDecoration(
                 color: isEnabled ? bgColor : disabledBgColor,
-                borderRadius: DairyRadius.defaultBorderRadius,
+                borderRadius: DairyRadius.buttonBorderRadius,
                 boxShadow: isEnabled && !isDark ? colors.buttonShadow : null,
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: isEnabled ? widget.onPressed : null,
-                  borderRadius: DairyRadius.defaultBorderRadius,
+                  borderRadius: DairyRadius.buttonBorderRadius,
                   splashColor: fgColor.withOpacity(0.1),
                   highlightColor: fgColor.withOpacity(0.05),
                   child: Padding(
@@ -176,7 +176,7 @@ class _DairyPrimaryButtonState extends State<DairyPrimaryButton>
 
 // ============================================================================
 // SECONDARY BUTTON - Outlined style for secondary actions
-// Transparent background, green border, green text
+// White bg, border #CBD5E1, primary text
 // ============================================================================
 
 class DairySecondaryButton extends StatefulWidget {
@@ -221,7 +221,7 @@ class _DairySecondaryButtonState extends State<DairySecondaryButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -258,18 +258,18 @@ class _DairySecondaryButtonState extends State<DairySecondaryButton>
               width: widget.isFullWidth ? double.infinity : widget.width,
               height: widget.height,
               decoration: BoxDecoration(
-                color: Colors.transparent,
-                borderRadius: DairyRadius.defaultBorderRadius,
+                color: isDark ? Colors.transparent : Colors.white,
+                borderRadius: DairyRadius.buttonBorderRadius,
                 border: Border.all(
-                  color: isEnabled ? color : color.withOpacity(0.4),
-                  width: 1.5,
+                  color: isEnabled ? (widget.borderColor ?? colors.border) : colors.border.withOpacity(0.4),
+                  width: 1,
                 ),
               ),
               child: Material(
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: isEnabled ? widget.onPressed : null,
-                  borderRadius: DairyRadius.defaultBorderRadius,
+                  borderRadius: DairyRadius.buttonBorderRadius,
                   splashColor: color.withOpacity(0.1),
                   highlightColor: color.withOpacity(0.05),
                   child: Padding(
@@ -472,7 +472,7 @@ class DairyIconButton extends StatelessWidget {
 
 // ============================================================================
 // CTA BUTTON - Special accent button for high-conversion actions
-// Uses secondary orange color (#FF7009) for maximum visibility
+// Uses secondary color for maximum visibility
 // ============================================================================
 
 class DairyCtaButton extends StatefulWidget {
@@ -511,7 +511,7 @@ class _DairyCtaButtonState extends State<DairyCtaButton>
       duration: const Duration(milliseconds: 100),
       vsync: this,
     );
-    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.96).animate(
+    _scaleAnimation = Tween<double>(begin: 1.0, end: 0.97).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
   }
@@ -547,7 +547,7 @@ class _DairyCtaButtonState extends State<DairyCtaButton>
               height: widget.height,
               decoration: BoxDecoration(
                 color: isEnabled ? bgColor : bgColor.withOpacity(0.5),
-                borderRadius: DairyRadius.defaultBorderRadius,
+                borderRadius: DairyRadius.buttonBorderRadius,
                 boxShadow: isEnabled && !isDark
                     ? [
                         BoxShadow(
@@ -562,7 +562,7 @@ class _DairyCtaButtonState extends State<DairyCtaButton>
                 color: Colors.transparent,
                 child: InkWell(
                   onTap: isEnabled ? widget.onPressed : null,
-                  borderRadius: DairyRadius.defaultBorderRadius,
+                  borderRadius: DairyRadius.buttonBorderRadius,
                   child: Padding(
                     padding: DairySpacing.buttonInternalPadding,
                     child: Center(
@@ -594,6 +594,116 @@ class _DairyCtaButtonState extends State<DairyCtaButton>
                                   const SizedBox(width: DairySpacing.sm),
                                   Icon(widget.trailingIcon, color: fgColor, size: 20),
                                 ],
+                              ],
+                            ),
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+// ============================================================================
+// DANGER BUTTON - For destructive actions (#EF4444)
+// ============================================================================
+
+class DairyDangerButton extends StatefulWidget {
+  final String text;
+  final VoidCallback? onPressed;
+  final bool isLoading;
+  final bool isFullWidth;
+  final IconData? leadingIcon;
+  final double height;
+
+  const DairyDangerButton({
+    super.key,
+    required this.text,
+    this.onPressed,
+    this.isLoading = false,
+    this.isFullWidth = true,
+    this.leadingIcon,
+    this.height = DairySpacing.touchTarget,
+  });
+
+  @override
+  State<DairyDangerButton> createState() => _DairyDangerButtonState();
+}
+
+class _DairyDangerButtonState extends State<DairyDangerButton>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _scale;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 100),
+      vsync: this,
+    );
+    _scale = Tween<double>(begin: 1.0, end: 0.97).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final isDark = context.isDarkMode;
+    final isEnabled = widget.onPressed != null && !widget.isLoading;
+    const dangerColor = Color(0xFFEF4444);
+
+    return AnimatedBuilder(
+      animation: _scale,
+      builder: (context, child) {
+        return Transform.scale(
+          scale: _scale.value,
+          child: GestureDetector(
+            onTapDown: (_) { if (isEnabled) _controller.forward(); },
+            onTapUp: (_) => _controller.reverse(),
+            onTapCancel: () => _controller.reverse(),
+            child: Container(
+              width: widget.isFullWidth ? double.infinity : null,
+              height: widget.height,
+              decoration: BoxDecoration(
+                color: isEnabled ? dangerColor : dangerColor.withOpacity(0.5),
+                borderRadius: DairyRadius.buttonBorderRadius,
+                boxShadow: isEnabled && !isDark
+                    ? [BoxShadow(color: dangerColor.withOpacity(0.25), blurRadius: 12, offset: const Offset(0, 4))]
+                    : null,
+              ),
+              child: Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: isEnabled ? widget.onPressed : null,
+                  borderRadius: DairyRadius.buttonBorderRadius,
+                  child: Padding(
+                    padding: DairySpacing.buttonInternalPadding,
+                    child: Center(
+                      child: widget.isLoading
+                          ? const SizedBox(
+                              width: 24, height: 24,
+                              child: CircularProgressIndicator(strokeWidth: 2.5, valueColor: AlwaysStoppedAnimation<Color>(Colors.white)),
+                            )
+                          : Row(
+                              mainAxisSize: MainAxisSize.min,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                if (widget.leadingIcon != null) ...[
+                                  Icon(widget.leadingIcon, color: Colors.white, size: 20),
+                                  const SizedBox(width: DairySpacing.sm),
+                                ],
+                                Text(widget.text, style: DairyTypography.button(color: Colors.white, isDark: isDark)),
                               ],
                             ),
                     ),

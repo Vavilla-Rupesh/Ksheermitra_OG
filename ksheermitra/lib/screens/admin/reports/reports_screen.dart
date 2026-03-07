@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:pdf/pdf.dart';
@@ -137,7 +138,7 @@ class _ReportsScreenState extends State<ReportsScreen> {
                   padding: const EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     color: color.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(12),
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
                   ),
                   child: Icon(icon, color: color, size: 28),
                 ),

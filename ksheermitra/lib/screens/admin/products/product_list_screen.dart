@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../config/dairy_theme.dart';
 import 'package:provider/provider.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
@@ -92,7 +93,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
                       )
                     : null,
                 border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(DairyRadius.md),
                 ),
               ),
               onChanged: (value) {
@@ -198,7 +199,7 @@ class _ProductListScreenState extends State<ProductListScreen> {
               color: product.isActive
                   ? Colors.green.withValues(alpha: 0.1)
                   : Colors.grey.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(12),
+              borderRadius: BorderRadius.circular(DairyRadius.md),
             ),
             child: Text(
               product.isActive ? 'Active' : 'Inactive',
@@ -449,13 +450,13 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                   width: 200,
                   height: 200,
                   decoration: BoxDecoration(
-                    color: Colors.grey.shade200,
-                    borderRadius: BorderRadius.circular(12),
-                    border: Border.all(color: Colors.grey.shade400),
+                    color: DairyColorsLight.surfaceVariant,
+                    borderRadius: BorderRadius.circular(DairyRadius.md),
+                    border: Border.all(color: DairyColorsLight.textDisabled),
                   ),
                   child: _selectedImage != null
                       ? ClipRRect(
-                          borderRadius: BorderRadius.circular(12),
+                          borderRadius: BorderRadius.circular(DairyRadius.md),
                           child: Image.file(
                             _selectedImage!,
                             fit: BoxFit.cover,
@@ -463,7 +464,7 @@ class _ProductFormScreenState extends State<ProductFormScreen> {
                         )
                       : widget.product?.imageUrl != null
                           ? ClipRRect(
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(DairyRadius.md),
                               child: Image.network(
                                 '${AppConfig.baseUrl}${widget.product!.imageUrl}',
                                 fit: BoxFit.cover,

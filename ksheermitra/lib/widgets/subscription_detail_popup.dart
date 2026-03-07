@@ -17,7 +17,7 @@ class SubscriptionDetailPopup extends StatelessWidget {
 
     return Dialog(
       shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(DairyRadius.xxl),
       ),
       child: Container(
         constraints: const BoxConstraints(maxWidth: 500, maxHeight: 600),
@@ -26,61 +26,53 @@ class SubscriptionDetailPopup extends StatelessWidget {
           children: [
             // Header
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(DairySpacing.lg),
               decoration: BoxDecoration(
                 gradient: isActive
                     ? const LinearGradient(colors: [DairyColorsLight.success, Color(0xFF66BB6A)])
                     : const LinearGradient(colors: [DairyColorsLight.warning, Color(0xFFFFB74D)]),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
+                borderRadius: BorderRadius.vertical(
+                  top: Radius.circular(DairyRadius.xxl),
                 ),
               ),
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(DairySpacing.sm + 4),
                     decoration: BoxDecoration(
-                      color: Colors.white.withValues(alpha: 0.3),
-                      borderRadius: BorderRadius.circular(12),
+                      color: Colors.white.withValues(alpha: 0.25),
+                      borderRadius: BorderRadius.circular(DairyRadius.md),
                     ),
                     child: const Icon(
                       Icons.local_drink,
                       color: Colors.white,
-                      size: 32,
+                      size: 28,
                     ),
                   ),
-                  const SizedBox(width: 16),
+                  const SizedBox(width: DairySpacing.md),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Text(
                           subscription.frequencyDisplay,
-                          style: const TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.white,
-                          ),
+                          style: DairyTypography.headingSmall(color: Colors.white),
                           overflow: TextOverflow.ellipsis,
                           maxLines: 1,
                         ),
-                        const SizedBox(height: 4),
+                        const SizedBox(height: DairySpacing.xs),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                            horizontal: 10,
-                            vertical: 4,
+                            horizontal: DairySpacing.sm,
+                            vertical: DairySpacing.xs,
                           ),
                           decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.3),
-                            borderRadius: BorderRadius.circular(12),
+                            color: Colors.white.withValues(alpha: 0.25),
+                            borderRadius: BorderRadius.circular(DairyRadius.pill),
                           ),
                           child: Text(
                             subscription.status.toUpperCase(),
-                            style: const TextStyle(
-                              fontSize: 11,
-                              color: Colors.white,
-                              fontWeight: FontWeight.w600,
-                            ),
+                            style: DairyTypography.badge(),
                           ),
                         ),
                       ],
@@ -96,78 +88,63 @@ class SubscriptionDetailPopup extends StatelessWidget {
             // Content
             Flexible(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(20),
+                padding: const EdgeInsets.all(DairySpacing.lg),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     // Products Section
                     if (subscription.products != null && subscription.products!.isNotEmpty) ...[
-                      const Text(
+                      Text(
                         'Products',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
+                        style: DairyTypography.headingSmall(),
                       ),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DairySpacing.md),
                       ...subscription.products!.map((sp) => Container(
-                        margin: const EdgeInsets.only(bottom: 8),
-                        padding: const EdgeInsets.all(12),
+                        margin: const EdgeInsets.only(bottom: DairySpacing.sm),
+                        padding: const EdgeInsets.all(DairySpacing.md),
                         decoration: BoxDecoration(
-                          color: Colors.grey.shade50,
-                          borderRadius: BorderRadius.circular(8),
-                          border: Border.all(
-                            color: Colors.grey.shade200,
-                          ),
+                          color: DairyColorsLight.surface,
+                          borderRadius: BorderRadius.circular(DairyRadius.md),
+                          border: Border.all(color: DairyColorsLight.border),
                         ),
                         child: Row(
                           children: [
                             Container(
-                              padding: const EdgeInsets.all(8),
+                              padding: const EdgeInsets.all(DairySpacing.sm),
                               decoration: BoxDecoration(
-                                color: DairyColorsLight.primary.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(8),
+                                color: DairyColorsLight.primarySurface,
+                                borderRadius: BorderRadius.circular(DairyRadius.sm),
                               ),
                               child: const Icon(
                                 Icons.local_drink,
                                 color: DairyColorsLight.primary,
-                                size: 24,
+                                size: 22,
                               ),
                             ),
-                            const SizedBox(width: 12),
+                            const SizedBox(width: DairySpacing.md),
                             Expanded(
                               child: Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
                                     sp.product?.name ?? 'Product',
-                                    style: const TextStyle(
-                                      fontSize: 15,
-                                      fontWeight: FontWeight.w600,
-                                    ),
+                                    style: DairyTypography.productName(),
                                     overflow: TextOverflow.ellipsis,
                                     maxLines: 2,
                                   ),
-                                  const SizedBox(height: 2),
+                                  const SizedBox(height: DairySpacing.xs),
                                   Text(
                                     '${sp.quantity.toStringAsFixed(1)} ${sp.product?.unit ?? ''}',
-                                    style: TextStyle(
-                                      fontSize: 13,
-                                      color: Colors.grey.shade600,
-                                    ),
+                                    style: DairyTypography.caption(),
                                   ),
                                 ],
                               ),
                             ),
-                            const SizedBox(width: 8),
+                            const SizedBox(width: DairySpacing.sm),
                             Flexible(
                               child: Text(
                                 '₹${(sp.quantity * (sp.product?.pricePerUnit ?? 0)).toStringAsFixed(2)}',
-                                style: TextStyle(
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.bold,
-                                  color: Colors.green.shade700,
-                                ),
+                                style: DairyTypography.label(color: DairyColorsLight.success),
                                 textAlign: TextAlign.right,
                                 overflow: TextOverflow.ellipsis,
                               ),
@@ -175,45 +152,33 @@ class SubscriptionDetailPopup extends StatelessWidget {
                           ],
                         ),
                       )).toList(),
-                      const SizedBox(height: 16),
+                      const SizedBox(height: DairySpacing.md),
                     ],
 
                     // Total Cost
                     Container(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(DairySpacing.md),
                       decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            DairyColorsLight.primary.withValues(alpha: 0.1),
-                            DairyColorsLight.primary.withValues(alpha: 0.05),
-                          ],
-                        ),
-                        borderRadius: BorderRadius.circular(12),
+                        color: DairyColorsLight.primarySurface,
+                        borderRadius: BorderRadius.circular(DairyRadius.md),
                       ),
                       child: Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          const Flexible(
+                          Flexible(
                             child: Text(
                               'Total per delivery',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.w600,
-                              ),
+                              style: DairyTypography.bodyLarge(),
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
-                          const SizedBox(width: 8),
+                          const SizedBox(width: DairySpacing.sm),
                           Flexible(
                             child: FittedBox(
                               fit: BoxFit.scaleDown,
                               child: Text(
                                 '₹${subscription.totalCostPerDelivery.toStringAsFixed(2)}',
-                                style: const TextStyle(
-                                  fontSize: 20,
-                                  fontWeight: FontWeight.bold,
-                                  color: DairyColorsLight.primary,
-                                ),
+                                style: DairyTypography.headingMedium(color: DairyColorsLight.primary),
                               ),
                             ),
                           ),
@@ -221,19 +186,16 @@ class SubscriptionDetailPopup extends StatelessWidget {
                       ),
                     ),
 
-                    const SizedBox(height: 20),
-                    const Divider(),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: DairySpacing.lg),
+                    const Divider(color: DairyColorsLight.border),
+                    const SizedBox(height: DairySpacing.md),
 
                     // Subscription Details
-                    const Text(
+                    Text(
                       'Subscription Details',
-                      style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: DairyTypography.headingSmall(),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: DairySpacing.md),
 
                     _buildDetailRow(
                       Icons.repeat,
@@ -273,9 +235,9 @@ class SubscriptionDetailPopup extends StatelessWidget {
                       ),
 
                     if (subscription.isPaused) ...[
-                      const SizedBox(height: 12),
-                      const Divider(),
-                      const SizedBox(height: 12),
+                      const SizedBox(height: DairySpacing.md),
+                      const Divider(color: DairyColorsLight.border),
+                      const SizedBox(height: DairySpacing.md),
                       _buildDetailRow(
                         Icons.pause_circle,
                         'Paused From',
@@ -304,30 +266,24 @@ class SubscriptionDetailPopup extends StatelessWidget {
 
   Widget _buildDetailRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
+      padding: const EdgeInsets.only(bottom: DairySpacing.md),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Icon(icon, size: 20, color: Colors.grey[600]),
-          const SizedBox(width: 12),
+          Icon(icon, size: 20, color: DairyColorsLight.textSecondary),
+          const SizedBox(width: DairySpacing.md),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   label,
-                  style: TextStyle(
-                    fontSize: 12,
-                    color: Colors.grey[600],
-                  ),
+                  style: DairyTypography.caption(),
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: DairySpacing.xs),
                 Text(
                   value,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
+                  style: DairyTypography.bodyLarge(),
                   overflow: TextOverflow.visible,
                   softWrap: true,
                 ),
