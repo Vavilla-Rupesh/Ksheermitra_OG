@@ -1,0 +1,91 @@
+databases:
+  - name: ksheermitra-db
+    databaseName: ksheermitra
+    user: ksheermitra
+    plan: free
+
+services:
+  - type: web
+    name: ksheermitra-backend
+    runtime: node
+    plan: free
+    rootDir: backend
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+
+      # Database values injected from the Render Postgres service
+      - key: DB_HOST
+        fromDatabase:
+          name: ksheermitra-db
+          property: host
+      - key: DB_PORT
+        fromDatabase:
+          name: ksheermitra-db
+          property: port
+      - key: DB_NAME
+        fromDatabase:
+          name: ksheermitra-db
+          property: database
+      - key: DB_USER
+        fromDatabase:
+          name: ksheermitra-db
+          property: user
+      - key: DB_PASSWORD
+        fromDatabase:
+          name: ksheermitra-db
+          property: password
+      - key: DB_SSL
+        value: "true"
+
+      # App secrets / config (set values in Render dashboard after first sync)
+      - key: JWT_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: JWT_EXPIRES_IN
+        value: 7d
+      - key: JWT_REFRESH_EXPIRES_IN
+        value: 30d
+
+      - key: GOOGLE_MAPS_API_KEY
+        sync: false
+
+      - key: OTP_LENGTH
+        value: "6"
+      - key: OTP_EXPIRY_MINUTES
+        value: "10"
+
+      - key: RATE_LIMIT_WINDOW_MS
+        value: "900000"
+      - key: RATE_LIMIT_MAX_REQUESTS
+        value: "100"
+
+      - key: COMPANY_NAME
+        value: Ksheermitra
+      - key: COMPANY_ADDRESS
+        sync: false
+      - key: COMPANY_PHONE
+        sync: false
+      - key: COMPANY_EMAIL
+        sync: false
+
+      - key: MONTHLY_INVOICE_CRON
+        value: 0 7 1 * *
+      - key: DAILY_INVOICE_CRON
+        value: 0 20 * * *
+
+      - key: ADMIN_PHONE
+        sync: false
+      - key: ADMIN_WHATSAPP_NUMBER
+        sync: false
+      - key: ADMIN_NAME
+        sync: false
+
+      - key: WHATSAPP_SESSION_PATH
+        value: ./whatsapp-session
+
