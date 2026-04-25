@@ -261,7 +261,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
                   ),
                   title: Text(product.name),
                   subtitle: Text(
-                    'â‚¹${product.pricePerUnit}/${product.unit} â€¢ Stock: ${product.stock}',
+                    '\u{20B9}${product.pricePerUnit}/${product.unit} \u{2022} Stock: ${product.stock}',
                   ),
                   trailing: isSelected
                       ? Container(
@@ -459,7 +459,7 @@ class _CreateOfflineSaleScreenState extends State<CreateOfflineSaleScreen> {
                   style: AppTheme.h4,
                 ),
                 Text(
-                  'â‚¹${total.toStringAsFixed(2)}',
+                  '\u{20B9}${total.toStringAsFixed(2)}',
                   style: AppTheme.h4.copyWith(color: AppTheme.primaryColor),
                 ),
               ],

@@ -80,6 +80,25 @@ class AdminApiService {
     return User.fromJson(response['data']);
   }
 
+  Future<User> createCustomer({
+    required String name,
+    required String phone,
+    String? email,
+    String? address,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final response = await _apiService.post('/admin/customers', {
+      'name': name,
+      'phone': phone,
+      if (email != null && email.isNotEmpty) 'email': email,
+      if (address != null && address.isNotEmpty) 'address': address,
+      if (latitude != null) 'latitude': latitude.toString(),
+      if (longitude != null) 'longitude': longitude.toString(),
+    });
+    return User.fromJson(response['data']);
+  }
+
   // Delivery Boy Management
   Future<List<User>> getDeliveryBoys() async {
     final response = await _apiService.get('/admin/delivery-boys');

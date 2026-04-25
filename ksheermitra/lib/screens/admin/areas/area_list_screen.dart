@@ -7,6 +7,7 @@ import '../../../providers/delivery_boy_provider.dart';
 import 'area_form_screen.dart';
 import 'area_map_screen.dart';
 import 'area_customer_assignment_screen.dart';
+import 'add_area_with_customers_map_screen.dart';
 
 class AreaListScreen extends StatefulWidget {
   const AreaListScreen({super.key});
@@ -130,6 +131,22 @@ class _AreaListScreenState extends State<AreaListScreen> {
               ),
             ),
             const SizedBox(height: 24),
+            ListTile(
+              leading: const CircleAvatar(
+                backgroundColor: Colors.red,
+                child: Icon(Icons.location_on, color: Colors.white),
+              ),
+              title: const Text('View Customer Locations'),
+              subtitle: const Text('Draw area with customer locations visible'),
+              trailing: const Icon(Icons.arrow_forward_ios, size: 16),
+              onTap: () {
+                Navigator.pop(context);
+                WidgetsBinding.instance.addPostFrameCallback((_) {
+                  if (mounted) _navigateToCustomersMapScreen();
+                });
+              },
+            ),
+            const Divider(),
             ListTile(
               leading: const CircleAvatar(
                 backgroundColor: Colors.purple,
@@ -311,6 +328,19 @@ class _AreaListScreenState extends State<AreaListScreen> {
       context,
       MaterialPageRoute(
         builder: (context) => AreaMapScreen(area: area),
+      ),
+    );
+
+    if (result == true && mounted) {
+      context.read<AreaProvider>().loadAreas();
+    }
+  }
+
+  void _navigateToCustomersMapScreen() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddAreaWithCustomersMapScreen(),
       ),
     );
 

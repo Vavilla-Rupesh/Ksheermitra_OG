@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:provider/provider.dart';
 import '../../../models/area.dart';
+import '../../../models/user.dart';
 import '../../../providers/area_provider.dart';
+import '../../../services/admin_api_service.dart';
 import '../../../config/theme.dart';
 import '../../../widgets/premium_widgets.dart';
 
@@ -20,6 +22,9 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
   final List<LatLng> _polygonPoints = [];
   Set<Polygon> _polygons = {};
   Set<Marker> _markers = {};
+  List<User> _customers = [];
+  List<User> _customersInArea = [];
+  bool _isLoadingCustomers = false;
   LatLng _center = const LatLng(20.5937, 78.9629); // India center
   bool _isDrawingMode = true;
   bool _isSaving = false;
@@ -32,7 +37,99 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
       _updatePolygon();
       _center = _calculateCenter(_polygonPoints);
       _isDrawingMode = false;
+      // Load customers for editing view
+      _loadCustomers();
     }
+  }
+
+  /// Check if a point is inside a polygon using ray casting algorithm
+  bool _isPointInPolygon(LatLng point, List<LatLng> polygonPoints) {
+    if (polygonPoints.length < 3) return false;
+    
+    int count = 0;
+    for (int i = 0; i < polygonPoints.length; i++) {
+      LatLng p1 = polygonPoints[i];
+      LatLng p2 = polygonPoints[(i + 1) % polygonPoints.length];
+
+      if ((p1.longitude <= point.longitude && point.longitude < p2.longitude ||
+              p2.longitude <= point.longitude && point.longitude < p1.longitude) &&
+          point.latitude <
+              (p2.latitude - p1.latitude) *
+                      (point.longitude - p1.longitude) /
+                      (p2.longitude - p1.longitude) +
+                  p1.latitude) {
+        count++;
+      }
+    }
+    return count % 2 == 1;
+  }
+
+  /// Load all customers and find those in current area
+  Future<void> _loadCustomers() async {
+    setState(() => _isLoadingCustomers = true);
+
+    try {
+      final adminApi = AdminApiService();
+      final allCustomers = await adminApi.getCustomersWithLocations();
+
+      setState(() {
+        _customers = allCustomers;
+        _isLoadingCustomers = false;
+      });
+
+      // Update markers to show customers based on polygon detection
+      _updateMarkersWithCustomers();
+    } catch (e) {
+      setState(() => _isLoadingCustomers = false);
+      debugPrint('Error loading customers: $e');
+    }
+  }
+
+  /// Update markers to include customer and boundary markers
+  void _updateMarkersWithCustomers() {
+    // Find customers inside the polygon based on coordinates
+    if (_polygonPoints.length >= 3) {
+      for (final customer in _customers) {
+        if (customer.latitude != null && customer.longitude != null) {
+          final customerPoint = LatLng(
+            customer.latitude as double,
+            customer.longitude as double,
+          );
+          
+          final isInside = _isPointInPolygon(customerPoint, _polygonPoints);
+          
+          if (isInside) {
+            // Customer is inside - yellow marker
+            _markers.add(
+              Marker(
+                markerId: MarkerId('customer_assigned_${customer.id}'),
+                position: customerPoint,
+                infoWindow: InfoWindow(
+                  title: customer.name ?? 'Customer',
+                  snippet: '${customer.address} (Inside)',
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+              ),
+            );
+          } else {
+            // Customer is outside - blue marker
+            _markers.add(
+              Marker(
+                markerId: MarkerId('customer_other_${customer.id}'),
+                position: customerPoint,
+                infoWindow: InfoWindow(
+                  title: customer.name ?? 'Customer',
+                  snippet: customer.address ?? customer.phone,
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    setState(() {});
   }
 
   LatLng _calculateCenter(List<LatLng> points) {
@@ -63,20 +160,71 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
   }
 
   void _updateMarkers() {
-    _markers = _polygonPoints.asMap().entries.map((entry) {
-      return Marker(
-        markerId: MarkerId('point_${entry.key}'),
-        position: entry.value,
-        draggable: true,
-        onDragEnd: (newPosition) {
-          setState(() {
-            _polygonPoints[entry.key] = newPosition;
-            _updatePolygon();
-          });
-        },
-        icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+    final updatedMarkers = <Marker>{};
+
+    // Create boundary point markers
+    for (var i = 0; i < _polygonPoints.length; i++) {
+      final entry = _polygonPoints[i];
+      updatedMarkers.add(
+        Marker(
+          markerId: MarkerId('point_$i'),
+          position: entry,
+          draggable: true,
+          onDragEnd: (newPosition) {
+            setState(() {
+              _polygonPoints[i] = newPosition;
+              _updatePolygon();
+            });
+          },
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueGreen),
+        ),
       );
-    }).toSet();
+    }
+
+    // Add customer markers based on current polygon
+    if (_polygonPoints.length >= 3 && _customers.isNotEmpty) {
+      for (final customer in _customers) {
+        if (customer.latitude != null && customer.longitude != null) {
+          final customerPoint = LatLng(
+            customer.latitude as double,
+            customer.longitude as double,
+          );
+          
+          final isInside = _isPointInPolygon(customerPoint, _polygonPoints);
+          
+          if (isInside) {
+            // Customer is inside - yellow marker
+            updatedMarkers.add(
+              Marker(
+                markerId: MarkerId('customer_assigned_${customer.id}'),
+                position: customerPoint,
+                infoWindow: InfoWindow(
+                  title: customer.name ?? 'Customer',
+                  snippet: '${customer.address} (Inside)',
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueYellow),
+              ),
+            );
+          } else {
+            // Customer is outside - blue marker
+            updatedMarkers.add(
+              Marker(
+                markerId: MarkerId('customer_other_${customer.id}'),
+                position: customerPoint,
+                infoWindow: InfoWindow(
+                  title: customer.name ?? 'Customer',
+                  snippet: customer.address ?? customer.phone,
+                ),
+                icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
+              ),
+            );
+          }
+        }
+      }
+    }
+
+    // Replace all markers
+    _markers = updatedMarkers;
   }
 
   void _onMapTap(LatLng position) {
@@ -282,39 +430,117 @@ class _AreaMapScreenState extends State<AreaMapScreen> {
             zoomControlsEnabled: false,
           ),
 
-          // Instructions banner
-          Positioned(
-            top: 16,
-            left: 16,
-            right: 16,
-            child: PremiumCard(
-              gradient: AppTheme.premiumCardGradient,
-              shadows: AppTheme.premiumCardShadow,
-              child: Row(
-                children: [
-                  Icon(
-                    _isDrawingMode ? Icons.touch_app : Icons.pan_tool,
-                    color: Colors.white,
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Text(
-                      _isDrawingMode
-                          ? 'Tap on map to add points. Need at least 3 points.'
-                          : 'Pan mode: Drag markers to adjust boundary',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 14,
-                        fontWeight: FontWeight.w500,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
+           // Instructions banner
+           Positioned(
+             top: 16,
+             left: 16,
+             right: 16,
+             child: PremiumCard(
+               gradient: AppTheme.premiumCardGradient,
+               shadows: AppTheme.premiumCardShadow,
+               child: Row(
+                 children: [
+                   Icon(
+                     _isDrawingMode ? Icons.touch_app : Icons.pan_tool,
+                     color: Colors.white,
+                   ),
+                   const SizedBox(width: 12),
+                   Expanded(
+                     child: Text(
+                       _isDrawingMode
+                           ? 'Tap on map to add points. Need at least 3 points.'
+                           : 'Pan mode: Drag markers to adjust boundary',
+                       style: const TextStyle(
+                         color: Colors.white,
+                         fontSize: 14,
+                         fontWeight: FontWeight.w500,
+                       ),
+                     ),
+                   ),
+                 ],
+               ),
+             ),
+           ),
 
-          // Points counter
+           // Legend for markers (when editing area)
+           if (widget.area != null)
+             Positioned(
+               top: 90,
+               left: 16,
+               right: 16,
+               child: PremiumCard(
+                 child: Padding(
+                   padding: const EdgeInsets.all(12),
+                   child: Column(
+                     crossAxisAlignment: CrossAxisAlignment.start,
+                     mainAxisSize: MainAxisSize.min,
+                     children: [
+                       Row(
+                         children: [
+                           Container(
+                             width: 12,
+                             height: 12,
+                             decoration: BoxDecoration(
+                               color: Colors.yellow,
+                               shape: BoxShape.circle,
+                             ),
+                           ),
+                           const SizedBox(width: 8),
+                           Expanded(
+                             child: Text(
+                               'Assigned (${_customersInArea.length})',
+                               style: const TextStyle(fontSize: 12),
+                             ),
+                           ),
+                         ],
+                       ),
+                       const SizedBox(height: 8),
+                       Row(
+                         children: [
+                           Container(
+                             width: 12,
+                             height: 12,
+                             decoration: BoxDecoration(
+                               color: Colors.blue,
+                               shape: BoxShape.circle,
+                             ),
+                           ),
+                           const SizedBox(width: 8),
+                           Expanded(
+                             child: Text(
+                               'Other (${_customers.length - _customersInArea.length})',
+                               style: const TextStyle(fontSize: 12),
+                             ),
+                           ),
+                         ],
+                       ),
+                       const SizedBox(height: 8),
+                       Row(
+                         children: [
+                           Container(
+                             width: 12,
+                             height: 12,
+                             decoration: BoxDecoration(
+                               color: Colors.green,
+                               shape: BoxShape.circle,
+                             ),
+                           ),
+                           const SizedBox(width: 8),
+                           const Expanded(
+                             child: Text(
+                               'Boundary Points',
+                               style: TextStyle(fontSize: 12),
+                             ),
+                           ),
+                         ],
+                       ),
+                     ],
+                   ),
+                 ),
+               ),
+             ),
+
+           // Points counter
           if (_polygonPoints.isNotEmpty)
             Positioned(
               top: 90,

@@ -5,6 +5,7 @@ import '../../../models/user.dart';
 import '../../../providers/customer_provider.dart';
 import 'customer_details_screen.dart';
 import 'customer_map_screen.dart';
+import 'add_customer_screen.dart';
 
 class CustomerListScreen extends StatefulWidget {
   const CustomerListScreen({super.key});
@@ -62,6 +63,19 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
           search: _searchQuery.isEmpty ? null : _searchQuery,
         );
     _currentPage = nextPage;
+  }
+
+  Future<void> _navigateToAddCustomer() async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => const AddCustomerScreen(),
+      ),
+    );
+
+    if (result == true) {
+      _loadCustomers();
+    }
   }
 
   @override
@@ -193,6 +207,11 @@ class _CustomerListScreenState extends State<CustomerListScreen> {
             ),
           ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: _navigateToAddCustomer,
+        icon: const Icon(Icons.person_add),
+        label: const Text('Add Customer'),
       ),
     );
   }

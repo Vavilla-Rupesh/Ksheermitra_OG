@@ -68,4 +68,25 @@ class CustomerProvider with ChangeNotifier {
       return null;
     }
   }
+
+  Future<User> createCustomer({
+    required String name,
+    required String phone,
+    String? email,
+    String? address,
+    double? latitude,
+    double? longitude,
+  }) async {
+    final customer = await _adminApi.createCustomer(
+      name: name,
+      phone: phone,
+      email: email,
+      address: address,
+      latitude: latitude,
+      longitude: longitude,
+    );
+    // Reload the list to include the new customer
+    await loadCustomers();
+    return customer;
+  }
 }

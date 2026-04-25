@@ -435,7 +435,7 @@ class DairyTheme {
         }),
         height: 80, labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: palette.primary, foregroundColor: DairyColorsLight.textOnPrimary, elevation: 4, shape: const CircleBorder()),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: palette.primary, foregroundColor: DairyColorsLight.textOnPrimary, elevation: 4, shape: const StadiumBorder()),
       chipTheme: ChipThemeData(
         backgroundColor: DairyColorsLight.surface, selectedColor: palette.primarySurface,
         disabledColor: DairyColorsLight.surfaceVariant, labelStyle: DairyTypography.label(),
@@ -586,7 +586,7 @@ class DairyTheme {
         }),
         height: 80, labelBehavior: NavigationDestinationLabelBehavior.alwaysShow,
       ),
-      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: palette.primary, foregroundColor: DairyColorsDark.textOnPrimary, elevation: 4, shape: const CircleBorder()),
+      floatingActionButtonTheme: FloatingActionButtonThemeData(backgroundColor: palette.primary, foregroundColor: DairyColorsDark.textOnPrimary, elevation: 4, shape: const StadiumBorder()),
       chipTheme: ChipThemeData(
         backgroundColor: DairyColorsDark.surface, selectedColor: palette.primarySurface,
         disabledColor: DairyColorsDark.surfaceVariant, labelStyle: DairyTypography.label(isDark: true),

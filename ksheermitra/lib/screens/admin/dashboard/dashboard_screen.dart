@@ -10,7 +10,7 @@ import '../../../widgets/dairy_animations.dart';
 import '../offline_sales/offline_sales_list_screen.dart';
 import '../customers/customer_map_screen.dart';
 import '../products/product_list_screen.dart';
-import '../customers/customer_list_screen.dart';
+import '../customers/add_customer_screen.dart';
 
 class DashboardScreen extends StatefulWidget {
   const DashboardScreen({super.key});
@@ -345,7 +345,7 @@ class _DashboardScreenState extends State<DashboardScreen> {
             const SizedBox(width: DairySpacing.md),
             Expanded(
               child: _buildActionCard('Add Customer', Icons.person_add_outlined, const Color(0xFF0EA5E9), () {
-                Navigator.push(context, MaterialPageRoute(builder: (context) => const CustomerListScreen()));
+                Navigator.push(context, MaterialPageRoute(builder: (context) => const AddCustomerScreen()));
               }),
             ),
           ],
