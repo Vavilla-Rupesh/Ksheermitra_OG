@@ -31,7 +31,19 @@ class InvoiceService {
           {
             model: db.Product,
             as: 'product',
-            attributes: ['id', 'name', 'unit']
+            attributes: ['id', 'name', 'unit'],
+            required: false
+          },
+          {
+            model: db.DeliveryItem,
+            as: 'items',
+            include: [{
+              model: db.Product,
+              as: 'product',
+              attributes: ['name', 'unit'],
+              required: false
+            }],
+            required: false
           }
         ],
         transaction
@@ -41,7 +53,7 @@ class InvoiceService {
         throw new Error('No deliveries found for the specified date');
       }
 
-      const totalAmount = deliveries.reduce((sum, d) => sum + parseFloat(d.amount), 0);
+      const totalAmount = deliveries.reduce((sum, d) => sum + parseFloat(d.amount || 0), 0);
 
       const invoiceNumber = `INV-D-${moment(deliveryDate).format('YYYYMMDD')}-${deliveryBoyId.substring(0, 8)}`;
 
@@ -54,39 +66,62 @@ class InvoiceService {
         throw new Error('Invoice already generated for this date');
       }
 
-      const deliveryDetails = deliveries.map(d => ({
-        customerName: d.customer.name,
-        productName: d.product.name,
-        quantity: d.quantity,
-        unit: d.product.unit,
-        amount: d.amount
-      }));
+      // Build delivery details - handle both single product and multi-product (items) cases
+      const deliveryDetails = deliveries.map(d => {
+        const items = d.items || [];
+        let productName = 'N/A';
+        let quantity = parseFloat(d.quantity) || 0;
+        let unit = '';
+
+        if (items.length > 0) {
+          productName = items.map(i => i.product?.name || 'Product').join(', ');
+          quantity = items.reduce((sum, i) => sum + (parseFloat(i.quantity) || 0), 0);
+          unit = items[0]?.product?.unit || '';
+        } else if (d.product) {
+          productName = d.product.name || 'N/A';
+          unit = d.product.unit || '';
+        }
+
+        return {
+          customerName: d.customer?.name || 'N/A',
+          productName,
+          quantity,
+          unit,
+          amount: parseFloat(d.amount) || 0
+        };
+      });
 
       const pdfData = {
         invoiceNumber,
         deliveryBoy: {
-          name: deliveryBoy.name,
-          phone: deliveryBoy.phone
+          name: deliveryBoy.name || 'Delivery Boy',
+          phone: deliveryBoy.phone || 'N/A'
         },
         date: moment(deliveryDate).format('DD-MM-YYYY'),
         deliveries: deliveryDetails,
         totalAmount
       };
 
-      const pdfPath = await pdfService.generateDailyInvoice(pdfData);
+      let pdfPath = null;
+      try {
+        pdfPath = await pdfService.generateDailyInvoice(pdfData);
+        logger.info(`PDF generated at: ${pdfPath}`);
+      } catch (pdfError) {
+        logger.error('Error generating PDF in invoice service:', pdfError.message);
+      }
 
       const invoice = await db.Invoice.create({
         invoiceNumber,
         deliveryBoyId,
-        type: 'daily',
+        invoiceType: 'daily',
         invoiceDate: deliveryDate,
         periodStart: deliveryDate,
         periodEnd: deliveryDate,
         totalAmount,
         paidAmount: 0,
-        paymentStatus: 'pending',
-        pdfPath,
-        deliveryDetails: {
+        status: 'generated',
+        pdfPath: pdfPath || null,
+        metadata: {
           deliveries: deliveryDetails,
           deliveryBoyName: deliveryBoy.name
         }
@@ -97,14 +132,14 @@ class InvoiceService {
         transaction
       });
 
-      if (admin && admin.phone) {
+      if (admin && admin.phone && pdfPath) {
         try {
           await whatsappService.sendInvoice(admin.phone, 'Admin', pdfPath);
           invoice.sentViaWhatsApp = true;
           invoice.sentAt = new Date();
           await invoice.save({ transaction });
         } catch (error) {
-          logger.error('Error sending daily invoice via WhatsApp:', error);
+          logger.error('Error sending daily invoice via WhatsApp:', error.message);
         }
       }
 
@@ -114,7 +149,7 @@ class InvoiceService {
       return invoice;
     } catch (error) {
       await transaction.rollback();
-      logger.error('Error generating daily invoice:', error);
+      logger.error('Error generating daily invoice:', error.message);
       throw error;
     }
   }
@@ -143,7 +178,8 @@ class InvoiceService {
           {
             model: db.Product,
             as: 'product',
-            attributes: ['id', 'name', 'unit']
+            attributes: ['id', 'name', 'unit'],
+            required: false
           }
         ],
         order: [['deliveryDate', 'ASC']],
@@ -171,18 +207,18 @@ class InvoiceService {
 
       const deliveryDetails = deliveries.map(d => ({
         date: moment(d.deliveryDate).format('DD-MM-YYYY'),
-        productName: d.product.name,
-        quantity: d.quantity,
-        unit: d.product.unit,
-        amount: d.amount
+        productName: d.product?.name || 'N/A',
+        quantity: parseFloat(d.quantity) || 0,
+        unit: d.product?.unit || '',
+        amount: parseFloat(d.amount) || 0
       }));
 
       const pdfData = {
         invoiceNumber,
         customer: {
-          name: customer.name,
-          phone: customer.phone,
-          address: customer.address
+          name: customer.name || 'N/A',
+          phone: customer.phone || 'N/A',
+          address: customer.address || 'N/A'
         },
         periodStart: moment(periodStart).format('DD-MM-YYYY'),
         periodEnd: moment(periodEnd).format('DD-MM-YYYY'),
@@ -192,31 +228,39 @@ class InvoiceService {
         paymentStatus: 'pending'
       };
 
-      const pdfPath = await pdfService.generateMonthlyInvoice(pdfData);
+      let pdfPath = null;
+      try {
+        pdfPath = await pdfService.generateMonthlyInvoice(pdfData);
+        logger.info(`Monthly PDF generated at: ${pdfPath}`);
+      } catch (pdfError) {
+        logger.error('Error generating monthly PDF:', pdfError.message);
+      }
 
       const invoice = await db.Invoice.create({
         invoiceNumber,
         customerId,
-        type: 'monthly',
+        invoiceType: 'monthly',
         invoiceDate: moment().format('YYYY-MM-DD'),
         periodStart,
         periodEnd,
         totalAmount,
         paidAmount: 0,
-        paymentStatus: 'pending',
-        pdfPath,
-        deliveryDetails: {
+        status: 'generated',
+        pdfPath: pdfPath || null,
+        metadata: {
           deliveries: deliveryDetails
         }
       }, { transaction });
 
-      try {
-        await whatsappService.sendInvoice(customer.phone, customer.name, pdfPath);
-        invoice.sentViaWhatsApp = true;
-        invoice.sentAt = new Date();
-        await invoice.save({ transaction });
-      } catch (error) {
-        logger.error('Error sending monthly invoice via WhatsApp:', error);
+      if (pdfPath && customer.phone) {
+        try {
+          await whatsappService.sendInvoice(customer.phone, customer.name, pdfPath);
+          invoice.sentViaWhatsApp = true;
+          invoice.sentAt = new Date();
+          await invoice.save({ transaction });
+        } catch (error) {
+          logger.error('Error sending monthly invoice via WhatsApp:', error.message);
+        }
       }
 
       await transaction.commit();

@@ -95,6 +95,12 @@ module.exports = (sequelize, DataTypes) => {
       as: 'area'
     });
 
+    // Association for delivery boy to get assigned area
+    User.hasOne(models.Area, {
+      foreignKey: 'deliveryBoyId',
+      as: 'assignedArea'
+    });
+
     User.hasMany(models.Subscription, {
       foreignKey: 'customerId',
       as: 'subscriptions'

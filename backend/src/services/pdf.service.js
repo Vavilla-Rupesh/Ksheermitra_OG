@@ -3,6 +3,9 @@ const fs = require('fs');
 const path = require('path');
 const logger = require('../utils/logger');
 
+// Currency symbol - use 'Rs.' since default PDFKit fonts don't support ₹
+const RUPEE = 'Rs.';
+
 class PDFService {
   constructor() {
     this.invoicesDir = path.join(__dirname, '../../invoices');
@@ -10,13 +13,26 @@ class PDFService {
   }
 
   ensureDirectoryExists() {
-    if (!fs.existsSync(this.invoicesDir)) {
-      fs.mkdirSync(this.invoicesDir, { recursive: true });
+    try {
+      if (!fs.existsSync(this.invoicesDir)) {
+        fs.mkdirSync(this.invoicesDir, { recursive: true });
+        logger.info(`Created invoices directory: ${this.invoicesDir}`);
+      }
+    } catch (error) {
+      logger.error('Error creating invoices directory:', error.message);
     }
+  }
+
+  // Sanitize filename to remove characters invalid on Windows
+  sanitizeFileName(name) {
+    return name.replace(/[^a-zA-Z0-9._-]/g, '_');
   }
 
   async generateDailyInvoice(invoiceData) {
     try {
+      // Ensure directory exists before generating
+      this.ensureDirectoryExists();
+
       const {
         invoiceNumber,
         deliveryBoy,
@@ -25,55 +41,93 @@ class PDFService {
         totalAmount
       } = invoiceData;
 
-      const fileName = `daily_${invoiceNumber}_${Date.now()}.pdf`;
+      if (!invoiceNumber || !deliveryBoy) {
+        throw new Error('Missing required invoice data: invoiceNumber or deliveryBoy');
+      }
+
+      const sanitizedInvoiceNum = this.sanitizeFileName(invoiceNumber);
+      const fileName = `daily_${sanitizedInvoiceNum}_${Date.now()}.pdf`;
       const filePath = path.join(this.invoicesDir, fileName);
 
+      logger.info(`Generating daily invoice PDF: ${fileName}`);
+      logger.info(`Invoice data - deliveries: ${(deliveries || []).length}, totalAmount: ${totalAmount}`);
+
       return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
-        const stream = fs.createWriteStream(filePath);
+        try {
+          const doc = new PDFDocument({ margin: 50, size: 'A4' });
+          const stream = fs.createWriteStream(filePath);
 
-        doc.pipe(stream);
+          // Handle stream errors
+          stream.on('error', (error) => {
+            logger.error('Stream error generating daily invoice:', error.message);
+            reject(error);
+          });
 
-        this.addHeader(doc, 'Daily Delivery Invoice');
+          doc.on('error', (error) => {
+            logger.error('PDFDocument error:', error.message);
+            reject(error);
+          });
 
-        doc.fontSize(12)
-           .text(`Invoice Number: ${invoiceNumber}`, 50, 150)
-           .text(`Date: ${date}`, 50, 170)
-           .text(`Delivery Boy: ${deliveryBoy.name}`, 50, 190)
-           .text(`Phone: ${deliveryBoy.phone}`, 50, 210);
+          doc.pipe(stream);
 
-        doc.moveDown(2);
-        
-        const tableTop = 260;
-        this.generateDeliveryTable(doc, deliveries, tableTop);
+          this.addHeader(doc, 'Daily Delivery Invoice');
 
-        const totalY = tableTop + (deliveries.length + 2) * 25 + 20;
-        doc.fontSize(12)
-           .font('Helvetica-Bold')
-           .text(`Total Amount: ₹${parseFloat(totalAmount).toFixed(2)}`, 400, totalY);
+          doc.fontSize(12)
+             .font('Helvetica')
+             .text(`Invoice Number: ${invoiceNumber}`, 50, 150)
+             .text(`Date: ${date || 'N/A'}`, 50, 170)
+             .text(`Delivery Boy: ${deliveryBoy.name || 'N/A'}`, 50, 190)
+             .text(`Phone: ${deliveryBoy.phone || 'N/A'}`, 50, 210);
 
-        this.addFooter(doc);
+          doc.moveDown(2);
 
-        doc.end();
+          const safeDeliveries = Array.isArray(deliveries) ? deliveries : [];
+          const tableTop = 260;
 
-        stream.on('finish', () => {
-          logger.info(`Daily invoice generated: ${fileName}`);
-          resolve(filePath);
-        });
+          if (safeDeliveries.length > 0) {
+            this.generateDeliveryTable(doc, safeDeliveries, tableTop);
+          } else {
+            doc.fontSize(11)
+               .font('Helvetica')
+               .text('No delivery details available.', 50, tableTop);
+          }
 
-        stream.on('error', (error) => {
-          logger.error('Error generating daily invoice:', error);
-          reject(error);
-        });
+          const totalY = tableTop + (safeDeliveries.length + 2) * 25 + 20;
+          doc.fontSize(12)
+             .font('Helvetica-Bold')
+             .text(`Total Amount: ${RUPEE} ${parseFloat(totalAmount || 0).toFixed(2)}`, 350, totalY);
+
+          this.addFooter(doc);
+
+          doc.end();
+
+          stream.on('finish', () => {
+            // Verify the file was actually created
+            if (fs.existsSync(filePath)) {
+              const stats = fs.statSync(filePath);
+              logger.info(`Daily invoice generated: ${fileName} (${stats.size} bytes)`);
+              resolve(filePath);
+            } else {
+              logger.error(`PDF file was not created at: ${filePath}`);
+              reject(new Error('PDF file was not created'));
+            }
+          });
+        } catch (innerError) {
+          logger.error('Error inside PDF generation promise:', innerError.message);
+          reject(innerError);
+        }
       });
     } catch (error) {
-      logger.error('Error in generateDailyInvoice:', error);
+      logger.error('Error in generateDailyInvoice:', error.message, error.stack);
       throw error;
     }
   }
 
   async generateMonthlyInvoice(invoiceData) {
     try {
+      // Ensure directory exists before generating
+      this.ensureDirectoryExists();
+
       const {
         invoiceNumber,
         customer,
@@ -85,54 +139,88 @@ class PDFService {
         paymentStatus
       } = invoiceData;
 
-      const fileName = `monthly_${invoiceNumber}_${Date.now()}.pdf`;
+      if (!invoiceNumber || !customer) {
+        throw new Error('Missing required invoice data: invoiceNumber or customer');
+      }
+
+      const sanitizedInvoiceNum = this.sanitizeFileName(invoiceNumber);
+      const fileName = `monthly_${sanitizedInvoiceNum}_${Date.now()}.pdf`;
       const filePath = path.join(this.invoicesDir, fileName);
 
+      logger.info(`Generating monthly invoice PDF: ${fileName}`);
+
       return new Promise((resolve, reject) => {
-        const doc = new PDFDocument({ margin: 50, size: 'A4' });
-        const stream = fs.createWriteStream(filePath);
+        try {
+          const doc = new PDFDocument({ margin: 50, size: 'A4' });
+          const stream = fs.createWriteStream(filePath);
 
-        doc.pipe(stream);
+          stream.on('error', (error) => {
+            logger.error('Stream error generating monthly invoice:', error.message);
+            reject(error);
+          });
 
-        this.addHeader(doc, 'Monthly Invoice');
+          doc.on('error', (error) => {
+            logger.error('PDFDocument error:', error.message);
+            reject(error);
+          });
 
-        doc.fontSize(12)
-           .text(`Invoice Number: ${invoiceNumber}`, 50, 150)
-           .text(`Customer Name: ${customer.name}`, 50, 170)
-           .text(`Phone: ${customer.phone}`, 50, 190)
-           .text(`Address: ${customer.address || 'N/A'}`, 50, 210)
-           .text(`Period: ${periodStart} to ${periodEnd}`, 50, 230);
+          doc.pipe(stream);
 
-        doc.moveDown(2);
+          this.addHeader(doc, 'Monthly Invoice');
 
-        const tableTop = 280;
-        this.generateMonthlyDeliveryTable(doc, deliveries, tableTop);
+          doc.fontSize(12)
+             .font('Helvetica')
+             .text(`Invoice Number: ${invoiceNumber}`, 50, 150)
+             .text(`Customer Name: ${customer.name || 'N/A'}`, 50, 170)
+             .text(`Phone: ${customer.phone || 'N/A'}`, 50, 190)
+             .text(`Address: ${customer.address || 'N/A'}`, 50, 210)
+             .text(`Period: ${periodStart || 'N/A'} to ${periodEnd || 'N/A'}`, 50, 230);
 
-        const summaryY = tableTop + (deliveries.length + 2) * 25 + 30;
-        
-        doc.fontSize(12)
-           .font('Helvetica-Bold')
-           .text(`Total Amount: ₹${parseFloat(totalAmount).toFixed(2)}`, 400, summaryY)
-           .text(`Paid Amount: ₹${parseFloat(paidAmount).toFixed(2)}`, 400, summaryY + 20)
-           .text(`Balance Due: ₹${(parseFloat(totalAmount) - parseFloat(paidAmount)).toFixed(2)}`, 400, summaryY + 40)
-           .text(`Status: ${paymentStatus.toUpperCase()}`, 400, summaryY + 60);
+          doc.moveDown(2);
 
-        this.addFooter(doc);
+          const safeDeliveries = Array.isArray(deliveries) ? deliveries : [];
+          const tableTop = 280;
 
-        doc.end();
+          if (safeDeliveries.length > 0) {
+            this.generateMonthlyDeliveryTable(doc, safeDeliveries, tableTop);
+          } else {
+            doc.fontSize(11)
+               .font('Helvetica')
+               .text('No delivery details available.', 50, tableTop);
+          }
 
-        stream.on('finish', () => {
-          logger.info(`Monthly invoice generated: ${fileName}`);
-          resolve(filePath);
-        });
+          const summaryY = tableTop + (safeDeliveries.length + 2) * 25 + 30;
+          const safeTotalAmount = parseFloat(totalAmount || 0);
+          const safePaidAmount = parseFloat(paidAmount || 0);
 
-        stream.on('error', (error) => {
-          logger.error('Error generating monthly invoice:', error);
-          reject(error);
-        });
+          doc.fontSize(12)
+             .font('Helvetica-Bold')
+             .text(`Total Amount: ${RUPEE} ${safeTotalAmount.toFixed(2)}`, 350, summaryY)
+             .text(`Paid Amount: ${RUPEE} ${safePaidAmount.toFixed(2)}`, 350, summaryY + 20)
+             .text(`Balance Due: ${RUPEE} ${(safeTotalAmount - safePaidAmount).toFixed(2)}`, 350, summaryY + 40)
+             .text(`Status: ${(paymentStatus || 'pending').toUpperCase()}`, 350, summaryY + 60);
+
+          this.addFooter(doc);
+
+          doc.end();
+
+          stream.on('finish', () => {
+            if (fs.existsSync(filePath)) {
+              const stats = fs.statSync(filePath);
+              logger.info(`Monthly invoice generated: ${fileName} (${stats.size} bytes)`);
+              resolve(filePath);
+            } else {
+              logger.error(`PDF file was not created at: ${filePath}`);
+              reject(new Error('PDF file was not created'));
+            }
+          });
+        } catch (innerError) {
+          logger.error('Error inside monthly PDF generation promise:', innerError.message);
+          reject(innerError);
+        }
       });
     } catch (error) {
-      logger.error('Error in generateMonthlyInvoice:', error);
+      logger.error('Error in generateMonthlyInvoice:', error.message, error.stack);
       throw error;
     }
   }
@@ -167,7 +255,7 @@ class PDFService {
     doc.fontSize(10)
        .font('Helvetica')
        .text('Thank you for your business!', 50, bottomY + 10)
-       .text(`Generated on: ${new Date().toLocaleString()}`, 400, bottomY + 10);
+       .text(`Generated on: ${new Date().toLocaleString('en-IN')}`, 350, bottomY + 10);
   }
 
   generateDeliveryTable(doc, deliveries, startY) {
@@ -186,13 +274,20 @@ class PDFService {
        .stroke();
 
     doc.font('Helvetica');
-    deliveries.forEach((delivery, index) => {
+    const safeDeliveries = Array.isArray(deliveries) ? deliveries : [];
+    safeDeliveries.forEach((delivery, index) => {
       const y = startY + 25 + (index * 25);
       
-      doc.text(delivery.customerName || 'N/A', startX, y, { width: 140 });
-      doc.text(delivery.productName || 'N/A', startX + 150, y, { width: 140 });
-      doc.text(`${delivery.quantity} ${delivery.unit || ''}`, startX + 300, y);
-      doc.text(`₹${parseFloat(delivery.amount).toFixed(2)}`, startX + 400, y);
+      // Prevent going past footer area - add new page if needed
+      if (y > 720) {
+        doc.addPage();
+        return;
+      }
+
+      doc.text(String(delivery.customerName || 'N/A'), startX, y, { width: 140 });
+      doc.text(String(delivery.productName || 'N/A'), startX + 150, y, { width: 140 });
+      doc.text(`${delivery.quantity || 0} ${delivery.unit || ''}`, startX + 300, y);
+      doc.text(`${RUPEE} ${parseFloat(delivery.amount || 0).toFixed(2)}`, startX + 400, y);
     });
   }
 
@@ -212,13 +307,19 @@ class PDFService {
        .stroke();
 
     doc.font('Helvetica');
-    deliveries.forEach((delivery, index) => {
+    const safeDeliveries = Array.isArray(deliveries) ? deliveries : [];
+    safeDeliveries.forEach((delivery, index) => {
       const y = startY + 25 + (index * 25);
       
-      doc.text(delivery.date, startX, y);
-      doc.text(delivery.productName || 'N/A', startX + 100, y, { width: 190 });
-      doc.text(`${delivery.quantity} ${delivery.unit || ''}`, startX + 300, y);
-      doc.text(`₹${parseFloat(delivery.amount).toFixed(2)}`, startX + 400, y);
+      if (y > 720) {
+        doc.addPage();
+        return;
+      }
+
+      doc.text(String(delivery.date || 'N/A'), startX, y);
+      doc.text(String(delivery.productName || 'N/A'), startX + 100, y, { width: 190 });
+      doc.text(`${delivery.quantity || 0} ${delivery.unit || ''}`, startX + 300, y);
+      doc.text(`${RUPEE} ${parseFloat(delivery.amount || 0).toFixed(2)}`, startX + 400, y);
     });
   }
 }

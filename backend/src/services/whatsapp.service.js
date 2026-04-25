@@ -395,29 +395,53 @@ class WhatsAppService {
   }
 
   async sendFile(phone, filePath, caption = '') {
-    return new Promise(async (resolve, reject) => {
-      try {
-        if (!this.isReady || !this.sock) {
-          throw new Error('WhatsApp client is not ready');
-        }
-
-        const jid = this.formatPhoneNumber(phone);
-        const fileBuffer = fs.readFileSync(filePath);
-        const fileName = path.basename(filePath);
-
-        await this.sock.sendMessage(jid, {
-          document: fileBuffer,
-          fileName: fileName,
-          caption: caption
-        });
-
-        logger.info(`File sent successfully to ${phone}`);
-        resolve({ success: true, phone });
-      } catch (error) {
-        logger.error(`Error sending file to ${phone}:`, error.message);
-        reject({ success: false, error: error.message, phone });
+    try {
+      if (!this.isReady || !this.sock) {
+        throw new Error('WhatsApp client is not ready. Please scan QR code.');
       }
-    });
+
+      // Verify file exists
+      if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+      }
+
+      // Wait for any pending message queue to finish before sending file
+      let waitCount = 0;
+      while (this.processingQueue && waitCount < 30) {
+        logger.info('Waiting for message queue to finish before sending file...');
+        await this.delay(1000);
+        waitCount++;
+      }
+
+      // Small delay to ensure socket is free after last queued message
+      await this.delay(2000);
+
+      const jid = this.formatPhoneNumber(phone);
+      const fileBuffer = fs.readFileSync(filePath);
+      const fileName = path.basename(filePath);
+
+      // Determine MIME type based on extension
+      const ext = path.extname(filePath).toLowerCase();
+      let mimetype = 'application/octet-stream';
+      if (ext === '.pdf') mimetype = 'application/pdf';
+      else if (ext === '.png') mimetype = 'image/png';
+      else if (ext === '.jpg' || ext === '.jpeg') mimetype = 'image/jpeg';
+
+      logger.info(`Sending file ${fileName} (${fileBuffer.length} bytes, ${mimetype}) to ${phone}`);
+
+      await this.sock.sendMessage(jid, {
+        document: fileBuffer,
+        fileName: fileName,
+        mimetype: mimetype,
+        caption: caption
+      });
+
+      logger.info(`File sent successfully to ${phone}`);
+      return { success: true, phone };
+    } catch (error) {
+      logger.error(`Error sending file to ${phone}:`, error.message);
+      throw error;
+    }
   }
 
   async sendOTP(phone, otp, expiryMinutes = 10, userName = null) {
@@ -456,9 +480,16 @@ class WhatsAppService {
   }
 
   async sendInvoice(phone, customerName, invoiceDetails) {
+    // If invoiceDetails is a file path string, send the PDF file
+    if (typeof invoiceDetails === 'string' && fs.existsSync(invoiceDetails)) {
+      const caption = `🧾 Invoice for ${customerName}`;
+      return await this.sendFile(phone, invoiceDetails, caption);
+    }
+
+    // Otherwise send a text summary
     const message = WhatsAppTemplates.generateInvoiceMessage({
       customerName,
-      ...invoiceDetails
+      ...(typeof invoiceDetails === 'object' ? invoiceDetails : {})
     });
     return await this.sendMessage(phone, message);
   }

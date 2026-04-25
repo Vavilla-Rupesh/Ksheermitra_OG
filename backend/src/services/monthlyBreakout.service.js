@@ -404,7 +404,7 @@ class MonthlyBreakoutService {
       const existingInvoice = await db.Invoice.findOne({
         where: {
           customerId,
-          type: 'monthly',
+          invoiceType: 'monthly',
           periodStart: startDate.format('YYYY-MM-DD'),
           periodEnd: endDate.format('YYYY-MM-DD')
         },
@@ -497,7 +497,7 @@ class MonthlyBreakoutService {
       const invoice = await db.Invoice.create({
         invoiceNumber,
         customerId,
-        type: 'monthly',
+        invoiceType: 'monthly',
         invoiceDate: moment().format('YYYY-MM-DD'),
         periodStart: startDate.format('YYYY-MM-DD'),
         periodEnd: endDate.format('YYYY-MM-DD'),
@@ -554,7 +554,7 @@ class MonthlyBreakoutService {
       const invoice = await db.Invoice.findOne({
         where: {
           customerId,
-          type: 'monthly',
+          invoiceType: 'monthly',
           periodStart: startDate.format('YYYY-MM-DD'),
           periodEnd: endDate.format('YYYY-MM-DD')
         },

@@ -13,6 +13,20 @@ router.get('/customers', adminController.getCustomers);
 
 router.get('/customers/map', adminController.getCustomersWithLocations);
 
+router.post(
+  '/customers',
+  [
+    body('name').notEmpty().isLength({ min: 2, max: 100 }).withMessage('Name must be between 2 and 100 characters'),
+    body('phone').notEmpty().matches(/^\+?[1-9]\d{1,14}$/).withMessage('Invalid phone number format'),
+    body('email').optional().isEmail().withMessage('Invalid email format'),
+    body('address').optional().isString(),
+    body('latitude').optional().isDecimal().withMessage('Invalid latitude'),
+    body('longitude').optional().isDecimal().withMessage('Invalid longitude'),
+    validate
+  ],
+  adminController.createCustomer
+);
+
 router.get('/customers/:id', [
   param('id').isUUID().withMessage('Invalid customer ID'),
   validate
@@ -89,6 +103,16 @@ router.get('/areas/:id/customers', [
   validate
 ], adminController.getAreaWithCustomers);
 
+router.put(
+  '/areas/:id/customers',
+  [
+    param('id').isUUID().withMessage('Invalid area ID'),
+    body('customerIds').isArray().withMessage('Customer IDs must be an array'),
+    validate
+  ],
+  adminController.updateAreaCustomers
+);
+
 router.get('/areas', adminController.getAreas);
 
 router.post(
@@ -116,9 +140,19 @@ router.put(
     body('centerLongitude').optional().isDecimal().withMessage('Invalid center longitude'),
     body('mapLink').optional().isString(),
     body('isActive').optional().isBoolean(),
+    body('deliveryBoyId').optional().isUUID().withMessage('Invalid delivery boy ID'),
     validate
   ],
   adminController.updateArea
+);
+
+router.delete(
+  '/areas/:id',
+  [
+    param('id').isUUID().withMessage('Invalid area ID'),
+    validate
+  ],
+  adminController.deleteArea
 );
 
 router.post(
@@ -184,5 +218,24 @@ router.get('/offline-sales/:id', [
 ], adminController.getOfflineSaleById);
 
 router.get('/invoices/admin-daily', adminController.getAdminDailyInvoice);
+
+// Invoice Management Routes
+router.get('/invoices/pending', adminController.getPendingInvoices);
+
+router.get('/invoices/delivery-boy/:deliveryBoyId', [
+  param('deliveryBoyId').isUUID().withMessage('Invalid delivery boy ID'),
+  validate
+], adminController.getDeliveryBoyInvoices);
+
+router.post('/invoices/:id/approve', [
+  param('id').isUUID().withMessage('Invalid invoice ID'),
+  validate
+], adminController.approveInvoice);
+
+router.post('/invoices/:id/reject', [
+  param('id').isUUID().withMessage('Invalid invoice ID'),
+  body('reason').notEmpty().withMessage('Rejection reason is required'),
+  validate
+], adminController.rejectInvoice);
 
 module.exports = router;

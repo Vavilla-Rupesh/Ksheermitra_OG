@@ -88,6 +88,37 @@ const startServer = async () => {
       logger.info('Continuing with existing database schema');
     }
 
+    // Ensure admin user exists on every startup
+    try {
+      const adminPhone = process.env.ADMIN_PHONE || '8374186557';
+      const adminName = process.env.ADMIN_NAME || 'Admin User';
+
+      const existingAdmin = await db.User.findOne({
+        where: { phone: adminPhone }
+      });
+
+      if (!existingAdmin) {
+        await db.User.create({
+          name: adminName,
+          phone: adminPhone,
+          role: 'admin',
+          isActive: true
+        });
+        logger.info(`Admin user created automatically: ${adminPhone}`);
+      } else {
+        // Ensure the existing user has admin role and is active
+        if (existingAdmin.role !== 'admin' || !existingAdmin.isActive) {
+          await existingAdmin.update({ role: 'admin', isActive: true });
+          logger.info(`Admin user role/status restored for: ${adminPhone}`);
+        } else {
+          logger.info(`Admin user verified: ${existingAdmin.name} (${adminPhone})`);
+        }
+      }
+    } catch (adminSeedError) {
+      logger.error('Failed to ensure admin user exists:', adminSeedError.message);
+      logger.warn('Server will continue, but admin login may not work');
+    }
+
     // Initialize WhatsApp with timeout - don't let it block server startup
     const whatsappTimeout = setTimeout(() => {
       logger.warn('WhatsApp initialization timeout - server will continue without WhatsApp');

@@ -134,6 +134,44 @@ class AdminController {
     }
   }
 
+  async createCustomer(req, res, next) {
+    try {
+      const { name, phone, email, address, latitude, longitude } = req.body;
+
+      const existingUser = await db.User.findOne({ where: { phone } });
+
+      if (existingUser) {
+        return res.status(409).json({
+          success: false,
+          message: 'Phone number already registered'
+        });
+      }
+
+      const customer = await db.User.create({
+        name,
+        phone,
+        email,
+        address,
+        latitude,
+        longitude,
+        role: 'customer',
+        isActive: true
+      });
+
+      const customerData = customer.toJSON();
+      delete customerData.passwordHash;
+
+      res.status(201).json({
+        success: true,
+        message: 'Customer created successfully',
+        data: customerData
+      });
+    } catch (error) {
+      logger.error('Error creating customer:', error);
+      next(error);
+    }
+  }
+
   async getDeliveryBoys(req, res, next) {
     try {
       const deliveryBoys = await db.User.findAll({
@@ -144,8 +182,8 @@ class AdminController {
         attributes: { exclude: ['passwordHash'] },
         include: [{
           model: db.Area,
-          as: 'area',
-          foreignKey: 'deliveryBoyId'
+          as: 'assignedArea',
+          attributes: ['id', 'name', 'description', 'centerLatitude', 'centerLongitude']
         }]
       });
 
@@ -445,7 +483,7 @@ class AdminController {
   async updateArea(req, res, next) {
     try {
       const { id } = req.params;
-      const { name, description, boundaries, centerLatitude, centerLongitude, mapLink, isActive } = req.body;
+      const { name, description, boundaries, centerLatitude, centerLongitude, mapLink, isActive, deliveryBoyId } = req.body;
 
       const area = await db.Area.findByPk(id);
 
@@ -467,6 +505,39 @@ class AdminController {
         }
       }
 
+      // If deliveryBoyId is being changed, validate it
+      if (deliveryBoyId !== undefined) {
+        if (deliveryBoyId === null) {
+          // Allow null to unassign
+          // Do nothing, just allow it
+        } else {
+          const deliveryBoy = await db.User.findOne({
+            where: { id: deliveryBoyId, role: 'delivery_boy' }
+          });
+          if (!deliveryBoy) {
+            return res.status(404).json({
+              success: false,
+              message: 'Delivery boy not found'
+            });
+          }
+
+          // Check if delivery boy is already assigned to another area
+          const existingArea = await db.Area.findOne({
+            where: {
+              deliveryBoyId,
+              id: { [db.Sequelize.Op.ne]: id }
+            }
+          });
+
+          if (existingArea) {
+            return res.status(409).json({
+              success: false,
+              message: 'Delivery boy is already assigned to another area'
+            });
+          }
+        }
+      }
+
       await area.update({
         name: name || area.name,
         description: description !== undefined ? description : area.description,
@@ -474,7 +545,8 @@ class AdminController {
         centerLatitude: centerLatitude !== undefined ? centerLatitude : area.centerLatitude,
         centerLongitude: centerLongitude !== undefined ? centerLongitude : area.centerLongitude,
         mapLink: mapLink !== undefined ? mapLink : area.mapLink,
-        isActive: isActive !== undefined ? isActive : area.isActive
+        isActive: isActive !== undefined ? isActive : area.isActive,
+        deliveryBoyId: deliveryBoyId !== undefined ? deliveryBoyId : area.deliveryBoyId
       });
 
       res.status(200).json({
@@ -488,12 +560,55 @@ class AdminController {
     }
   }
 
+  async deleteArea(req, res, next) {
+    try {
+      const { id } = req.params;
+
+      const area = await db.Area.findByPk(id);
+
+      if (!area) {
+        return res.status(404).json({
+          success: false,
+          message: 'Area not found'
+        });
+      }
+
+      // Check if any customers are assigned to this area
+      const customerCount = await db.User.count({
+        where: { areaId: id, role: 'customer' }
+      });
+
+      if (customerCount > 0) {
+        return res.status(409).json({
+          success: false,
+          message: `Cannot delete area with ${customerCount} assigned customer(s). Please reassign or remove customers first.`
+        });
+      }
+
+      // Check if area is assigned to a delivery boy
+      if (area.deliveryBoyId) {
+        // Unassign the delivery boy first
+        await area.update({ deliveryBoyId: null });
+      }
+
+      await area.destroy();
+
+      res.status(200).json({
+        success: true,
+        message: 'Area deleted successfully'
+      });
+    } catch (error) {
+      logger.error('Error deleting area:', error);
+      next(error);
+    }
+  }
+
   async getDailyInvoices(req, res, next) {
     try {
       const { startDate, endDate, deliveryBoyId } = req.query;
 
       const whereClause = {
-        type: 'daily'
+        invoiceType: 'daily'
       };
 
       if (startDate && endDate) {
@@ -531,7 +646,7 @@ class AdminController {
       const { startDate, endDate, customerId } = req.query;
 
       const whereClause = {
-        type: 'monthly'
+        invoiceType: 'monthly'
       };
 
       if (startDate && endDate) {
@@ -672,6 +787,17 @@ class AdminController {
 
       await transaction.commit();
 
+      // Fetch complete assigned area with customers for response
+      const assignedArea = await db.Area.findByPk(areaId, {
+        include: [{
+          model: db.User,
+          as: 'customers',
+          attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude'],
+          where: { isActive: true },
+          required: false
+        }]
+      });
+
       // Send WhatsApp notification to delivery boy
       try {
         const message = `🎯 *Area Assignment*\n\n` +
@@ -693,9 +819,22 @@ class AdminController {
         success: true,
         message: 'Area assigned successfully and notification sent',
         data: {
-          area,
-          deliveryBoy,
-          customerCount
+          area: assignedArea || area,
+          deliveryBoy: {
+            id: deliveryBoy.id,
+            name: deliveryBoy.name,
+            phone: deliveryBoy.phone,
+            email: deliveryBoy.email
+          },
+          customerCount,
+          assignmentDetails: {
+            areaId: areaId,
+            deliveryBoyId: deliveryBoyId,
+            boundaries: boundaries,
+            centerLatitude: centerLatitude,
+            centerLongitude: centerLongitude,
+            mapLink: mapLink
+          }
         }
       });
     } catch (error) {
@@ -719,12 +858,29 @@ class AdminController {
         });
       }
 
-      await area.update({
-        boundaries,
-        centerLatitude,
-        centerLongitude,
-        mapLink
-      });
+      const updates = {};
+
+      // Only update boundaries if provided
+      if (boundaries !== undefined && boundaries !== null) {
+        updates.boundaries = boundaries;
+      }
+
+      // Parse center coordinates as numbers if provided
+      if (centerLatitude !== undefined && centerLatitude !== null) {
+        updates.centerLatitude = parseFloat(centerLatitude);
+      }
+
+      if (centerLongitude !== undefined && centerLongitude !== null) {
+        updates.centerLongitude = parseFloat(centerLongitude);
+      }
+
+      // Update mapLink if provided
+      if (mapLink !== undefined && mapLink !== null) {
+        updates.mapLink = mapLink;
+      }
+
+      // Update area with new boundaries and center
+      await area.update(updates);
 
       res.status(200).json({
         success: true,
@@ -747,12 +903,11 @@ class AdminController {
         include: [
           {
             model: db.Area,
-            as: 'area',
-            foreignKey: 'deliveryBoyId',
+            as: 'assignedArea',
             include: [{
               model: db.User,
               as: 'customers',
-              attributes: ['id', 'name', 'phone', 'address']
+              attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude']
             }]
           }
         ]
@@ -1150,6 +1305,253 @@ class AdminController {
       });
     } catch (error) {
       logger.error('Error getting admin daily invoice:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/admin/invoices/pending
+   * Get all pending invoices for approval
+   */
+  async getPendingInvoices(req, res, next) {
+    try {
+      const invoices = await db.Invoice.findAll({
+        where: { status: 'submitted' },
+        include: [{
+          model: db.User,
+          as: 'deliveryBoy',
+          attributes: ['id', 'name', 'phone']
+        }],
+        order: [['submittedAt', 'ASC']]
+      });
+
+      res.status(200).json({
+        success: true,
+        data: invoices.map(invoice => ({
+          ...invoice.toJSON(),
+          deliveryBoyName: invoice.deliveryBoy?.name,
+          items: invoice.metadata?.deliveries || []
+        }))
+      });
+    } catch (error) {
+      logger.error('Error getting pending invoices:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * GET /api/admin/invoices/delivery-boy/:deliveryBoyId
+   * Get all invoices for a specific delivery boy
+   */
+  async getDeliveryBoyInvoices(req, res, next) {
+    try {
+      const { deliveryBoyId } = req.params;
+      const { status, startDate, endDate } = req.query;
+
+      const where = { deliveryBoyId };
+
+      if (status) {
+        where.status = status;
+      }
+
+      if (startDate && endDate) {
+        where.invoiceDate = {
+          [db.Sequelize.Op.between]: [new Date(startDate), new Date(endDate)]
+        };
+      }
+
+      const invoices = await db.Invoice.findAll({
+        where,
+        include: [{
+          model: db.User,
+          as: 'deliveryBoy',
+          attributes: ['id', 'name', 'phone']
+        }],
+        order: [['invoiceDate', 'DESC']]
+      });
+
+      res.status(200).json({
+        success: true,
+        data: invoices.map(invoice => ({
+          ...invoice.toJSON(),
+          deliveryBoyName: invoice.deliveryBoy?.name,
+          items: invoice.metadata?.deliveries || []
+        }))
+      });
+    } catch (error) {
+      logger.error('Error getting delivery boy invoices:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/admin/invoices/:id/approve
+   * Approve an invoice submission
+   */
+  async approveInvoice(req, res, next) {
+    try {
+      const { id } = req.params;
+      const adminId = req.user.id;
+
+      const invoice = await db.Invoice.findByPk(id);
+
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          message: 'Invoice not found'
+        });
+      }
+
+      if (invoice.status !== 'submitted') {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot approve invoice with status: ${invoice.status}`
+        });
+      }
+
+      await invoice.update({
+        status: 'approved',
+        approvedAt: new Date(),
+        approvedBy: adminId
+      });
+
+      logger.info(`Invoice ${invoice.invoiceNumber} approved by admin ${adminId}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Invoice approved successfully',
+        data: invoice
+      });
+    } catch (error) {
+      logger.error('Error approving invoice:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * POST /api/admin/invoices/:id/reject
+   * Reject an invoice submission
+   */
+  async rejectInvoice(req, res, next) {
+    try {
+      const { id } = req.params;
+      const { reason } = req.body;
+      const adminId = req.user.id;
+
+      const invoice = await db.Invoice.findByPk(id);
+
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          message: 'Invoice not found'
+        });
+      }
+
+      if (invoice.status !== 'submitted') {
+        return res.status(400).json({
+          success: false,
+          message: `Cannot reject invoice with status: ${invoice.status}`
+        });
+      }
+
+      await invoice.update({
+        status: 'rejected',
+        rejectionReason: reason,
+        approvedBy: adminId
+      });
+
+      logger.info(`Invoice ${invoice.invoiceNumber} rejected by admin ${adminId}: ${reason}`);
+
+      res.status(200).json({
+        success: true,
+        message: 'Invoice rejected',
+        data: invoice
+      });
+    } catch (error) {
+      logger.error('Error rejecting invoice:', error);
+      next(error);
+    }
+  }
+
+  /**
+   * PUT /api/admin/areas/:id/customers
+   * Update customers assigned to an area
+   */
+  async updateAreaCustomers(req, res, next) {
+    const transaction = await db.sequelize.transaction();
+
+    try {
+      const { id } = req.params;
+      const { customerIds } = req.body;
+
+      // Validate area exists
+      const area = await db.Area.findByPk(id, { transaction });
+
+      if (!area) {
+        await transaction.rollback();
+        return res.status(404).json({
+          success: false,
+          message: 'Area not found'
+        });
+      }
+
+      // Validate customerIds is an array
+      if (!Array.isArray(customerIds)) {
+        await transaction.rollback();
+        return res.status(400).json({
+          success: false,
+          message: 'customerIds must be an array'
+        });
+      }
+
+      // First, unassign all customers from this area
+      await db.User.update(
+        { areaId: null },
+        {
+          where: { areaId: id, role: 'customer' },
+          transaction
+        }
+      );
+
+      // Then assign selected customers to the area
+      if (customerIds.length > 0) {
+        await db.User.update(
+          { areaId: id },
+          {
+            where: {
+              id: { [db.Sequelize.Op.in]: customerIds },
+              role: 'customer'
+            },
+            transaction
+          }
+        );
+      }
+
+      await transaction.commit();
+
+      // Fetch updated area with customers
+      const updatedArea = await db.Area.findByPk(id, {
+        include: [
+          {
+            model: db.User,
+            as: 'customers',
+            attributes: ['id', 'name', 'phone', 'address'],
+            where: { isActive: true },
+            required: false
+          }
+        ]
+      });
+
+      logger.info(`Updated customers for area ${id}. Assigned: ${customerIds.length}`);
+
+      res.status(200).json({
+        success: true,
+        message: `${customerIds.length} customers assigned to area successfully`,
+        data: updatedArea
+      });
+    } catch (error) {
+      await transaction.rollback();
+      logger.error('Error updating area customers:', error);
       next(error);
     }
   }
