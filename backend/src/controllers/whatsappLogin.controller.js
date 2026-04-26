@@ -4,6 +4,74 @@ const whatsappService = require('../services/whatsapp.service');
 
 class WhatsAppLoginController {
   /**
+   * Admin Login with username and password
+   * POST /api/whatsapp-login/login
+   * Body: { username, password }
+   */
+  async adminLogin(req, res, next) {
+    try {
+      const { username, password } = req.body;
+
+      // Validate input
+      if (!username || !password) {
+        return res.status(400).json({
+          success: false,
+          message: 'Username and password are required'
+        });
+      }
+
+      // Get expected credentials from environment
+      const expectedUsername = process.env.WHATSAPP_ADMIN_USERNAME;
+      const expectedPassword = process.env.WHATSAPP_ADMIN_PASSWORD;
+
+      if (!expectedUsername || !expectedPassword) {
+        logger.error('WHATSAPP_ADMIN_USERNAME or WHATSAPP_ADMIN_PASSWORD not set in environment');
+        return res.status(500).json({
+          success: false,
+          message: 'Server configuration error'
+        });
+      }
+
+      // Validate credentials
+      if (username !== expectedUsername || password !== expectedPassword) {
+        logger.warn(`Failed WhatsApp admin login attempt with username: ${username}`);
+        return res.status(401).json({
+          success: false,
+          message: 'Invalid username or password'
+        });
+      }
+
+      logger.info('WhatsApp admin login successful');
+
+      // Generate QR code
+      const qrResult = await whatsappSessionService.generateQRCode();
+
+      res.status(200).json({
+        success: true,
+        message: 'Login successful. Here is your QR code',
+        data: {
+          qrCode: qrResult.qrCode,
+          sessionId: qrResult.sessionId,
+          expiresIn: qrResult.expiresIn,
+          instructions: [
+            'Open WhatsApp on your phone',
+            'Go to Settings > Linked Devices',
+            'Click "Link a device"',
+            'Scan the QR code shown above',
+            'Confirm on your phone'
+          ]
+        }
+      });
+    } catch (error) {
+      logger.error('Error in admin login:', error);
+      res.status(500).json({
+        success: false,
+        message: error.message || 'Login failed'
+      });
+    }
+  }
+
+  /**
    * Get WhatsApp QR code for admin login
    * POST /api/whatsapp-login/get-qr
    */

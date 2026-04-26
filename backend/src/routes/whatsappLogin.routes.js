@@ -5,8 +5,13 @@ const { basicAuthWhatsApp } = require('../middleware/whatsapp-auth.middleware');
 
 /**
  * WhatsApp Admin QR Code Login Routes
- * These routes use Basic Authentication (username:password in Authorization header)
+ * Two authentication methods:
+ * 1. POST /api/whatsapp-login/login - Username/password in request body
+ * 2. Other routes - Basic Authentication (username:password in Authorization header)
  */
+
+// Login with username and password (returns QR code on success)
+router.post('/login', whatsappLoginController.adminLogin);
 
 // Get QR code for WhatsApp login
 router.post('/get-qr', basicAuthWhatsApp, whatsappLoginController.getQRCode);
