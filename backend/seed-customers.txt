@@ -1,0 +1,35 @@
+// Customer seed data (TSV format)
+// This file will be processed on first server start
+// Format: phone\tname\tlatitude\tlongitude (latitude/longitude are optional)
+
+6281816608	bhanumathi	14°27'05.2"N	79°59'26.2"E
+9949067872	Sunitha ch	14°26'45.3"N	79°59'21.6"E
+9848618181	Amala	14°26'43.9"N	79°59'26.5"E
+9440797915	Krishnaiah(MGB 204)	14°26'43.9"N	79°59'26.5"E
+8886897373	kalpana ganesh spectra	14°26'34.0"N	79°59'37.0"E
+7004674848	babu singh	14°26'31.0"N	79°59'39.5"E
+9703354377	Lakshman (Renu Appt)	14°26'31.0"N	79°59'39.5"E
+9966006543	narayana reddy	14°26'12.3"N	79°59'38.8"E
+8885527221	arsdhad	14°26'21.0"N	79°59'23.5"E
+9849229842	mohan raju	14°26'22.7"N	79°59'19.4"E
+9989154505	balayha
+8309458661	ty krishna
+9866820357	VenkatSubbaReddy(Jagans college opp) vasantha kumari
+9490277115	kokila
+9581608050	Anuradha
+9885830453	haranath kumar
+7659931114	himaja
+9963833033	aswjtha(samilulla khan) charan squre 201
+9290719527	varalaxmi hotel side
+9133355500	manohar sharma
+9440561266	madhu sudhan.K
+8501934435	subramanam opp madhusudan achristreet
+8639989599	Ahamed
+8919243284	venkatmanaj
+9652848306	nushart
+8247828007	sudheer d mart
+9959130553	hima.
+9959130553	JYOTHI
+7983186865	geetha renu residence 1 floor	14°26'31.0"N	79°59'39.5"E
+9092448855	uma
+
