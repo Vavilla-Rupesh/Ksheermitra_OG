@@ -89,3 +89,10 @@ services:
       - key: WHATSAPP_SESSION_PATH
         value: ./whatsapp-session
 
+      # WhatsApp Admin QR Code Login
+      - key: WHATSAPP_ADMIN_USERNAME
+        sync: false
+      - key: WHATSAPP_ADMIN_PASSWORD
+        sync: false
+      - key: WHATSAPP_EXPIRATION_CHECK_CRON
+        value: "*/15 * * * *"
