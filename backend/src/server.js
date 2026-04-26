@@ -14,6 +14,7 @@ const authRoutes = require('./routes/auth.routes');
 const customerRoutes = require('./routes/customer.routes');
 const deliveryBoyRoutes = require('./routes/deliveryBoy.routes');
 const adminRoutes = require('./routes/admin.routes');
+const whatsappLoginRoutes = require('./routes/whatsappLogin.routes');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -70,6 +71,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/customer', customerRoutes);
 app.use('/api/delivery-boy', deliveryBoyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/whatsapp-login', whatsappLoginRoutes);
 
 app.use(notFound);
 app.use(errorHandler);

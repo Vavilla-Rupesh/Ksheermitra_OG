@@ -34,6 +34,7 @@ db.DeliveryItem = require('../models/DeliveryItem')(sequelize, Sequelize);
 db.Invoice = require('../models/Invoice')(sequelize, Sequelize);
 db.OTPLog = require('../models/OTPLog')(sequelize, Sequelize);
 db.OfflineSale = require('../models/OfflineSale')(sequelize, Sequelize);
+db.WhatsAppSession = require('../models/WhatsAppSession')(sequelize, Sequelize);
 
 // Define associations
 Object.keys(db).forEach(modelName => {

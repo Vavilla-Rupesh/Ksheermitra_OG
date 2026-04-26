@@ -1,6 +1,8 @@
 const cron = require('node-cron');
 const invoiceService = require('./invoice.service');
 const monthlyBreakoutService = require('./monthlyBreakout.service');
+const whatsappSessionService = require('./whatsappSession.service');
+const whatsappService = require('./whatsapp.service');
 const db = require('../config/db');
 const logger = require('../utils/logger');
 const moment = require('moment');
@@ -10,6 +12,7 @@ class CronService {
     this.setupMonthlyInvoiceCron();
     this.setupMonthlyBreakoutCron();
     this.setupDeliveryCleanupCron();
+    this.setupWhatsAppSessionExpirationCron();
     logger.info('Cron jobs initialized');
   }
 
@@ -100,6 +103,63 @@ class CronService {
     });
 
     logger.info(`Delivery cleanup cron job scheduled: ${cronExpression}`);
+  }
+
+  /**
+   * Check WhatsApp session expiration and notify admin
+   * Runs every 15 minutes
+   */
+  setupWhatsAppSessionExpirationCron() {
+    const cronExpression = process.env.WHATSAPP_EXPIRATION_CHECK_CRON || '*/15 * * * *';
+
+    cron.schedule(cronExpression, async () => {
+      try {
+        logger.info('Checking WhatsApp session expiration');
+
+        // Check if session is about to expire
+        const expirationInfo = await whatsappSessionService.checkSessionExpiration();
+
+        if (expirationInfo && expirationInfo.shouldNotify) {
+          logger.warn(`WhatsApp session will expire in ${expirationInfo.minutesUntilExpiry} minutes`);
+
+          // Get admin user to send notification
+          const admin = await db.User.findOne({
+            where: { role: 'admin' },
+            order: [['createdAt', 'ASC']],
+            limit: 1
+          });
+
+          if (admin) {
+            const messageText = `⚠️ *WhatsApp Session Alert*\n\n` +
+              `Your WhatsApp session will expire in approximately ${expirationInfo.minutesUntilExpiry} minutes.\n\n` +
+              `Please visit the admin panel and scan a new QR code to maintain connection.\n\n` +
+              `*Important:* Your deliveries may be affected if the session expires.\n\n` +
+              `Contact your system administrator if you need assistance.`;
+
+            try {
+              // Send WhatsApp notification
+              await whatsappService.sendMessage(admin.phone, messageText);
+              logger.info(`WhatsApp expiration notification sent to admin ${admin.phone}`);
+
+              // Mark notification as sent
+              await whatsappSessionService.markExpirationNotificationSent();
+            } catch (whatsappError) {
+              logger.warn(`Failed to send WhatsApp notification: ${whatsappError.message}`);
+              // Continue - don't fail the cron job if WhatsApp fails
+            }
+
+            // Also create an in-app notification in the future (when you add notification module)
+            logger.info(`WhatsApp expiration notification logged for admin: ${admin.id}`);
+          }
+        }
+      } catch (error) {
+        logger.error('Error in WhatsApp session expiration cron job:', error);
+      }
+    }, {
+      timezone: 'Asia/Kolkata'
+    });
+
+    logger.info(`WhatsApp session expiration check scheduled: ${cronExpression}`);
   }
 
   /**
