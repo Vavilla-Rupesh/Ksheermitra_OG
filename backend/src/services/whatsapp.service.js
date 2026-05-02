@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const WhatsAppTemplates = require('../templates/whatsapp-templates');
 
+// Import authentication middleware or service
+const authMiddleware = require('../middleware/auth.middleware');
+
 class WhatsAppService {
   constructor() {
     this.sock = null;
@@ -20,6 +23,8 @@ class WhatsAppService {
     this.baileys = null; // Will hold the dynamically imported module
     this.lastQrTime = 0;
     this.connectionState = 'disconnected'; // Track connection state
+    this.latestQrCode = null; // Store the latest QR code
+    this.hasAuthenticatedOnce = false; // Track if user has authenticated
   }
 
   // Helper to wait/delay
@@ -66,7 +71,13 @@ class WhatsAppService {
     return false;
   }
 
-  async initialize(clearSessionFirst = false) {
+  async initialize(clearSessionFirst = false, isLoggedIn = false) {
+    // Allow initialization if user is logged in OR if they've authenticated before (for reconnects)
+    if (!isLoggedIn && !this.hasAuthenticatedOnce) {
+      logger.warn('User is not logged in. QR code generation is restricted.');
+      return false;
+    }
+
     if (this.isInitializing) {
       logger.warn('WhatsApp initialization already in progress, skipping...');
       return false;
@@ -158,12 +169,12 @@ class WhatsAppService {
           this.qrRetries++;
           logger.info('');
           logger.info('='.repeat(60));
-          logger.info(`WhatsApp QR Code (${this.qrRetries}/${this.maxQrRetries}) - Scan with your phone:`);
-          logger.info('='.repeat(60));
-          qrcode.generate(qr, { small: true });
-          logger.info('');
+          logger.info(`WhatsApp QR Code (${this.qrRetries}/${this.maxQrRetries}) generated`);
+          logger.info('Scan the QR code on the web interface: /api/auth/login');
           logger.info('On your phone: WhatsApp > Linked Devices > Link a Device');
           logger.info('='.repeat(60));
+
+          this.latestQrCode = qr; // Store the QR code
 
           if (this.qrRetries >= this.maxQrRetries) {
             logger.error(`QR code generated ${this.qrRetries} times without successful scan!`);
@@ -189,6 +200,7 @@ class WhatsAppService {
           this.reconnectAttempts = 0;
           this.qrRetries = 0;
           this.connectionState = 'open';
+          this.hasAuthenticatedOnce = true; // Mark as authenticated
           logger.info('✅ WhatsApp connected successfully!');
           logger.info('Session saved. No need to scan QR code again on restart.');
 
@@ -214,18 +226,19 @@ class WhatsAppService {
             await this.clearSession();
             this.reconnectAttempts = 0;
             this.isInitializing = false;
+            this.hasAuthenticatedOnce = false; // Reset authentication on logout
 
             // Wait 5 seconds then try to reconnect with fresh session
             logger.info('Waiting 5 seconds before requesting new QR code...');
             await this.delay(5000);
             this.isInitializing = false;
-            await this.initialize(true);
+            await this.initialize(true, false); // Will prompt for QR code on next login
 
           } else if (statusCode === DisconnectReason.restartRequired) {
             logger.info('WhatsApp requires restart - reconnecting...');
             this.isInitializing = false;
             await this.delay(2000);
-            await this.initialize(false);
+            await this.initialize(false, true);
 
           } else if (statusCode === DisconnectReason.timedOut) {
             logger.warn('Connection timed out - reconnecting...');
@@ -233,7 +246,7 @@ class WhatsAppService {
               this.reconnectAttempts++;
               await this.delay(3000);
               this.isInitializing = false;
-              await this.initialize(false);
+              await this.initialize(false, true);
             } else {
               logger.error('Max reconnection attempts reached due to timeout');
               this.isInitializing = false;
@@ -246,7 +259,7 @@ class WhatsAppService {
               logger.info(`Reconnecting in ${delayTime/1000}s (attempt ${this.reconnectAttempts}/${this.maxReconnectAttempts})...`);
               await this.delay(delayTime);
               this.isInitializing = false;
-              await this.initialize(false);
+              await this.initialize(false, true);
             } else {
               logger.error('Max reconnection attempts reached');
               logger.info('Please restart the server to reconnect');
@@ -530,6 +543,7 @@ class WhatsAppService {
       this.sock = null;
       this.isReady = false;
       this.isInitializing = false;
+      this.hasAuthenticatedOnce = false; // Reset on disconnect
     }
   }
 
@@ -539,7 +553,8 @@ class WhatsAppService {
     await this.clearSession();
     this.reconnectAttempts = 0;
     this.qrRetries = 0;
-    return await this.initialize(false);
+    this.hasAuthenticatedOnce = false; // Reset authentication flag
+    return await this.initialize(false, false);
   }
 
   getStatus() {
@@ -551,6 +566,10 @@ class WhatsAppService {
       reconnectAttempts: this.reconnectAttempts,
       maxReconnectAttempts: this.maxReconnectAttempts
     };
+  }
+
+  getLatestQrCode() {
+    return this.latestQrCode; // Provide the latest QR code
   }
 }
 

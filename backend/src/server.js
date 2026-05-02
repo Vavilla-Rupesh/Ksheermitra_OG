@@ -99,22 +99,9 @@ const startServer = async () => {
       logger.warn('Server will continue, but initialization may be incomplete');
     }
 
-    // Initialize WhatsApp with timeout - don't let it block server startup
-    const whatsappTimeout = setTimeout(() => {
-      logger.warn('WhatsApp initialization timeout - server will continue without WhatsApp');
-    }, 30000); // 30 second timeout for WhatsApp init
-
-    whatsappService.initialize()
-      .then(() => {
-        clearTimeout(whatsappTimeout);
-        logger.info('WhatsApp service initialized successfully');
-      })
-      .catch(error => {
-        clearTimeout(whatsappTimeout);
-        logger.error('WhatsApp service initialization failed:', error);
-        logger.warn('Server will continue without WhatsApp functionality');
-        logger.info('OTPs will still be stored in database for manual verification');
-      });
+    // WhatsApp will be initialized when admin user logs in via /api/auth/login
+    logger.info('WhatsApp service ready. Will be initialized on admin login.');
+    logger.info('Navigate to /api/auth/login to scan QR code.');
 
     cronService.start();
 

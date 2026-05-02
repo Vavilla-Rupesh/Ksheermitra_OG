@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>WhatsApp Admin Login</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      padding: 20px;
+    }
+
+    .container {
+      background: white;
+      border-radius: 12px;
+      box-shadow: 0 15px 35px rgba(0, 0, 0, 0.2);
+      overflow: hidden;
+      max-width: 900px;
+      width: 100%;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+    }
+
+    .login-section {
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .qr-section {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      padding: 40px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+    }
+
+    .form-container {
+      display: none;
+    }
+
+    .form-container.active {
+      display: block;
+    }
+
+    .qr-display {
+      display: none;
+      text-align: center;
+    }
+
+    .qr-display.active {
+      display: block;
+    }
+
+    h1 {
+      color: #333;
+      margin-bottom: 10px;
+      font-size: 28px;
+    }
+
+    .subtitle {
+      color: #999;
+      margin-bottom: 30px;
+      font-size: 14px;
+    }
+
+    .form-group {
+      margin-bottom: 20px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 8px;
+      color: #333;
+      font-weight: 500;
+      font-size: 14px;
+    }
+
+    input {
+      width: 100%;
+      padding: 12px;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-size: 14px;
+      transition: all 0.3s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: #667eea;
+      box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+    }
+
+    button {
+      width: 100%;
+      padding: 12px;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 6px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+
+    button:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+    }
+
+    button:active {
+      transform: translateY(0);
+    }
+
+    .error-message {
+      color: #e74c3c;
+      margin-top: 10px;
+      padding: 10px;
+      background: #fadbd8;
+      border-radius: 6px;
+      display: none;
+      font-size: 13px;
+    }
+
+    .error-message.show {
+      display: block;
+    }
+
+    .success-message {
+      color: #27ae60;
+      margin-bottom: 20px;
+      padding: 10px;
+      background: #d5f4e6;
+      border-radius: 6px;
+      display: none;
+      font-size: 13px;
+    }
+
+    .success-message.show {
+      display: block;
+    }
+
+    .qr-section h2 {
+      font-size: 24px;
+      margin-bottom: 20px;
+    }
+
+    .qr-code-img {
+      background: white;
+      padding: 20px;
+      border-radius: 10px;
+      max-width: 280px;
+      margin: 20px 0;
+    }
+
+    .qr-code-img img {
+      width: 100%;
+      height: auto;
+    }
+
+    .qr-instructions {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-top: 20px;
+      text-align: left;
+      background: rgba(255, 255, 255, 0.1);
+      padding: 15px;
+      border-radius: 6px;
+    }
+
+    .spinner {
+      border: 3px solid rgba(255, 255, 255, 0.3);
+      border-top: 3px solid white;
+      border-radius: 50%;
+      width: 40px;
+      height: 40px;
+      animation: spin 1s linear infinite;
+      margin: 20px auto;
+    }
+
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+
+    .logout-btn {
+      background: white;
+      color: #667eea;
+      font-weight: 600;
+      margin-top: 20px;
+      padding: 10px;
+      font-size: 14px;
+    }
+
+    .logout-btn:hover {
+      background: #f5f5f5;
+    }
+
+    @media (max-width: 768px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      .qr-section {
+        grid-row: 1;
+      }
+
+      .login-section {
+        grid-row: 2;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="login-section">
+      <div class="form-container active">
+        <h1>🔐 Admin Login</h1>
+        <p class="subtitle">Enter your credentials to access WhatsApp Management</p>
+
+        <div class="success-message" id="successMsg">✓ Login successful! Generating QR code...</div>
+        <div class="error-message" id="errorMsg"></div>
+
+        <form id="loginForm">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input
+              type="text"
+              id="username"
+              name="username"
+              placeholder="Enter username"
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input
+              type="password"
+              id="password"
+              name="password"
+              placeholder="Enter password"
+              required
+              autocomplete="off"
+            >
+          </div>
+
+          <button type="submit">Login</button>
+        </form>
+      </div>
+
+      <div class="qr-display" id="qrDisplay">
+        <h1>✅ Successfully Logged In</h1>
+        <p class="subtitle">Scan the QR code with your phone</p>
+      </div>
+    </div>
+
+    <div class="qr-section" id="qrSection">
+      <h2>WhatsApp QR Code</h2>
+      <div class="qr-code-img" id="qrCodeContainer">
+        <div class="spinner" id="spinner"></div>
+        <p style="margin-top: 10px; font-size: 13px;">Generating QR code...</p>
+      </div>
+      <div class="qr-instructions">
+        <strong>📱 How to link your device:</strong>
+        <br>
+        1. Open WhatsApp on your phone<br>
+        2. Go to Settings → Linked Devices<br>
+        3. Tap Link a Device<br>
+        4. Point your phone at this QR code<br>
+        5. Your device will be linked automatically
+      </div>
+      <button class="logout-btn" id="logoutBtn" style="display: none;">← Go Back</button>
+    </div>
+  </div>
+
+  <script>
+    const loginForm = document.getElementById('loginForm');
+    const formContainer = document.querySelector('.form-container');
+    const qrDisplay = document.getElementById('qrDisplay');
+    const qrSection = document.getElementById('qrSection');
+    const qrCodeContainer = document.getElementById('qrCodeContainer');
+    const spinner = document.getElementById('spinner');
+    const errorMsg = document.getElementById('errorMsg');
+    const successMsg = document.getElementById('successMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    loginForm.addEventListener('submit', async (e) => {
+      e.preventDefault();
+      errorMsg.classList.remove('show');
+      errorMsg.textContent = '';
+
+      const username = document.getElementById('username').value;
+      const password = document.getElementById('password').value;
+
+      try {
+        successMsg.classList.add('show');
+        const response = await fetch('/api/auth/login', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ username, password })
+        });
+
+        const data = await response.json();
+
+        if (response.ok && data.success && data.qrCode) {
+          // Hide login form, show QR display
+          formContainer.classList.remove('active');
+          qrDisplay.classList.add('active');
+          logoutBtn.style.display = 'block';
+
+          // Display the QR code
+          spinner.style.display = 'none';
+          const qrImg = document.createElement('img');
+          qrImg.src = data.qrCode;
+          qrImg.alt = 'WhatsApp QR Code';
+          qrCodeContainer.innerHTML = '';
+          qrCodeContainer.appendChild(qrImg);
+        } else if (response.status === 503 && data.retryAfter) {
+          // QR code still generating, retry after delay
+          successMsg.classList.remove('show');
+          errorMsg.classList.add('show');
+          errorMsg.textContent = '⏳ QR code is being generated... Retrying in ' + data.retryAfter + ' seconds...';
+
+          // Auto-retry after specified delay
+          setTimeout(() => {
+            loginForm.dispatchEvent(new Event('submit'));
+          }, (data.retryAfter || 5) * 1000);
+        } else {
+          throw new Error(data.message || 'Failed to process login');
+        }
+      } catch (error) {
+        successMsg.classList.remove('show');
+        errorMsg.classList.add('show');
+        errorMsg.textContent = '❌ ' + (error.message || 'Login failed. Please try again.');
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      // Reset form and go back to login
+      loginForm.reset();
+      formContainer.classList.add('active');
+      qrDisplay.classList.remove('active');
+      logoutBtn.style.display = 'none';
+      qrCodeContainer.innerHTML = '<div class="spinner" id="spinner"></div><p style="margin-top: 10px; font-size: 13px;">Generating QR code...</p>';
+      successMsg.classList.remove('show');
+      errorMsg.classList.remove('show');
+      document.getElementById('username').focus();
+    });
+  </script>
+</body>
+</html>

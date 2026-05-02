@@ -3,6 +3,7 @@ const router = express.Router();
 const { body } = require('express-validator');
 const authController = require('../controllers/auth.controller');
 const validate = require('../middleware/validate.middleware');
+const whatsappService = require('../services/whatsapp.service');
 
 router.post(
   '/send-otp',
@@ -85,5 +86,15 @@ router.post(
 );
 
 router.post('/logout', authController.logout);
+router.get('/login', authController.serveLoginPage);
+router.post('/login', authController.handleLogin);
+router.get('/whatsapp-qr', (req, res) => {
+  const qrCode = whatsappService.getLatestQrCode();
+  if (qrCode) {
+    res.status(200).json({ qrCode });
+  } else {
+    res.status(404).json({ message: 'QR code not available. Please try again later.' });
+  }
+});
 
 module.exports = router;
