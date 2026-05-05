@@ -138,116 +138,106 @@ class _AreaFormScreenState extends State<AreaFormScreen> {
     );
   }
 
-  Future<void> _submitForm() async {
-    if (!_formKey.currentState!.validate()) {
-      return;
-    }
+   Future<void> _submitForm() async {
+     if (!_formKey.currentState!.validate()) {
+       return;
+     }
 
-    setState(() {
-      _isSubmitting = true;
-    });
+     // Prevent double submission
+     if (_isSubmitting) {
+       return;
+     }
 
-    final provider = context.read<AreaProvider>();
-    final name = _nameController.text.trim();
-    final description = _descriptionController.text.trim();
+     setState(() {
+       _isSubmitting = true;
+     });
 
-    bool success;
-    if (widget.area == null) {
-      success = await provider.createArea(
-        name: name,
-        description: description.isNotEmpty ? description : null,
-        deliveryBoyId: _selectedDeliveryBoyId,
-      );
-    } else {
-      // For editing existing area
-      if (_selectedDeliveryBoyId != null &&
-          _selectedDeliveryBoyId != widget.area!.deliveryBoyId) {
-        // If delivery boy assignment changed, use assignAreaWithMap
-        success = await provider.assignAreaWithMap(
-          areaId: widget.area!.id,
-          deliveryBoyId: _selectedDeliveryBoyId!,
-          boundaries: widget.area!.boundaries,
-          centerLatitude: widget.area!.centerLatitude,
-          centerLongitude: widget.area!.centerLongitude,
-          mapLink: widget.area!.mapLink,
-        );
+     final provider = context.read<AreaProvider>();
+     final name = _nameController.text.trim();
+     final description = _descriptionController.text.trim();
 
-        // Also update area name and description if changed
-        if (success && (name != widget.area!.name ||
-            description != (widget.area!.description ?? ''))) {
-          success = await provider.updateArea(
-            id: widget.area!.id,
-            name: name,
-            description: description.isNotEmpty ? description : null,
-          );
-        }
-      } else {
-        // Just update area details (name, description, deliveryBoyId)
-        success = await provider.updateArea(
-          id: widget.area!.id,
-          name: name,
-          description: description.isNotEmpty ? description : null,
-          deliveryBoyId: _selectedDeliveryBoyId,
-        );
-      }
-    }
+     bool success;
+     try {
+       if (widget.area == null) {
+         success = await provider.createArea(
+           name: name,
+           description: description.isNotEmpty ? description : null,
+           deliveryBoyId: _selectedDeliveryBoyId,
+         );
+       } else {
+         // For editing existing area - updateArea handles delivery boy assignment
+         success = await provider.updateArea(
+           id: widget.area!.id,
+           name: name,
+           description: description.isNotEmpty ? description : null,
+           deliveryBoyId: _selectedDeliveryBoyId,
+         );
+       }
+     } catch (e) {
+       success = false;
+     }
 
-    setState(() {
-      _isSubmitting = false;
-    });
+     setState(() {
+       _isSubmitting = false;
+     });
 
-    if (mounted) {
-      if (success) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              widget.area == null
-                  ? 'Area added successfully'
-                  : 'Area updated successfully',
-            ),
-            backgroundColor: Colors.green,
-          ),
-        );
-        Navigator.pop(context, true);
-      } else {
-        // Show error dialog with retry option for network errors
-        final error = provider.error ?? 'Failed to save area';
-        final isNetworkError = error.contains('Connection') ||
-                              error.contains('Network') ||
-                              error.contains('timeout');
+     if (mounted) {
+       if (success) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(
+             content: Text(
+               widget.area == null
+                   ? 'Area added successfully'
+                   : 'Area updated successfully',
+             ),
+             backgroundColor: Colors.green,
+             duration: const Duration(seconds: 2),
+           ),
+         );
+         // Brief delay to ensure UI renders before pop
+         await Future.delayed(const Duration(milliseconds: 300));
+         if (mounted) {
+           Navigator.pop(context, true);
+         }
+       } else {
+         // Show error dialog with retry option for network errors
+         final error = provider.error ?? 'Failed to save area';
+         final isNetworkError = error.contains('Connection') ||
+                               error.contains('Network') ||
+                               error.contains('timeout');
 
-        if (mounted) {
-          showDialog(
-            context: context,
-            barrierDismissible: !isNetworkError, // Allow dismiss if not network error
-            builder: (context) => AlertDialog(
-              title: const Text('Error'),
-              content: Text(error),
-              actions: [
-                if (!isNetworkError)
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('OK'),
-                  ),
-                if (isNetworkError) ...[
-                  TextButton(
-                    onPressed: () => Navigator.pop(context),
-                    child: const Text('Cancel'),
-                  ),
-                  ElevatedButton.icon(
-                    onPressed: () {
-                      Navigator.pop(context);
-                      _submitForm(); // Retry
-                    },
-                    icon: const Icon(Icons.refresh),
-                    label: const Text('Retry'),
-                  ),
-                ],
-              ],
-            ),
-          );
-        }
-      }
-    }
-  }
+         if (mounted) {
+           showDialog(
+             context: context,
+             barrierDismissible: !isNetworkError,
+             builder: (context) => AlertDialog(
+               title: const Text('Error'),
+               content: Text(error),
+               actions: [
+                 if (!isNetworkError)
+                   TextButton(
+                     onPressed: () => Navigator.pop(context),
+                     child: const Text('OK'),
+                   ),
+                 if (isNetworkError) ...[
+                   TextButton(
+                     onPressed: () => Navigator.pop(context),
+                     child: const Text('Cancel'),
+                   ),
+                   ElevatedButton.icon(
+                     onPressed: () {
+                       Navigator.pop(context);
+                       _submitForm(); // Retry
+                     },
+                     icon: const Icon(Icons.refresh),
+                     label: const Text('Retry'),
+                   ),
+                 ],
+               ],
+             ),
+           );
+         }
+       }
+     }
+   }
 }

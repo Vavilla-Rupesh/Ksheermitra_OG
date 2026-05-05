@@ -538,7 +538,8 @@ class AdminController {
         }
       }
 
-      await area.update({
+      // Prepare update data
+      const updateData = {
         name: name || area.name,
         description: description !== undefined ? description : area.description,
         boundaries: boundaries || area.boundaries,
@@ -547,12 +548,24 @@ class AdminController {
         mapLink: mapLink !== undefined ? mapLink : area.mapLink,
         isActive: isActive !== undefined ? isActive : area.isActive,
         deliveryBoyId: deliveryBoyId !== undefined ? deliveryBoyId : area.deliveryBoyId
+      };
+
+      await area.update(updateData);
+
+      // Fetch updated area with delivery boy info for response
+      const updatedArea = await db.Area.findByPk(id, {
+        include: [{
+          model: db.User,
+          as: 'deliveryBoy',
+          attributes: ['id', 'name', 'phone', 'email']
+        }],
+        attributes: ['id', 'name', 'description', 'boundaries', 'centerLatitude', 'centerLongitude', 'mapLink', 'deliveryBoyId', 'isActive', 'customerCount', 'createdAt', 'updatedAt']
       });
 
       res.status(200).json({
         success: true,
         message: 'Area updated successfully',
-        data: area
+        data: updatedArea || area
       });
     } catch (error) {
       logger.error('Error updating area:', error);
@@ -787,18 +800,17 @@ class AdminController {
 
       await transaction.commit();
 
-      // Fetch complete assigned area with customers for response
-      const assignedArea = await db.Area.findByPk(areaId, {
+      // Return updated area immediately (don't wait for WhatsApp)
+      const updatedArea = await db.Area.findByPk(areaId, {
         include: [{
           model: db.User,
-          as: 'customers',
-          attributes: ['id', 'name', 'phone', 'address', 'latitude', 'longitude'],
-          where: { isActive: true },
-          required: false
-        }]
+          as: 'deliveryBoy',
+          attributes: ['id', 'name', 'phone', 'email']
+        }],
+        attributes: ['id', 'name', 'description', 'boundaries', 'centerLatitude', 'centerLongitude', 'mapLink', 'deliveryBoyId', 'isActive', 'customerCount', 'createdAt', 'updatedAt']
       });
 
-      // Send WhatsApp notification to delivery boy
+      // Send WhatsApp notification to delivery boy (fire-and-forget, don't block response)
       try {
         const message = `🎯 *Area Assignment*\n\n` +
           `Hello ${deliveryBoy.name}!\n\n` +
@@ -808,18 +820,20 @@ class AdminController {
           `You can now view your assigned deliveries in the app.\n\n` +
           `For support, contact admin.`;
 
-        await whatsappService.sendMessage(deliveryBoy.phone, message);
-        logger.info(`WhatsApp notification sent to delivery boy ${deliveryBoyId} for area assignment`);
+        // Fire-and-forget WhatsApp notification (don't await)
+        whatsappService.sendMessage(deliveryBoy.phone, message)
+          .then(() => logger.info(`WhatsApp notification sent to delivery boy ${deliveryBoyId} for area assignment`))
+          .catch(err => logger.error('Error sending WhatsApp notification:', err.message || err));
       } catch (whatsappError) {
-        logger.error('Error sending WhatsApp notification:', whatsappError);
+        logger.error('WhatsApp notification setup error:', whatsappError);
         // Don't fail the request if WhatsApp fails
       }
 
       res.status(200).json({
         success: true,
-        message: 'Area assigned successfully and notification sent',
+        message: 'Area assigned successfully',
         data: {
-          area: assignedArea || area,
+          area: updatedArea || area,
           deliveryBoy: {
             id: deliveryBoy.id,
             name: deliveryBoy.name,

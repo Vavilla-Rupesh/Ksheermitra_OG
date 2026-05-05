@@ -257,8 +257,17 @@ class AdminApiService {
       if (mapLink != null) 'mapLink': mapLink,
     };
 
-    final response = await _apiService.post('/admin/assign-area-with-map', body);
-    return Area.fromJson(response['data']['area']);
+    try {
+      final response = await _apiService.post('/admin/assign-area-with-map', body);
+      // Handle both response formats for backwards compatibility
+      final areaData = response['data']['area'] != null 
+        ? response['data']['area']
+        : response['data'];
+      return Area.fromJson(areaData);
+    } catch (e) {
+      debugPrint('Error in assignAreaWithMap: $e');
+      rethrow;
+    }
   }
 
   // Product Management

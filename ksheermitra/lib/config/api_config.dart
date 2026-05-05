@@ -1,7 +1,7 @@
 class ApiConfig {
   // API endpoints
 
-  static const String baseUrl = 'https://mold-viewpoint-sank.ngrok-free.dev/api';
+  static const String baseUrl = 'https://ksheermitra-backend-w5cc.onrender.com/api';
   static const String authEndpoint = '/auth';
   static const String adminEndpoint = '/admin';
   static const String customerEndpoint = '/customer';
