@@ -4,8 +4,6 @@ const path = require('path');
 const fs = require('fs');
 const WhatsAppTemplates = require('../templates/whatsapp-templates');
 
-// Import authentication middleware or service
-const authMiddleware = require('../middleware/auth.middleware');
 
 class WhatsAppService {
   constructor() {
