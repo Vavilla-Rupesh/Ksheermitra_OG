@@ -168,12 +168,12 @@ class AuthService {
     try {
       const { phone, name, email, address, latitude, longitude } = userData;
 
-      // Verify OTP first
+      // Verify OTP first - check for OTP that has been verified
       const otpLog = await db.OTPLog.findOne({
         where: {
           phone,
           otp,
-          isVerified: false,
+          isVerified: true,
           expiresAt: {
             [db.Sequelize.Op.gt]: new Date()
           }

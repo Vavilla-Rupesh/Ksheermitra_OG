@@ -5,6 +5,7 @@ import 'package:geocoding/geocoding.dart';
 import 'package:pinput/pinput.dart';
 import '../../providers/auth_provider.dart';
 import '../../config/theme.dart';
+import '../common/location_picker_screen.dart';
 
 class SignupScreen extends StatefulWidget {
   final String phone;
@@ -122,98 +123,123 @@ class _SignupScreenState extends State<SignupScreen> {
     }
   }
 
-  Future<void> _getCurrentLocation() async {
-    setState(() {
-      _isLoadingLocation = true;
-    });
+   Future<void> _getCurrentLocation() async {
+     setState(() {
+       _isLoadingLocation = true;
+     });
 
-    try {
-      // Check location permission
-      LocationPermission permission = await Geolocator.checkPermission();
-      if (permission == LocationPermission.denied) {
-        permission = await Geolocator.requestPermission();
-        if (permission == LocationPermission.denied) {
-          if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Location permission denied')),
-            );
-          }
-          setState(() {
-            _isLoadingLocation = false;
-          });
-          return;
-        }
-      }
+     try {
+       // Check location permission
+       LocationPermission permission = await Geolocator.checkPermission();
+       if (permission == LocationPermission.denied) {
+         permission = await Geolocator.requestPermission();
+         if (permission == LocationPermission.denied) {
+           if (mounted) {
+             ScaffoldMessenger.of(context).showSnackBar(
+               const SnackBar(content: Text('Location permission denied')),
+             );
+           }
+           setState(() {
+             _isLoadingLocation = false;
+           });
+           return;
+         }
+       }
 
-      if (permission == LocationPermission.deniedForever) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Location permission permanently denied. Please enable in settings.'),
-            ),
-          );
-        }
-        setState(() {
-          _isLoadingLocation = false;
-        });
-        return;
-      }
+       if (permission == LocationPermission.deniedForever) {
+         if (mounted) {
+           ScaffoldMessenger.of(context).showSnackBar(
+             const SnackBar(
+               content: Text('Location permission permanently denied. Please enable in settings.'),
+             ),
+           );
+         }
+         setState(() {
+           _isLoadingLocation = false;
+         });
+         return;
+       }
 
-      // Get current position
-      Position position = await Geolocator.getCurrentPosition(
-        desiredAccuracy: LocationAccuracy.high,
-      );
+       // Get current position
+       Position position = await Geolocator.getCurrentPosition(
+         desiredAccuracy: LocationAccuracy.high,
+       );
 
-      _latitude = position.latitude;
-      _longitude = position.longitude;
+       _latitude = position.latitude;
+       _longitude = position.longitude;
 
-      // Get address from coordinates
-      try {
-        List<Placemark> placemarks = await placemarkFromCoordinates(
-          position.latitude,
-          position.longitude,
-        );
+       // Get address from coordinates
+       try {
+         List<Placemark> placemarks = await placemarkFromCoordinates(
+           position.latitude,
+           position.longitude,
+         );
 
-        if (placemarks.isNotEmpty) {
-          Placemark place = placemarks[0];
-          String address = '';
+         if (placemarks.isNotEmpty) {
+           Placemark place = placemarks[0];
+           String address = '';
 
-          if (place.street != null && place.street!.isNotEmpty) {
-            address += '${place.street}, ';
-          }
-          if (place.subLocality != null && place.subLocality!.isNotEmpty) {
-            address += '${place.subLocality}, ';
-          }
-          if (place.locality != null && place.locality!.isNotEmpty) {
-            address += '${place.locality}, ';
-          }
-          if (place.postalCode != null && place.postalCode!.isNotEmpty) {
-            address += '${place.postalCode}';
-          }
+           if (place.street != null && place.street!.isNotEmpty) {
+             address += '${place.street}, ';
+           }
+           if (place.subLocality != null && place.subLocality!.isNotEmpty) {
+             address += '${place.subLocality}, ';
+           }
+           if (place.locality != null && place.locality!.isNotEmpty) {
+             address += '${place.locality}, ';
+           }
+           if (place.postalCode != null && place.postalCode!.isNotEmpty) {
+             address += '${place.postalCode}';
+           }
 
-          _addressController.text = address;
-        }
-      } catch (e) {
-        print('Error getting address: $e');
-      }
+           _addressController.text = address;
+         }
+       } catch (e) {
+         print('Error getting address: $e');
+       }
 
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Location fetched successfully')),
-        );
-      }
-    } catch (e) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Error getting location: $e')),
-        );
-      }
-    } finally {
-      setState(() {
-        _isLoadingLocation = false;
-      });
-    }
-  }
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Location fetched successfully')),
+         );
+       }
+     } catch (e) {
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           SnackBar(content: Text('Error getting location: $e')),
+         );
+       }
+     } finally {
+       setState(() {
+         _isLoadingLocation = false;
+       });
+     }
+   }
+
+   Future<void> _openLocationPicker() async {
+     final result = await Navigator.of(context).push<LocationResult>(
+       MaterialPageRoute(
+         builder: (context) => LocationPickerScreen(
+           initialLatitude: _latitude,
+           initialLongitude: _longitude,
+           initialAddress: _addressController.text,
+         ),
+       ),
+     );
+
+     if (result != null) {
+       setState(() {
+         _latitude = result.latitude;
+         _longitude = result.longitude;
+         _addressController.text = result.address;
+       });
+       if (mounted) {
+         ScaffoldMessenger.of(context).showSnackBar(
+           const SnackBar(content: Text('Location selected successfully')),
+         );
+       }
+     }
+   }
 
   Future<void> _submitRegistration() async {
     if (!_formKey.currentState!.validate()) {
@@ -489,45 +515,70 @@ class _SignupScreenState extends State<SignupScreen> {
                   ),
                   const SizedBox(height: AppTheme.space16),
 
-                  // Address field (optional)
-                  TextFormField(
-                    controller: _addressController,
-                    decoration: InputDecoration(
-                      labelText: 'Delivery Address (Optional)',
-                      prefixIcon: const Icon(Icons.location_on),
-                      border: OutlineInputBorder(
-                        borderRadius: BorderRadius.circular(DairyRadius.md),
-                      ),
-                      hintText: 'Enter your address',
-                      suffixIcon: IconButton(
-                        icon: _isLoadingLocation
-                            ? const SizedBox(
-                                width: 20,
-                                height: 20,
-                                child: CircularProgressIndicator(strokeWidth: 2),
-                              )
-                            : const Icon(Icons.my_location),
-                        onPressed: _isLoadingLocation ? null : _getCurrentLocation,
-                        tooltip: 'Use current location',
-                      ),
-                    ),
-                    maxLines: 2,
-                  ),
-                  const SizedBox(height: AppTheme.space8),
+                   // Address field (optional)
+                   TextFormField(
+                     controller: _addressController,
+                     decoration: InputDecoration(
+                       labelText: 'Delivery Address (Optional)',
+                       prefixIcon: const Icon(Icons.location_on),
+                       border: OutlineInputBorder(
+                         borderRadius: BorderRadius.circular(DairyRadius.md),
+                       ),
+                       hintText: 'Enter your address',
+                     ),
+                     maxLines: 2,
+                   ),
+                   const SizedBox(height: AppTheme.space12),
 
-                  // Location help text
-                  Row(
-                    children: [
-                      Icon(Icons.info_outline, size: 16, color: DairyColorsLight.textTertiary),
-                      const SizedBox(width: DairySpacing.xs),
-                      Expanded(
-                        child: Text(
-                          'Tap the location icon to auto-fill your current address',
-                          style: DairyTypography.caption(),
-                        ),
-                      ),
-                    ],
-                  ),
+                   // Location buttons
+                   Row(
+                     children: [
+                       Expanded(
+                         child: OutlinedButton.icon(
+                           onPressed: _isLoadingLocation ? null : _getCurrentLocation,
+                           icon: _isLoadingLocation
+                               ? const SizedBox(
+                                   width: 16,
+                                   height: 16,
+                                   child: CircularProgressIndicator(
+                                     strokeWidth: 2,
+                                   ),
+                                 )
+                               : const Icon(Icons.my_location),
+                           label: const Text('Current Location'),
+                           style: OutlinedButton.styleFrom(
+                             padding: const EdgeInsets.symmetric(vertical: 12),
+                           ),
+                         ),
+                       ),
+                       const SizedBox(width: AppTheme.space8),
+                       Expanded(
+                         child: OutlinedButton.icon(
+                           onPressed: _openLocationPicker,
+                           icon: const Icon(Icons.map),
+                           label: const Text('Choose on Map'),
+                           style: OutlinedButton.styleFrom(
+                             padding: const EdgeInsets.symmetric(vertical: 12),
+                           ),
+                         ),
+                       ),
+                     ],
+                   ),
+                   const SizedBox(height: AppTheme.space8),
+
+                   // Location help text
+                   Row(
+                     children: [
+                       Icon(Icons.info_outline, size: 16, color: DairyColorsLight.textTertiary),
+                       const SizedBox(width: DairySpacing.xs),
+                       Expanded(
+                         child: Text(
+                           'Tap buttons above to set address',
+                           style: DairyTypography.caption(),
+                         ),
+                       ),
+                     ],
+                   ),
                   const SizedBox(height: AppTheme.space32),
 
                   // Submit button
